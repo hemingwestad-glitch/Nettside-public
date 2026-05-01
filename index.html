@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Heming Westad — Flyingeniør & byggeprosjekter</title>
+<meta name="description" content="Heming Westad — flyingeniørstudent ved NTNU, programdirektør i Orbit NTNU. Pågående prosjekter innen romfart, radio, jakt og fiske.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,600;9..144,800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0e1014;
+    --bg-soft: #161a21;
+    --fg: #e8e6df;
+    --fg-dim: #8a8c87;
+    --accent: #d97843;
+    --accent-soft: #f0a878;
+    --line: #2a2e36;
+    --grid: rgba(255, 255, 255, 0.025);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--fg);
+    font-family: 'Fraunces', Georgia, serif;
+    font-weight: 400;
+    line-height: 1.5;
+    min-height: 100vh;
+    background-image:
+      linear-gradient(var(--grid) 1px, transparent 1px),
+      linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+    background-size: 60px 60px;
+    overflow-x: hidden;
+  }
+
+  .mono { font-family: 'JetBrains Mono', monospace; font-size: 0.78rem; letter-spacing: 0.05em; }
+
+  /* TOPPBAR */
+  header {
+    padding: 1.5rem 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid var(--line);
+    background: rgba(14, 16, 20, 0.85);
+    backdrop-filter: blur(8px);
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+
+  .logo {
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 700;
+    font-size: 0.9rem;
+    letter-spacing: 0.1em;
+    color: var(--fg);
+  }
+  .logo .dot { color: var(--accent); }
+
+  nav ul { list-style: none; display: flex; gap: 2rem; }
+  nav a {
+    color: var(--fg-dim);
+    text-decoration: none;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.8rem;
+    letter-spacing: 0.05em;
+    transition: color 0.2s;
+  }
+  nav a:hover { color: var(--accent); }
+
+  /* HERO */
+  .hero {
+    padding: 6rem 2rem 4rem;
+    max-width: 1200px;
+    margin: 0 auto;
+    position: relative;
+  }
+
+  .coords {
+    color: var(--fg-dim);
+    margin-bottom: 2rem;
+    display: flex;
+    gap: 2rem;
+    flex-wrap: wrap;
+  }
+  .coords span::before {
+    content: "▸ ";
+    color: var(--accent);
+  }
+
+  h1 {
+    font-family: 'Fraunces', serif;
+    font-size: clamp(2.5rem, 7vw, 5.5rem);
+    font-weight: 300;
+    line-height: 1.05;
+    letter-spacing: -0.02em;
+    margin-bottom: 2rem;
+  }
+  h1 em {
+    font-style: italic;
+    color: var(--accent-soft);
+    font-weight: 400;
+  }
+
+  .lede {
+    font-size: 1.15rem;
+    color: var(--fg-dim);
+    max-width: 620px;
+    margin-bottom: 3rem;
+    line-height: 1.6;
+  }
+  .lede strong { color: var(--fg); font-weight: 400; }
+
+  /* PROSJEKTER */
+  .projects-section {
+    padding: 4rem 2rem;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  .section-header {
+    display: flex;
+    align-items: baseline;
+    gap: 1.5rem;
+    margin-bottom: 3rem;
+    border-bottom: 1px solid var(--line);
+    padding-bottom: 1rem;
+  }
+  .section-header h2 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+  }
+  .section-header .count {
+    color: var(--fg-dim);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.8rem;
+  }
+
+  .project-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 1px;
+    background: var(--line);
+    border: 1px solid var(--line);
+  }
+
+  .project {
+    background: var(--bg);
+    padding: 2rem;
+    transition: background 0.3s;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    min-height: 280px;
+  }
+  .project:hover { background: var(--bg-soft); }
+
+  .project-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 1.5rem;
+  }
+
+  .project-id {
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--fg-dim);
+    font-size: 0.75rem;
+    letter-spacing: 0.1em;
+  }
+
+  .status {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.1em;
+    padding: 0.25rem 0.6rem;
+    border: 1px solid var(--line);
+    color: var(--fg-dim);
+  }
+  .status.planned { border-color: var(--line); }
+  .status.live { border-color: var(--accent); color: var(--accent); }
+  .status.live::before { content: "● "; }
+  .status.wip { border-color: var(--accent-soft); color: var(--accent-soft); }
+
+  .project h3 {
+    font-family: 'Fraunces', serif;
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    letter-spacing: -0.01em;
+  }
+  .project h3 em { font-style: italic; color: var(--accent-soft); font-weight: 500; }
+
+  .project p {
+    color: var(--fg-dim);
+    font-size: 0.95rem;
+    line-height: 1.55;
+    margin-bottom: auto;
+  }
+
+  .project-tags {
+    margin-top: 1.5rem;
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+  }
+  .tag {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    color: var(--fg-dim);
+    padding: 0.2rem 0.5rem;
+    background: var(--bg-soft);
+  }
+
+  /* OM */
+  .about-section {
+    padding: 5rem 2rem;
+    max-width: 1200px;
+    margin: 0 auto;
+    border-top: 1px solid var(--line);
+  }
+
+  .about-grid {
+    display: grid;
+    grid-template-columns: 1fr 2fr;
+    gap: 4rem;
+  }
+
+  .about-grid h2 {
+    font-size: 2rem;
+    font-weight: 300;
+    letter-spacing: -0.02em;
+  }
+
+  .about-grid p {
+    color: var(--fg);
+    font-size: 1.05rem;
+    line-height: 1.7;
+    margin-bottom: 1.2rem;
+  }
+  .about-grid p:last-child { color: var(--fg-dim); }
+
+  /* FOOTER */
+  footer {
+    padding: 3rem 2rem 2rem;
+    border-top: 1px solid var(--line);
+    color: var(--fg-dim);
+  }
+  .footer-content {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+  footer a { color: var(--accent); text-decoration: none; }
+  footer a:hover { text-decoration: underline; }
+
+  @media (max-width: 700px) {
+    nav ul { gap: 1rem; }
+    .about-grid { grid-template-columns: 1fr; gap: 1.5rem; }
+    .hero { padding: 4rem 1.5rem 2rem; }
+    .projects-section, .about-section { padding: 3rem 1.5rem; }
+  }
+
+  /* Subtle entry animation */
+  .fade-up {
+    opacity: 0;
+    transform: translateY(20px);
+    animation: fadeUp 0.8s ease forwards;
+  }
+  .fade-up:nth-child(2) { animation-delay: 0.1s; }
+  .fade-up:nth-child(3) { animation-delay: 0.2s; }
+  .fade-up:nth-child(4) { animation-delay: 0.3s; }
+
+  @keyframes fadeUp {
+    to { opacity: 1; transform: translateY(0); }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">HW<span class="dot">.</span></div>
+  <nav>
+    <ul>
+      <li><a href="#projects">prosjekter</a></li>
+      <li><a href="#about">om</a></li>
+      <li><a href="mailto:heming@hemingwestad.no">kontakt</a></li>
+    </ul>
+  </nav>
+</header>
+
+<section class="hero">
+  <div class="coords mono fade-up">
+    <span>63.4305° N, 10.3951° E</span>
+    <span>NTNU TRONDHEIM</span>
+    <span>EST. 2026</span>
+  </div>
+  <h1 class="fade-up">Heming Westad —<br>flyingeniør, <em>byggeren</em>,<br>jeger.</h1>
+  <p class="lede fade-up">
+    Student ved NTNU, programdirektør i <strong>Orbit NTNU</strong>.
+    Bygger satellitter, mottar signaler, jakter elg, fisker fjellørret.
+    Denne siden er en arbeidsbenk — prosjekter publiseres etter hvert som de blir ferdige.
+  </p>
+</section>
+
+<section class="projects-section" id="projects">
+  <div class="section-header">
+    <h2>Pågående prosjekter</h2>
+    <span class="count mono">[ 04 ]</span>
+  </div>
+
+  <div class="project-grid">
+
+    <div class="project">
+      <div class="project-header">
+        <span class="project-id">PRJ_01</span>
+        <span class="status wip">UNDER ARBEID</span>
+      </div>
+      <h3>ADS-B <em>flightradar</em></h3>
+      <p>Egen mottakerstasjon for ADS-B-signaler på 1090 MHz. Pi 4 + RTL-SDR + dipol. Live-kart over fly i luftrommet over Trondheim.</p>
+      <div class="project-tags">
+        <span class="tag">RTL-SDR</span>
+        <span class="tag">Pi</span>
+        <span class="tag">dump1090</span>
+      </div>
+    </div>
+
+    <div class="project">
+      <div class="project-header">
+        <span class="project-id">PRJ_02</span>
+        <span class="status planned">PLANLAGT</span>
+      </div>
+      <h3>Satellittpeker &amp; <em>waterfall</em></h3>
+      <p>Nettside som henter TLE-data, beregner passes for valgt antenne, og viser sanntids waterfall fra SDR-mottak. Inkluderer Orbit NTNU sine satellitter.</p>
+      <div class="project-tags">
+        <span class="tag">skyfield</span>
+        <span class="tag">GNU Radio</span>
+        <span class="tag">WebSocket</span>
+      </div>
+    </div>
+
+    <div class="project">
+      <div class="project-header">
+        <span class="project-id">PRJ_03</span>
+        <span class="status planned">PLANLAGT</span>
+      </div>
+      <h3>CubeSat <em>budget tools</em></h3>
+      <p>Verktøy for link budget, power budget, orbit-prediksjon og strålingsestimat. Bygget for Orbit NTNU sin PMO, åpent for andre teams.</p>
+      <div class="project-tags">
+        <span class="tag">Python</span>
+        <span class="tag">Streamlit</span>
+        <span class="tag">sgp4</span>
+      </div>
+    </div>
+
+    <div class="project">
+      <div class="project-header">
+        <span class="project-id">PRJ_04</span>
+        <span class="status planned">PLANLAGT</span>
+      </div>
+      <h3>Fiske- &amp; <em>jaktlogg</em></h3>
+      <p>Personlig logg for fjellørret og elgjakt. GPS, vær, vanntemp, fluevalg, fangstdata. Egne data over tid &gt; tilfeldige apper.</p>
+      <div class="project-tags">
+        <span class="tag">SQLite</span>
+        <span class="tag">FastAPI</span>
+        <span class="tag">Leaflet</span>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<section class="about-section" id="about">
+  <div class="about-grid">
+    <h2>Om</h2>
+    <div>
+      <p>Studerer flyingeniør ved NTNU — en blanding av maskinteknikk og kybernetikk rettet mot flysystemer. Programdirektør i <strong>Orbit NTNU</strong>, hvor jeg holder PMO-en samlet, fordeler ressurser og snakker med sponsorer.</p>
+      <p>På fritiden er det elgjakt om høsten, fjellørret med fluestang om sommeren, og 3D-printer + loddebolt resten av året. Akkurat nå utforsker jeg software-defined radio og bygger en ground station hjemmefra.</p>
+      <p>Denne siden samler det jeg lager. Mest for meg selv, men også fordi det er finere enn å ha alt liggende på en harddisk.</p>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="footer-content">
+    <span class="mono">© 2026 — HEMING WESTAD</span>
+    <span class="mono">BUILT IN TRONDHEIM</span>
+  </div>
+</footer>
+
+</body>
+</html>
