@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ADS-B Flightradar — Heming Westad</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..800;1,9..144,300..800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/style.css">
+</head>
+<body>
+
+<header>
+  <div class="logo"><a href="/">HW<span class="dot">.</span></a></div>
+  <nav>
+    <ul>
+      <li><a href="/">heim</a></li>
+      <li><a href="/projects.html" class="current">prosjekter</a></li>
+      <li><a href="/now.html">nå</a></li>
+      <li><a href="/uses.html">utstyr</a></li>
+      <li><a href="/about.html">om</a></li>
+    </ul>
+  </nav>
+</header>
+
+<main>
+
+  <div class="page-meta mono fade-up">
+    <span>PRJ_01</span>
+    <span>STATUS: UNDER ARBEID</span>
+    <span>STARTET 2026</span>
+  </div>
+
+  <h1 class="fade-up">ADS-B <em>flightradar</em>.</h1>
+
+  <p class="lede fade-up">
+    En personlig mottakerstasjon for ADS-B-signaler &mdash; transponderdata
+    sendt ut av fly på 1090 MHz. Målet er en lokal flightradar over Trondheim
+    som kjører på en Raspberry Pi i bokhylla.
+  </p>
+
+  <h2>Bakgrunn</h2>
+  <p>
+    Alle moderne fly sender kontinuerlig ut posisjon, høyde, hastighet og
+    flight-ID på en åpen radiokanal. Med en SDR til 300 kr og en passende
+    antenne kan man motta dette og lage sin egen versjon av FlightRadar24.
+    Som flyingeniørstudent føles det riktig å starte her.
+  </p>
+
+  <h2>Plan</h2>
+  <ul>
+    <li>RTL-SDR Blog v4 + medfølgende dipol som førstegangs-oppsett.</li>
+    <li>Raspberry Pi 4 som mottaker, kjører <code>dump1090-fa</code> fra FlightAware.</li>
+    <li>Webgrensesnitt med kart over fly innen rekkevidde.</li>
+    <li>Logging til SQLite for å se trafikkmønster over tid.</li>
+    <li>Eventuelt en bedre antenne &mdash; kollineær eller dedikert 1090 MHz.</li>
+    <li>Integrasjon med <code>hemingwestad.no/adsb</code> via Cloudflare Tunnel.</li>
+  </ul>
+
+  <h2>Lærepunkter underveis</h2>
+  <ul>
+    <li>Hvordan SDR-er faktisk fungerer.</li>
+    <li>Mode-S / ADS-B protokollen (et godt eksempel på ekte luftfartskommunikasjon).</li>
+    <li>Linux-drift på Pi &mdash; tjenester, autostart, logging.</li>
+    <li>Hvordan eksponere en intern tjeneste trygt på et offentlig domene.</li>
+  </ul>
+
+  <h2>Status akkurat nå</h2>
+  <pre class="ascii">
+[█░░░░░░░░░░░░░░░░░░░] 5% — venter på maskinvare
+  </pre>
+  <p style="color: var(--fg-dim);">
+    SDR er bestilt. Pi er ikke kjøpt enda. Skal komme tilbake hit med
+    oppdateringer etter hvert som ting tar form.
+  </p>
+
+  <hr>
+
+  <p style="color: var(--fg-dim); font-size: 0.9rem;">
+    &larr; <a href="/projects.html">Tilbake til prosjekter</a>
+  </p>
+
+</main>
+
+<footer>
+  <div class="footer-content">
+    <div>© 2026 — HEMING WESTAD</div>
+    <div>BUILT IN TRONDHEIM · <a href="https://github.com/hemingwestad-glitch/Nettside-public">SOURCE</a></div>
+  </div>
+</footer>
+
+</body>
+</html>

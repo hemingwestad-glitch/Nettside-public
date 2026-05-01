@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Satellittpeker — Heming Westad</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..800;1,9..144,300..800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/style.css">
+</head>
+<body>
+
+<header>
+  <div class="logo"><a href="/">HW<span class="dot">.</span></a></div>
+  <nav>
+    <ul>
+      <li><a href="/">heim</a></li>
+      <li><a href="/projects.html" class="current">prosjekter</a></li>
+      <li><a href="/now.html">nå</a></li>
+      <li><a href="/uses.html">utstyr</a></li>
+      <li><a href="/about.html">om</a></li>
+    </ul>
+  </nav>
+</header>
+
+<main>
+
+  <div class="page-meta mono fade-up">
+    <span>PRJ_02</span>
+    <span>STATUS: PLANLAGT</span>
+  </div>
+
+  <h1 class="fade-up">Satellitt<em>peker</em>.</h1>
+
+  <p class="lede fade-up">
+    Et nettsted som henter TLE-data, beregner satellittpasses for min lokasjon,
+    forteller når og hvor jeg skal peke antenna mi, og viser et sanntids
+    waterfall-plot av signalet jeg fanger opp.
+  </p>
+
+  <h2>Hva det egentlig handler om</h2>
+  <p>
+    Satellitter er ikke noe mystisk &mdash; de følger forutsigbare baner og sender
+    signaler vi kan motta med utstyr som koster mindre enn en månedsleie.
+    Problemet er at det krever en del manuell konfigurasjon for hver pass:
+    finne riktig TLE, peke riktig vei, justere for doppler. Jeg vil ha alt
+    samlet ett sted.
+  </p>
+
+  <h2>Plan</h2>
+  <ul>
+    <li>Hente TLE fra <a href="https://celestrak.org" target="_blank">CelesTrak</a> for valgte satellitter.</li>
+    <li>Beregne pass-prediksjon med <code>skyfield</code> for min posisjon.</li>
+    <li>Visualisere bane på kart og azimuth/elevasjon i polarprojeksjon.</li>
+    <li>Ta inn antennens beam-pattern for å vurdere om en pass er mottakbar.</li>
+    <li>Sanntids waterfall fra SDR-en streamet over WebSocket.</li>
+    <li>Egen modul for Orbit NTNU sine satellitter når de er i bane.</li>
+  </ul>
+
+  <h2>Hvorfor</h2>
+  <ul>
+    <li>Lærer satellittmekanikk skikkelig &mdash; ikke bare i teori.</li>
+    <li>Bygger noe som er <em>nyttig</em> for andre i Orbit også.</li>
+    <li>Får stresstestet en hel kjede: TLE &rarr; prediksjon &rarr; SDR &rarr; web.</li>
+  </ul>
+
+  <h2>Status akkurat nå</h2>
+  <pre class="ascii">
+[░░░░░░░░░░░░░░░░░░░░] 0% — venter på SDR + ADS-B-prosjekt først
+  </pre>
+  <p style="color: var(--fg-dim);">
+    Skal sannsynligvis bygges i etterkant av ADS-B-prosjektet. Da har jeg
+    allerede en Pi som kjører og et SDR-oppsett som funker.
+  </p>
+
+  <hr>
+
+  <p style="color: var(--fg-dim); font-size: 0.9rem;">
+    &larr; <a href="/projects.html">Tilbake til prosjekter</a>
+  </p>
+
+</main>
+
+<footer>
+  <div class="footer-content">
+    <div>© 2026 — HEMING WESTAD</div>
+    <div>BUILT IN TRONDHEIM · <a href="https://github.com/hemingwestad-glitch/Nettside-public">SOURCE</a></div>
+  </div>
+</footer>
+
+</body>
+</html>

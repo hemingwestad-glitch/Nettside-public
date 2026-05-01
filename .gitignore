@@ -1,6 +1,26 @@
+<<<<<<< HEAD
 # wrangler files
 .wrangler
 .dev.vars*
 !.dev.vars.example
 .env*
 !.env.example
+=======
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Logs
+*.log
+
+# Lokale filer
+.env
+.env.local
+>>>>>>> 6165646 (bygger ut nettsiden med flere sider)

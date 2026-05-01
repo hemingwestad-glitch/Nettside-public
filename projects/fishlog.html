@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fiske- og jaktlogg — Heming Westad</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..800;1,9..144,300..800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/style.css">
+</head>
+<body>
+
+<header>
+  <div class="logo"><a href="/">HW<span class="dot">.</span></a></div>
+  <nav>
+    <ul>
+      <li><a href="/">heim</a></li>
+      <li><a href="/projects.html" class="current">prosjekter</a></li>
+      <li><a href="/now.html">nå</a></li>
+      <li><a href="/uses.html">utstyr</a></li>
+      <li><a href="/about.html">om</a></li>
+    </ul>
+  </nav>
+</header>
+
+<main>
+
+  <div class="page-meta mono fade-up">
+    <span>PRJ_04</span>
+    <span>STATUS: PLANLAGT</span>
+  </div>
+
+  <h1 class="fade-up">Fiske- &amp; <em>jaktlogg</em>.</h1>
+
+  <p class="lede fade-up">
+    En personlig logg over fangst, ikke en kommersiell app. Mine vann,
+    mine turer, mine data. Over tid bygger det seg opp et bilde av hva
+    som faktisk fungerer hvor og når.
+  </p>
+
+  <h2>Hvorfor ikke bare bruke FishBuddy / Fishbrain?</h2>
+  <p>
+    Kommersielle apper er bygget for masseappell og flotte bilder.
+    De skjuler dine egne data bak abonnementer, deler dataene videre,
+    og forsvinner hvis selskapet legges ned. Mine egne data hører hjemme
+    i en database jeg eier &mdash; det er det dette prosjektet handler om.
+  </p>
+
+  <h2>Hva som skal være med</h2>
+  <ul>
+    <li>Tur-logg: dato, sted, varighet, vær, vanntemp.</li>
+    <li>Fangst-logg: art, lengde, vekt, slipt eller tatt med.</li>
+    <li>Fluevalg / agnvalg, evt. hvilken sluk fungerte best.</li>
+    <li>GPS-spor over tid &mdash; hvilke vann, hvilke punkter.</li>
+    <li>For jakt: dato, område, trekkretning, vind, observasjoner, skudd.</li>
+  </ul>
+
+  <h2>Hva som ikke er målet</h2>
+  <ul>
+    <li>Ikke en sosial app. Ingen feed, ingen likes.</li>
+    <li>Ikke konkurranse om "beste fangst".</li>
+    <li>Ikke offentlig synlig &mdash; mine punkter er <em>mine</em> punkter.</li>
+  </ul>
+
+  <h2>Teknisk</h2>
+  <ul>
+    <li>FastAPI som backend, SQLite som database.</li>
+    <li>Leaflet for kart med åpne data fra Kartverket.</li>
+    <li>NVE sine åpne API for vannføring og temperaturer hvor tilgjengelig.</li>
+    <li>Eventuelt en mobilvennlig progressive web app, men minimalistisk.</li>
+  </ul>
+
+  <h2>Status akkurat nå</h2>
+  <pre class="ascii">
+[░░░░░░░░░░░░░░░░░░░░] 0% — kun ide
+  </pre>
+
+  <hr>
+
+  <p style="color: var(--fg-dim); font-size: 0.9rem;">
+    &larr; <a href="/projects.html">Tilbake til prosjekter</a>
+  </p>
+
+</main>
+
+<footer>
+  <div class="footer-content">
+    <div>© 2026 — HEMING WESTAD</div>
+    <div>BUILT IN TRONDHEIM · <a href="https://github.com/hemingwestad-glitch/Nettside-public">SOURCE</a></div>
+  </div>
+</footer>
+
+</body>
+</html>

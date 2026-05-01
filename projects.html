@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Heming Westad</title>
-<meta name="description" content="Personlig nettside til Heming Westad. Flyingeniørstudent ved NTNU. Notater, prosjekter og utstyr.">
+<title>Prosjekter — Heming Westad</title>
+<meta name="description" content="Oversikt over pågående og planlagte prosjekter.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..800;1,9..144,300..800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
@@ -16,8 +16,8 @@
   <div class="logo"><a href="/">HW<span class="dot">.</span></a></div>
   <nav>
     <ul>
-      <li><a href="/" class="current">heim</a></li>
-      <li><a href="/projects.html">prosjekter</a></li>
+      <li><a href="/">heim</a></li>
+      <li><a href="/projects.html" class="current">prosjekter</a></li>
       <li><a href="/now.html">nå</a></li>
       <li><a href="/uses.html">utstyr</a></li>
       <li><a href="/about.html">om</a></li>
@@ -28,26 +28,19 @@
 <main>
 
   <div class="page-meta mono fade-up">
-    <span>63.4305° N, 10.3951° E</span>
-    <span>TRONDHEIM</span>
-    <span>SIST OPPDATERT 2026-05-01</span>
+    <span>INDEX / PROSJEKTER</span>
+    <span>04 AKTIVE</span>
+    <span>02 PÅ HYLLA</span>
   </div>
 
-  <h1 class="fade-up">Hei, jeg heter <em>Heming</em>.</h1>
+  <h1 class="fade-up">Prosjekter.</h1>
 
   <p class="lede fade-up">
-    Jeg studerer flyingeniør ved NTNU og er programdirektør i Orbit NTNU,
-    studentorganisasjonen som bygger små satellitter. Denne siden er en arbeidsbenk —
-    et sted å samle ting jeg holder på med.
+    Ting jeg har bygget eller bygger på. Mest hobby, noen for studier, noen for Orbit.
+    De fleste er underveis &mdash; sjelden ferdige.
   </p>
 
-  <p class="fade-up">
-    Det meste her er halvferdig. Jeg liker å tukle med kode, lodde sammen ting,
-    og lese meg opp på radio og romfartsteknikk. Når jeg ikke gjør det, er jeg gjerne
-    på elgjakt eller fisker fjellørret.
-  </p>
-
-  <h2 class="section-header">Pågående prosjekter <span class="count mono">[ 04 ]</span></h2>
+  <h2 class="section-header">Aktive <span class="count mono">[ 04 ]</span></h2>
 
   <div class="project-grid">
 
@@ -71,7 +64,7 @@
         <span class="status planned">PLANLAGT</span>
       </div>
       <h3>Satellittpeker</h3>
-      <p>Nettside som henter TLE, beregner passes for valgt antenne, og viser sanntids waterfall. Inkluderer Orbit-satellittene.</p>
+      <p>TLE-henting, pass-prediksjon og waterfall i nettleseren. Skal også støtte Orbit sine satellitter når de er i bane.</p>
       <div class="project-tags">
         <span class="tag">skyfield</span>
         <span class="tag">GNU Radio</span>
@@ -85,7 +78,7 @@
         <span class="status planned">PLANLAGT</span>
       </div>
       <h3>CubeSat <em>budget tools</em></h3>
-      <p>Verktøykasse for link budget, power budget, orbit-prediksjon og strålingsestimat. Bygget for Orbit, åpent for andre.</p>
+      <p>Link budget, power budget, orbit-prediksjon og strålingsestimat samlet i ett verktøy. PMO-bruk for Orbit.</p>
       <div class="project-tags">
         <span class="tag">python</span>
         <span class="tag">streamlit</span>
@@ -99,7 +92,7 @@
         <span class="status planned">PLANLAGT</span>
       </div>
       <h3>Fiske- &amp; <em>jaktlogg</em></h3>
-      <p>Personlig logg for fjellørret og elgjakt. GPS, vær, vanntemp, fluevalg. Egne data over tid &gt; tilfeldige apper.</p>
+      <p>Personlig logg for fangst, vær, lokasjon, fluevalg. Bygger over tid en ekte database for mine egne vann.</p>
       <div class="project-tags">
         <span class="tag">sqlite</span>
         <span class="tag">fastapi</span>
@@ -109,26 +102,50 @@
 
   </div>
 
-  <p style="margin-top: 1.5rem; color: var(--fg-dim); font-size: 0.9rem;">
-    Se <a href="/projects.html">full prosjektliste</a> eller <a href="/now.html">hva som skjer akkurat nå</a>.
+  <h2 class="section-header">På hylla <span class="count mono">[ 02 ]</span></h2>
+
+  <p style="color: var(--fg-dim); font-size: 0.95rem;">
+    Ideer som er parkert &mdash; ikke døde, men ikke prioritert nå.
   </p>
 
-  <h2 class="section-header">Andre steder <span class="count mono">[ kontakt ]</span></h2>
+  <div class="project-grid">
 
-  <div class="uses-table">
-    <div class="row">
-      <div class="label">github</div>
-      <div class="value"><a href="https://github.com/hemingwestad-glitch" target="_blank">hemingwestad-glitch</a></div>
+    <div class="project">
+      <div class="project-header">
+        <span class="project-id">PRJ_05</span>
+        <span class="status shelved">PÅ HYLLA</span>
+      </div>
+      <h3>Viltkamera <em>med ML</em></h3>
+      <p>Pi + kamera + bevegelsessensor som klassifiserer dyr automatisk. Tester YOLO på elg, rådyr, rev. Krever litt mer 3D-printing først.</p>
+      <div class="project-tags">
+        <span class="tag">raspberry pi</span>
+        <span class="tag">YOLO</span>
+        <span class="tag">3d-print</span>
+      </div>
     </div>
-    <div class="row">
-      <div class="label">e-post</div>
-      <div class="value"><a href="mailto:heming@hemingwestad.no">heming@hemingwestad.no</a></div>
+
+    <div class="project">
+      <div class="project-header">
+        <span class="project-id">PRJ_06</span>
+        <span class="status shelved">PÅ HYLLA</span>
+      </div>
+      <h3>Vær- &amp; <em>luftstasjon</em></h3>
+      <p>Egen liten værstasjon med BMP280, DHT22, partikkelsensor. Logger til hemingwestad.no, sammenligner med yr.no over tid.</p>
+      <div class="project-tags">
+        <span class="tag">arduino</span>
+        <span class="tag">influxdb</span>
+        <span class="tag">grafana</span>
+      </div>
     </div>
-    <div class="row">
-      <div class="label">orbit ntnu</div>
-      <div class="value"><a href="https://www.orbitntnu.com" target="_blank">orbitntnu.com</a></div>
-    </div>
+
   </div>
+
+  <hr>
+
+  <p style="color: var(--fg-dim); font-size: 0.92rem;">
+    Tips til prosjekter eller spørsmål om noe? Send meg en e-post på
+    <a href="mailto:heming@hemingwestad.no">heming@hemingwestad.no</a>.
+  </p>
 
 </main>
 
