@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Konverterer — Heming Westad</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..800;1,9..144,300..800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/style.css">
+</head>
+<body>
+
+<header>
+  <div class="logo"><a href="/">HW<span class="dot">.</span></a></div>
+  <nav>
+    <ul>
+      <li><a href="/">heim</a></li>
+      <li><a href="/tools.html" class="current">verktøy</a></li>
+      <li><a href="/projects.html">prosjekter</a></li>
+      <li><a href="/now.html">nå</a></li>
+      <li><a href="/about.html">om</a></li>
+    </ul>
+  </nav>
+</header>
+
+<main>
+
+  <div class="page-meta mono fade-up">
+    <span>VERKTØY / REFERANSE</span>
+    <span>QUICK LOOKUP</span>
+  </div>
+
+  <h1 class="fade-up">Konverter<em>er</em>.</h1>
+
+  <p class="lede fade-up">
+    Småsaker du nikker etter når du jobber. Bare skriv i et felt, så regnes
+    resten ut automatisk.
+  </p>
+
+  <h2 class="section-header">Frekvens ↔ bølgelengde <span class="count mono">[ radio ]</span></h2>
+
+  <div class="card">
+    <div class="field-row">
+      <div class="field">
+        <label>Frekvens</label>
+        <input type="number" id="freqVal" value="437.5" step="0.1">
+      </div>
+      <div class="field">
+        <label>Enhet</label>
+        <select id="freqUnit">
+          <option value="1">Hz</option>
+          <option value="1000">kHz</option>
+          <option value="1000000" selected>MHz</option>
+          <option value="1000000000">GHz</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="field-row">
+      <div class="field">
+        <label>Bølgelengde (λ)</label>
+        <input type="number" id="waveVal" step="0.0001">
+      </div>
+      <div class="field">
+        <label>Enhet</label>
+        <select id="waveUnit">
+          <option value="0.001">mm</option>
+          <option value="0.01">cm</option>
+          <option value="1" selected>m</option>
+          <option value="1000">km</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="field-row-3">
+      <div class="field">
+        <label>λ/2</label>
+        <input type="text" id="halfWave" readonly>
+      </div>
+      <div class="field">
+        <label>λ/4</label>
+        <input type="text" id="quartWave" readonly>
+      </div>
+      <div class="field">
+        <label>5/8 λ</label>
+        <input type="text" id="fiveEighths" readonly>
+      </div>
+    </div>
+
+    <div class="field-hint">Antar utbredelse i vakuum (c = 299 792 458 m/s). I kabel multipliser med velocity factor.</div>
+  </div>
+
+  <h2 class="section-header">dB / dBm / mW <span class="count mono">[ effekt ]</span></h2>
+
+  <div class="card">
+    <div class="field-row-3">
+      <div class="field">
+        <label>Effekt (W)</label>
+        <input type="number" id="powerW" value="2" step="0.1">
+      </div>
+      <div class="field">
+        <label>Effekt (mW)</label>
+        <input type="number" id="powerMw" step="1">
+      </div>
+      <div class="field">
+        <label>dBm</label>
+        <input type="number" id="powerDbm" step="0.1">
+      </div>
+    </div>
+    <div class="field-row">
+      <div class="field">
+        <label>dBW</label>
+        <input type="number" id="powerDbw" step="0.1">
+      </div>
+      <div class="field">
+        <label>Forhold (dB)</label>
+        <input type="number" id="ratioDb" value="3" step="0.1">
+      </div>
+    </div>
+    <div class="field">
+      <label>Forhold som faktor</label>
+      <input type="text" id="ratioFactor" readonly>
+      <div class="field-hint">3 dB = 2× effekt, 10 dB = 10×, 20 dB = 100× osv.</div>
+    </div>
+  </div>
+
+  <h2 class="section-header">Skytefakta <span class="count mono">[ jakt ]</span></h2>
+
+  <div class="card">
+    <div class="field-row-3">
+      <div class="field">
+        <label>m/s</label>
+        <input type="number" id="speedMs" value="800" step="1">
+      </div>
+      <div class="field">
+        <label>fps (feet/sec)</label>
+        <input type="number" id="speedFps" step="1">
+      </div>
+      <div class="field">
+        <label>km/h</label>
+        <input type="number" id="speedKmh" step="1">
+      </div>
+    </div>
+    <div class="field-row">
+      <div class="field">
+        <label>Kulevekt (g)</label>
+        <input type="number" id="weightG" value="11.66" step="0.01">
+      </div>
+      <div class="field">
+        <label>Kulevekt (gr / grain)</label>
+        <input type="number" id="weightGr" step="0.1">
+      </div>
+    </div>
+    <div class="field">
+      <label>Kinetisk energi (J)</label>
+      <input type="text" id="energyJ" readonly>
+      <div class="field-hint">For elgjakt anbefales typisk &gt;3000 J ved 100m. Norsk forskrift: minst 980 J ved 100m for elg/hjort.</div>
+    </div>
+  </div>
+
+  <h2 class="section-header">Lengde &amp; vinkel <span class="count mono">[ generelt ]</span></h2>
+
+  <div class="card">
+    <div class="field-row-3">
+      <div class="field">
+        <label>Meter</label>
+        <input type="number" id="lenM" value="100" step="1">
+      </div>
+      <div class="field">
+        <label>Yards</label>
+        <input type="number" id="lenYd" step="0.1">
+      </div>
+      <div class="field">
+        <label>Foot</label>
+        <input type="number" id="lenFt" step="0.1">
+      </div>
+    </div>
+    <div class="field-row-3">
+      <div class="field">
+        <label>Grader (°)</label>
+        <input type="number" id="angDeg" value="45" step="0.1">
+      </div>
+      <div class="field">
+        <label>Radianer</label>
+        <input type="number" id="angRad" step="0.001">
+      </div>
+      <div class="field">
+        <label>MOA</label>
+        <input type="number" id="angMoa" step="0.1">
+        <div class="field-hint">1 MOA ≈ 2.91 cm/100m</div>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<footer>
+  <div class="footer-content">
+    <div>© 2026 — HEMING WESTAD</div>
+    <div>BUILT IN TRONDHEIM · <a href="https://github.com/hemingwestad-glitch/Nettside-public">SOURCE</a></div>
+  </div>
+</footer>
+
+<script>
+const $ = (id) => document.getElementById(id);
+const c = 299792458;
+
+// ----- Frekvens / bølgelengde -----
+let updatingFreq = false;
+function updateFromFreq() {
+  if (updatingFreq) return;
+  updatingFreq = true;
+  const f_Hz = parseFloat($('freqVal').value) * parseFloat($('freqUnit').value);
+  if (f_Hz > 0) {
+    const lambda_m = c / f_Hz;
+    $('waveVal').value = (lambda_m / parseFloat($('waveUnit').value)).toPrecision(6);
+    $('halfWave').value = (lambda_m * 0.5 * 100).toFixed(2) + ' cm';
+    $('quartWave').value = (lambda_m * 0.25 * 100).toFixed(2) + ' cm';
+    $('fiveEighths').value = (lambda_m * 0.625 * 100).toFixed(2) + ' cm';
+  }
+  updatingFreq = false;
+}
+function updateFromWave() {
+  if (updatingFreq) return;
+  updatingFreq = true;
+  const lambda_m = parseFloat($('waveVal').value) * parseFloat($('waveUnit').value);
+  if (lambda_m > 0) {
+    const f_Hz = c / lambda_m;
+    $('freqVal').value = (f_Hz / parseFloat($('freqUnit').value)).toPrecision(6);
+    $('halfWave').value = (lambda_m * 0.5 * 100).toFixed(2) + ' cm';
+    $('quartWave').value = (lambda_m * 0.25 * 100).toFixed(2) + ' cm';
+    $('fiveEighths').value = (lambda_m * 0.625 * 100).toFixed(2) + ' cm';
+  }
+  updatingFreq = false;
+}
+['freqVal', 'freqUnit'].forEach(id => $(id).addEventListener('input', updateFromFreq));
+['waveVal', 'waveUnit'].forEach(id => $(id).addEventListener('input', updateFromWave));
+
+// ----- Effekt -----
+let updatingPower = false;
+function fromW() {
+  if (updatingPower) return;
+  updatingPower = true;
+  const w = parseFloat($('powerW').value);
+  if (w > 0) {
+    $('powerMw').value = (w * 1000).toPrecision(6);
+    $('powerDbm').value = (10 * Math.log10(w * 1000)).toFixed(2);
+    $('powerDbw').value = (10 * Math.log10(w)).toFixed(2);
+  }
+  updatingPower = false;
+}
+function fromMw() {
+  if (updatingPower) return;
+  updatingPower = true;
+  const mw = parseFloat($('powerMw').value);
+  if (mw > 0) {
+    $('powerW').value = (mw / 1000).toPrecision(6);
+    $('powerDbm').value = (10 * Math.log10(mw)).toFixed(2);
+    $('powerDbw').value = (10 * Math.log10(mw / 1000)).toFixed(2);
+  }
+  updatingPower = false;
+}
+function fromDbm() {
+  if (updatingPower) return;
+  updatingPower = true;
+  const dbm = parseFloat($('powerDbm').value);
+  const mw = Math.pow(10, dbm / 10);
+  $('powerW').value = (mw / 1000).toPrecision(6);
+  $('powerMw').value = mw.toPrecision(6);
+  $('powerDbw').value = (dbm - 30).toFixed(2);
+  updatingPower = false;
+}
+function fromDbw() {
+  if (updatingPower) return;
+  updatingPower = true;
+  const dbw = parseFloat($('powerDbw').value);
+  const w = Math.pow(10, dbw / 10);
+  $('powerW').value = w.toPrecision(6);
+  $('powerMw').value = (w * 1000).toPrecision(6);
+  $('powerDbm').value = (dbw + 30).toFixed(2);
+  updatingPower = false;
+}
+function fromRatio() {
+  const db = parseFloat($('ratioDb').value);
+  $('ratioFactor').value = Math.pow(10, db / 10).toPrecision(5);
+}
+$('powerW').addEventListener('input', fromW);
+$('powerMw').addEventListener('input', fromMw);
+$('powerDbm').addEventListener('input', fromDbm);
+$('powerDbw').addEventListener('input', fromDbw);
+$('ratioDb').addEventListener('input', fromRatio);
+
+// ----- Skytefakta -----
+let updatingSpeed = false;
+function fromMs() {
+  if (updatingSpeed) return;
+  updatingSpeed = true;
+  const ms = parseFloat($('speedMs').value);
+  $('speedFps').value = (ms * 3.28084).toFixed(0);
+  $('speedKmh').value = (ms * 3.6).toFixed(1);
+  updatingSpeed = false;
+  updateEnergy();
+}
+function fromFps() {
+  if (updatingSpeed) return;
+  updatingSpeed = true;
+  const fps = parseFloat($('speedFps').value);
+  $('speedMs').value = (fps * 0.3048).toFixed(1);
+  $('speedKmh').value = (fps * 0.3048 * 3.6).toFixed(1);
+  updatingSpeed = false;
+  updateEnergy();
+}
+function fromKmh() {
+  if (updatingSpeed) return;
+  updatingSpeed = true;
+  const kmh = parseFloat($('speedKmh').value);
+  $('speedMs').value = (kmh / 3.6).toFixed(1);
+  $('speedFps').value = (kmh / 3.6 * 3.28084).toFixed(0);
+  updatingSpeed = false;
+  updateEnergy();
+}
+let updatingWeight = false;
+function fromG() {
+  if (updatingWeight) return;
+  updatingWeight = true;
+  $('weightGr').value = (parseFloat($('weightG').value) * 15.4324).toFixed(1);
+  updatingWeight = false;
+  updateEnergy();
+}
+function fromGr() {
+  if (updatingWeight) return;
+  updatingWeight = true;
+  $('weightG').value = (parseFloat($('weightGr').value) / 15.4324).toFixed(2);
+  updatingWeight = false;
+  updateEnergy();
+}
+function updateEnergy() {
+  const ms = parseFloat($('speedMs').value);
+  const g = parseFloat($('weightG').value);
+  if (ms > 0 && g > 0) {
+    const j = 0.5 * (g / 1000) * ms * ms;
+    $('energyJ').value = j.toFixed(0) + ' J' +
+      (j > 3000 ? '  ✓ elg/hjort komfortabel' :
+       j > 980 ? '  ⚠ over minimum, men ikke komfortabel' :
+       '  ✗ under norsk minimum (980 J)');
+  }
+}
+$('speedMs').addEventListener('input', fromMs);
+$('speedFps').addEventListener('input', fromFps);
+$('speedKmh').addEventListener('input', fromKmh);
+$('weightG').addEventListener('input', fromG);
+$('weightGr').addEventListener('input', fromGr);
+
+// ----- Lengde / vinkel -----
+let updatingLen = false;
+function fromM() {
+  if (updatingLen) return;
+  updatingLen = true;
+  const m = parseFloat($('lenM').value);
+  $('lenYd').value = (m * 1.0936).toFixed(1);
+  $('lenFt').value = (m * 3.2808).toFixed(1);
+  updatingLen = false;
+}
+function fromYd() {
+  if (updatingLen) return;
+  updatingLen = true;
+  const yd = parseFloat($('lenYd').value);
+  $('lenM').value = (yd * 0.9144).toFixed(1);
+  $('lenFt').value = (yd * 3).toFixed(1);
+  updatingLen = false;
+}
+function fromFt() {
+  if (updatingLen) return;
+  updatingLen = true;
+  const ft = parseFloat($('lenFt').value);
+  $('lenM').value = (ft * 0.3048).toFixed(1);
+  $('lenYd').value = (ft / 3).toFixed(1);
+  updatingLen = false;
+}
+$('lenM').addEventListener('input', fromM);
+$('lenYd').addEventListener('input', fromYd);
+$('lenFt').addEventListener('input', fromFt);
+
+let updatingAng = false;
+function fromDeg() {
+  if (updatingAng) return;
+  updatingAng = true;
+  const deg = parseFloat($('angDeg').value);
+  $('angRad').value = (deg * Math.PI / 180).toFixed(4);
+  $('angMoa').value = (deg * 60).toFixed(1);
+  updatingAng = false;
+}
+function fromRad() {
+  if (updatingAng) return;
+  updatingAng = true;
+  const rad = parseFloat($('angRad').value);
+  $('angDeg').value = (rad * 180 / Math.PI).toFixed(2);
+  $('angMoa').value = (rad * 180 / Math.PI * 60).toFixed(1);
+  updatingAng = false;
+}
+function fromMoa() {
+  if (updatingAng) return;
+  updatingAng = true;
+  const moa = parseFloat($('angMoa').value);
+  $('angDeg').value = (moa / 60).toFixed(3);
+  $('angRad').value = (moa / 60 * Math.PI / 180).toFixed(5);
+  updatingAng = false;
+}
+$('angDeg').addEventListener('input', fromDeg);
+$('angRad').addEventListener('input', fromRad);
+$('angMoa').addEventListener('input', fromMoa);
+
+// Init
+updateFromFreq();
+fromW();
+fromRatio();
+fromMs();
+fromG();
+fromM();
+fromDeg();
+</script>
+
+</body>
+</html>

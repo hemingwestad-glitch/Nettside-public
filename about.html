@@ -4,11 +4,10 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Om — Heming Westad</title>
-<meta name="description" content="Litt om Heming Westad. Flyingeniørstudent, Orbit NTNU.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..800;1,9..144,300..800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="/style.css">
 </head>
 <body>
 
@@ -17,9 +16,9 @@
   <nav>
     <ul>
       <li><a href="/">heim</a></li>
+      <li><a href="/tools.html">verktøy</a></li>
       <li><a href="/projects.html">prosjekter</a></li>
       <li><a href="/now.html">nå</a></li>
-      <li><a href="/uses.html">utstyr</a></li>
       <li><a href="/about.html" class="current">om</a></li>
     </ul>
   </nav>
@@ -28,57 +27,71 @@
 <main>
 
   <div class="page-meta mono fade-up">
+    <span>OM</span>
     <span>HEMING WESTAD</span>
-    <span>F. 0000</span>
-    <span>NO</span>
   </div>
 
-  <h1 class="fade-up">Om.</h1>
+  <h1 class="fade-up"><em>Om</em> meg.</h1>
 
   <p class="lede fade-up">
-    Jeg studerer flyingeniør ved NTNU. Studiet er en blanding av maskinteknikk
-    og kybernetikk rettet mot flysystemer.
+    Flyingeniørstudent ved NTNU og programdirektør i Orbit NTNU. Liker å
+    bygge ting som faktisk gjør noe nyttig.
   </p>
 
-  <p class="fade-up">
-    Ved siden av studiet er jeg programdirektør i
-    <a href="https://www.orbitntnu.com" target="_blank">Orbit NTNU</a>,
-    studentorganisasjonen som bygger CubeSats. Rollen handler mest om å
-    holde PMO-en samlet &mdash; ressursfordeling, oppfølging av prosjektledere,
-    og litt sponsorarbeid.
-  </p>
+  <h2 class="section-header">Faglig</h2>
 
-  <p class="fade-up">
-    Utenom det tukler jeg med hjemmelagde elektronikkprosjekter og prøver
-    å lære meg radioteknikk fra grunnen. Når været tillater det er jeg på
-    elgjakt om høsten eller fluefisker etter fjellørret om sommeren.
-  </p>
-
-  <h2>Denne siden</h2>
   <p>
-    Jeg tror på at man bør eie sitt eget hjørne av nettet. LinkedIn forsvinner
-    en dag, GitHub kan bli kjøpt opp, sosiale medier kommer og går.
-    Et domene og noen HTML-filer overlever det meste.
-  </p>
-  <p>
-    Siden er hånd-skrevet HTML og CSS, hostet gratis på Cloudflare,
-    og deployes automatisk fra <a href="https://github.com/hemingwestad-glitch/Nettside-public">GitHub</a>.
-    Ingen sporing, ingen analytics, ingen cookies.
+    Jeg studerer flyingeniør ved NTNU &mdash; en kombinasjon av kybernetikk og
+    maskin rettet mot flysystemer. Det innebærer ganske mye matte, en del
+    Python og MATLAB, og forhåpentligvis senere en god del praktisk arbeid med
+    avionics og styresystemer.
   </p>
 
-  <h2>Kontakt</h2>
   <p>
-    Send meg gjerne en e-post hvis du vil ta en prat:
-    <a href="mailto:heming@hemingwestad.no">heming@hemingwestad.no</a>.
+    I Orbit NTNU har jeg en PMO-aktig rolle som programdirektør &mdash;
+    ressursfordeling, sponsor-arbeid og langsiktig planlegging av missions.
+    Det er mer prosjekt-koordinering enn ren teknikk, men jeg lærer mye om
+    hvordan komplekse hardware-prosjekter faktisk leveres i praksis.
   </p>
 
-  <h2>Kolofon</h2>
-  <ul>
-    <li>Typografi: <em>Fraunces</em> for brødtekst, <code>JetBrains Mono</code> for kode og metadata.</li>
-    <li>Farge: mørk bakgrunn med rust-orange aksent.</li>
-    <li>Hosting: Cloudflare Workers (statisk).</li>
-    <li>Domene: kjøpt hos Domeneshop, 90 kr/år.</li>
-  </ul>
+  <h2 class="section-header">På fritiden</h2>
+
+  <p>
+    <strong>Elgjakt</strong>, <strong>fluefiske etter fjellørret</strong> og
+    småtinkring med radio. RTL-SDR-pinne kommer i posten. 3D-printer kjører
+    på lavt blad. Liker å skrive små verktøy som løser konkrete problemer
+    &mdash; dette nettstedet er forsåvidt en samling av sånne.
+  </p>
+
+  <h2 class="section-header">Filosofien</h2>
+
+  <p>
+    Jeg liker å bruke programmering som verktøy &mdash; ikke for å lære for
+    læringens skyld, men for å løse problemer som faktisk dukker opp. Hvis du
+    har et konkret problem, så blir koden bedre enn om du sitter og leser
+    teori uten kontekst.
+  </p>
+
+  <h2 class="section-header">Kontakt</h2>
+
+  <div class="uses-table">
+    <div class="row">
+      <div class="label">e-post</div>
+      <div class="value"><a href="mailto:heming@hemingwestad.no">heming@hemingwestad.no</a></div>
+    </div>
+    <div class="row">
+      <div class="label">github</div>
+      <div class="value"><a href="https://github.com/hemingwestad-glitch" target="_blank">hemingwestad-glitch</a></div>
+    </div>
+    <div class="row">
+      <div class="label">orbit ntnu</div>
+      <div class="value"><a href="https://www.orbitntnu.com" target="_blank">orbitntnu.com</a></div>
+    </div>
+    <div class="row">
+      <div class="label">lokasjon</div>
+      <div class="value">Trondheim, Norge</div>
+    </div>
+  </div>
 
 </main>
 

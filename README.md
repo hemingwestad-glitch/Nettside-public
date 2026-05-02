@@ -1,55 +1,66 @@
 # hemingwestad.no
 
-Personlig nettside. Hånd-skrevet HTML og CSS, ingen JavaScript-rammeverk,
-ingen sporing.
+Personlig nettside og verktøyhub for Heming Westad.
 
-## Stack
-
-- **Hosting:** Cloudflare Workers (statisk).
-- **Domene:** Domeneshop.
-- **CI/CD:** Auto-deploy fra `main`-branch via GitHub-integrasjon.
-- **Fonter:** [Fraunces](https://fonts.google.com/specimen/Fraunces) + [JetBrains Mono](https://www.jetbrains.com/lp/mono/).
+Live på [hemingwestad.no](https://hemingwestad.no).
 
 ## Struktur
 
+Ren statisk HTML/CSS/JS. Ingen build-step, ingen backend.
+
 ```
-.
+/
 ├── index.html              Forside
-├── projects.html           Oversikt over prosjekter
-├── now.html                Hva jeg jobber med akkurat nå
-├── uses.html               Utstyr og verktøy
-├── about.html              Om meg + om siden
-├── style.css               Felles stilark for hele siden
-├── projects/
-│   ├── adsb.html
-│   ├── satellites.html
-│   ├── cubesat-tools.html
-│   └── fishlog.html
-└── README.md
+├── tools.html              Verktøy-oversikt
+├── projects.html           Prosjekter
+├── now.html                Hva som skjer nå
+├── about.html              Om meg
+├── 404.html                404-side
+├── style.css               Felles stil
+├── astro.js                Sol/måne-beregninger (delt)
+├── orbit.js                Orbital mekanikk (delt)
+└── tools/
+    ├── fishing.html        Fiskeforhold-prediktor (MET Norway)
+    ├── hunting.html        Jaktkalender Notodden
+    ├── orbit.html          Orbit ground track
+    ├── linkbudget.html     Radio link budget
+    ├── wind.html           Vindavdrift
+    ├── converter.html      Konverterer (frekvens, dB, enheter)
+    ├── satellites.html     Satellittracker (TLE/SGP4)
+    └── sun.html            Sol & måne-kalender
 ```
 
-## Lokal utvikling
+## Eksterne avhengigheter
 
-Ingen build-steg. Dobbeltklikk `index.html` for å åpne den i nettleseren,
-eller kjør en lokal server:
+- **Google Fonts** — Fraunces, JetBrains Mono
+- **Open-Meteo** (proxy til MET Norway) — værdata for fiskeforhold
+- **CelesTrak** — TLE-data for satellittracker
+- **OpenStreetMap + Leaflet** — kart for orbit og satellittracker
+- **satellite.js** — SGP4-implementasjon
 
-```bash
-python -m http.server 8000
-```
-
-Og gå til `http://localhost:8000`.
+Ingen API-nøkler kreves. Alle beregninger som kan gjøres lokalt, gjøres lokalt.
 
 ## Deploy
 
-Push til `main`-branch. Cloudflare deployer automatisk innen et minutt.
+Auto-deploy via Cloudflare Workers på push til `main`-branch på GitHub.
+
+## Lokalt
+
+Bare åpne `index.html` i en nettleser. For best resultat (på grunn av
+relative stier), kjør en simpel server:
 
 ```bash
-git add .
-git commit -m "beskrivelse av endring"
-git push
+python -m http.server 8000
+# eller
+npx serve
 ```
+
+## Kreditter
+
+Astronomiske formler basert på Jean Meeus' *Astronomical Algorithms*.
+SGP4 implementasjon via [satellite.js](https://github.com/shashwatak/satellite-js).
+Orbital mekanikk web-portet fra eget Python-verktøy.
 
 ## Lisens
 
-Innhold (tekst, bilder): © Heming Westad.
-Kode (HTML/CSS-strukturen): fri til å bruke som inspirasjon.
+Innholdet er mitt — koden står du fritt til å låne fra hvis du finner noe nyttig.

@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fiskeforhold — Heming Westad</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..800;1,9..144,300..800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/style.css">
+</head>
+<body>
+
+<header>
+  <div class="logo"><a href="/">HW<span class="dot">.</span></a></div>
+  <nav>
+    <ul>
+      <li><a href="/">heim</a></li>
+      <li><a href="/tools.html" class="current">verktøy</a></li>
+      <li><a href="/projects.html">prosjekter</a></li>
+      <li><a href="/now.html">nå</a></li>
+      <li><a href="/about.html">om</a></li>
+    </ul>
+  </nav>
+</header>
+
+<main>
+
+  <div class="page-meta mono fade-up">
+    <span>VERKTØY / FISKE</span>
+    <span>DATA: MET NORWAY</span>
+  </div>
+
+  <h1 class="fade-up">Fiske<em>forhold</em>.</h1>
+
+  <p class="lede fade-up">
+    Vær, månefase og lufttrykktrend for valgt lokasjon. Gir en enkel, samlet
+    vurdering av om det er gode forhold for å fiske akkurat nå og de neste
+    dagene.
+  </p>
+
+  <div class="card fade-up">
+    <div class="card-header">
+      <h3>Lokasjon</h3>
+      <span class="meta" id="locationMeta">—</span>
+    </div>
+
+    <div class="field-row">
+      <div class="field">
+        <label>Forhåndsvalgte vann</label>
+        <select id="presetSelect">
+          <option value="">— Velg fra liste —</option>
+          <option value="63.4305,10.3951,Trondheim">Trondheim sentrum</option>
+          <option value="63.0,11.5,Selbusjøen">Selbusjøen</option>
+          <option value="62.83,11.10,Femunden">Femunden</option>
+          <option value="59.5667,9.2667,Notodden">Notodden</option>
+          <option value="60.5,7.0,Hardangervidda">Hardangervidda</option>
+          <option value="63.7,11.2,Snåsavatnet">Snåsavatnet</option>
+          <option value="61.3,10.5,Mjøsa">Mjøsa</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Eller bruk min posisjon</label>
+        <button id="useGeo" class="secondary" type="button">Hent GPS</button>
+      </div>
+    </div>
+
+    <div class="field-row">
+      <div class="field">
+        <label>Breddegrad (°)</label>
+        <input type="number" id="lat" step="0.0001" value="63.4305">
+      </div>
+      <div class="field">
+        <label>Lengdegrad (°)</label>
+        <input type="number" id="lon" step="0.0001" value="10.3951">
+      </div>
+    </div>
+
+    <button id="fetchBtn" type="button">Hent fiskeforhold</button>
+  </div>
+
+  <div id="results" style="display:none;">
+
+    <h2 class="section-header">Akkurat nå <span class="count mono" id="nowTime">—</span></h2>
+
+    <div class="stat-grid">
+      <div class="stat">
+        <div class="label">Fiskeindeks</div>
+        <div class="value accent" id="statIndex">—<span class="unit">/100</span></div>
+        <div class="sub" id="statIndexLabel">—</div>
+      </div>
+      <div class="stat">
+        <div class="label">Lufttemperatur</div>
+        <div class="value" id="statTemp">—<span class="unit">°C</span></div>
+        <div class="sub" id="statTempSub">Føles som —</div>
+      </div>
+      <div class="stat">
+        <div class="label">Lufttrykk</div>
+        <div class="value" id="statPressure">—<span class="unit">hPa</span></div>
+        <div class="sub" id="statPressureTrend">Trend: —</div>
+      </div>
+      <div class="stat">
+        <div class="label">Vind</div>
+        <div class="value" id="statWind">—<span class="unit">m/s</span></div>
+        <div class="sub" id="statWindDir">Retning —</div>
+      </div>
+      <div class="stat">
+        <div class="label">Skydekke</div>
+        <div class="value" id="statClouds">—<span class="unit">%</span></div>
+        <div class="sub" id="statPrecip">Nedbør —</div>
+      </div>
+      <div class="stat">
+        <div class="label">Månefase</div>
+        <div class="value" id="statMoon">—</div>
+        <div class="sub" id="statMoonSub">— %</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <h3>Vurdering</h3>
+        <span class="meta">Basert på etablerte tommelfingerregler</span>
+      </div>
+      <div id="assessment" style="line-height: 1.7;"></div>
+    </div>
+
+    <h2 class="section-header">Soltid &amp; tussmørke <span class="count mono">[ i dag ]</span></h2>
+
+    <table class="data" id="sunTable">
+      <thead>
+        <tr><th>Hendelse</th><th class="num">Tid</th><th>Beskrivelse</th></tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+
+    <h2 class="section-header">Neste 5 dager <span class="count mono">[ prognose ]</span></h2>
+
+    <table class="data" id="forecastTable">
+      <thead>
+        <tr>
+          <th>Dag</th>
+          <th class="num">Indeks</th>
+          <th class="num">Temp</th>
+          <th class="num">Vind</th>
+          <th class="num">Trykk</th>
+          <th>Måne</th>
+          <th>Vurdering</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+
+  </div>
+
+  <div id="loading" class="loading" style="display:none;">Henter data fra MET Norway</div>
+  <div id="error" class="error" style="display:none;"></div>
+
+  <hr>
+
+  <h3>Hvordan virker fiskeindeksen?</h3>
+  <p style="color: var(--fg-dim); font-size: 0.95rem;">
+    Den er basert på tommelfingerregler fra fluefiske-litteratur og egen
+    erfaring. Det er <em>ikke</em> magi &mdash; bare en oppsummering av
+    faktorer som typisk påvirker fiskeaktivitet:
+  </p>
+  <ul style="color: var(--fg-dim); font-size: 0.95rem;">
+    <li><strong style="color: var(--fg);">Lufttrykktrend</strong> &mdash; stigende trykk er bra, fallende trykk er gjerne enda bedre (fisken biter før lavtrykk).</li>
+    <li><strong style="color: var(--fg);">Månefase</strong> &mdash; ny- og fullmåne gir ofte økt aktivitet (solunar-teorien).</li>
+    <li><strong style="color: var(--fg);">Vind</strong> &mdash; lett til moderat vind (2-6 m/s) er ideelt; demper overflate uten å gjøre kasting umulig.</li>
+    <li><strong style="color: var(--fg);">Skydekke</strong> &mdash; lett overskyet er ofte bedre enn klart vær for ørretfiske.</li>
+    <li><strong style="color: var(--fg);">Soltider</strong> &mdash; aktivitet er typisk høyest i daggry og skumring.</li>
+    <li><strong style="color: var(--fg);">Temperatur</strong> &mdash; for kaldt eller for varmt reduserer aktivitet.</li>
+  </ul>
+  <p style="color: var(--fg-dim); font-size: 0.95rem;">
+    Indeksen er en grov oversikt &mdash; den erstatter ikke lokal kunnskap.
+    Beste fiskeforhold på papiret er ikke garantert beste dag i praksis.
+  </p>
+
+  <p style="color: var(--fg-faint); font-size: 0.85rem; margin-top: 2rem;">
+    Værdata fra <a href="https://api.met.no/" target="_blank">MET Norway</a> via
+    <a href="https://open-meteo.com" target="_blank">Open-Meteo</a>.
+    Astronomiske beregninger gjøres lokalt i nettleseren.
+    Ingen data lagres.
+  </p>
+
+</main>
+
+<footer>
+  <div class="footer-content">
+    <div>© 2026 — HEMING WESTAD</div>
+    <div>BUILT IN TRONDHEIM · <a href="https://github.com/hemingwestad-glitch/Nettside-public">SOURCE</a></div>
+  </div>
+</footer>
+
+<script src="/astro.js"></script>
+<script>
+const $ = (id) => document.getElementById(id);
+
+// ---- Værsymbol-tekst ----
+function describeWind(speed) {
+  if (speed < 1.5) return 'Stille — overflate som speil';
+  if (speed < 3.3) return 'Svak vind — bra';
+  if (speed < 5.5) return 'Lett bris — ideelt';
+  if (speed < 7.9) return 'Frisk bris — fortsatt fiskbart';
+  if (speed < 10.7) return 'Stiv bris — tøft';
+  return 'For mye vind';
+}
+function windDirText(deg) {
+  const dirs = ['N','NNØ','NØ','ØNØ','Ø','ØSØ','SØ','SSØ','S','SSV','SV','VSV','V','VNV','NV','NNV'];
+  return dirs[Math.round(deg / 22.5) % 16];
+}
+function pressureTrendText(trend) {
+  if (trend > 1.5) return ['Stigende raskt', 'good'];
+  if (trend > 0.5) return ['Stigende', 'good'];
+  if (trend > -0.5) return ['Stabil', ''];
+  if (trend > -1.5) return ['Fallende', 'warn'];
+  return ['Fallende raskt', 'accent']; // raskt fall = ofte bra fiske før uvær!
+}
+
+// ---- Fiskeindeks-beregning ----
+function calculateFishingIndex(data) {
+  let score = 50; // baseline
+  const factors = [];
+
+  // Lufttrykktrend: ±15 poeng
+  if (data.pressureTrend > 1.5) {
+    score += 12; factors.push('Stigende trykk gir bra fiske (+12)');
+  } else if (data.pressureTrend > 0.5) {
+    score += 8; factors.push('Stigende trykk (+8)');
+  } else if (data.pressureTrend > -0.5) {
+    factors.push('Stabilt trykk');
+  } else if (data.pressureTrend > -1.5) {
+    score += 5; factors.push('Fallende trykk &mdash; ofte bra rett før uvær (+5)');
+  } else {
+    score -= 5; factors.push('Trykket faller raskt &mdash; uvær på vei (−5)');
+  }
+
+  // Månefase: ±10 poeng
+  const moonF = data.moonFraction;
+  if (moonF < 0.05 || moonF > 0.95) {
+    score += 10; factors.push('Nymåne — solunar-aktivitet (+10)');
+  } else if (Math.abs(moonF - 0.5) < 0.05) {
+    score += 8; factors.push('Fullmåne — solunar-aktivitet (+8)');
+  } else if (Math.abs(moonF - 0.25) < 0.05 || Math.abs(moonF - 0.75) < 0.05) {
+    score += 4; factors.push('Kvartmåne (+4)');
+  }
+
+  // Vind: ideelt 2-6 m/s
+  if (data.wind < 1.5) {
+    score -= 4; factors.push('Vindstille — for blank overflate (−4)');
+  } else if (data.wind < 6) {
+    score += 8; factors.push('Ideell vindstyrke (+8)');
+  } else if (data.wind < 8) {
+    score += 2; factors.push('Litt mye vind (+2)');
+  } else if (data.wind < 11) {
+    score -= 6; factors.push('Mye vind &mdash; tøft fiske (−6)');
+  } else {
+    score -= 12; factors.push('For mye vind (−12)');
+  }
+
+  // Skydekke: lett overskyet er optimalt
+  if (data.clouds > 30 && data.clouds < 80) {
+    score += 6; factors.push('Lett overskyet &mdash; godt lys (+6)');
+  } else if (data.clouds < 10) {
+    score -= 3; factors.push('Klar himmel &mdash; ørreten er sky (−3)');
+  } else if (data.clouds > 95) {
+    score -= 1; factors.push('Helt overskyet (−1)');
+  }
+
+  // Nedbør
+  if (data.precip > 5) {
+    score -= 8; factors.push('Mye regn &mdash; kort fisk-vindu (−8)');
+  } else if (data.precip > 1) {
+    score += 3; factors.push('Lett regn &mdash; ofte bra (+3)');
+  }
+
+  // Temperatur (luft) — sjekk rimelig sone
+  if (data.temp < -5) {
+    score -= 10; factors.push('Veldig kaldt (−10)');
+  } else if (data.temp < 5) {
+    score -= 3; factors.push('Kaldt vann &mdash; redusert aktivitet (−3)');
+  } else if (data.temp > 25) {
+    score -= 5; factors.push('For varmt &mdash; ørreten søker dypere (−5)');
+  } else if (data.temp > 12 && data.temp < 18) {
+    score += 4; factors.push('Ideell temperatur (+4)');
+  }
+
+  score = Math.max(0, Math.min(100, score));
+  return { score: Math.round(score), factors };
+}
+
+function indexLabel(score) {
+  if (score >= 75) return ['Utmerket', 'good'];
+  if (score >= 60) return ['Bra', 'good'];
+  if (score >= 45) return ['Greit', 'warn'];
+  if (score >= 30) return ['Skralt', 'warn'];
+  return ['Dårlig', 'bad'];
+}
+
+// ---- Hent data fra Open-Meteo (MET Norway) ----
+async function fetchData(lat, lon) {
+  const url = `https://api.open-meteo.com/v1/metno?` +
+    `latitude=${lat}&longitude=${lon}&` +
+    `current=temperature_2m,apparent_temperature,relative_humidity_2m,precipitation,` +
+    `pressure_msl,cloud_cover,wind_speed_10m,wind_direction_10m&` +
+    `hourly=temperature_2m,pressure_msl,cloud_cover,precipitation,` +
+    `wind_speed_10m,wind_direction_10m&` +
+    `daily=temperature_2m_max,temperature_2m_min,precipitation_sum,` +
+    `wind_speed_10m_max,pressure_msl_mean&` +
+    `timezone=Europe/Oslo&forecast_days=6`;
+
+  const res = await fetch(url);
+  if (!res.ok) throw new Error(`API-feil: ${res.status}`);
+  return res.json();
+}
+
+// ---- Render resultat ----
+function render(data, lat, lon) {
+  const now = new Date();
+  const cur = data.current;
+
+  // Beregn lufttrykktrend (siste 6 timer vs nå)
+  const idxNow = data.hourly.time.findIndex(t => new Date(t) >= now);
+  const idx6h = Math.max(0, idxNow - 6);
+  const pressureTrend = cur.pressure_msl - data.hourly.pressure_msl[idx6h];
+
+  // Astronomi
+  const moonIll = HW.astro.getMoonIllumination(now);
+  const sunTimes = HW.astro.getSunTimes(now, lat, lon);
+
+  // Bygg indeks
+  const indexData = {
+    pressureTrend,
+    moonFraction: moonIll.phase,
+    wind: cur.wind_speed_10m,
+    clouds: cur.cloud_cover,
+    precip: cur.precipitation,
+    temp: cur.temperature_2m
+  };
+  const { score, factors } = calculateFishingIndex(indexData);
+  const [label, cls] = indexLabel(score);
+
+  // Stats
+  $('nowTime').textContent = HW.astro.formatTime(now) + ' lokal';
+  $('statIndex').innerHTML = score + '<span class="unit">/100</span>';
+  $('statIndex').className = 'value ' + (cls === 'good' ? 'good' : cls === 'warn' ? 'warn' : cls === 'bad' ? 'bad' : 'accent');
+  $('statIndexLabel').textContent = label;
+
+  $('statTemp').innerHTML = cur.temperature_2m.toFixed(1) + '<span class="unit">°C</span>';
+  $('statTempSub').textContent = 'Føles som ' + cur.apparent_temperature.toFixed(1) + '°C';
+
+  $('statPressure').innerHTML = Math.round(cur.pressure_msl) + '<span class="unit">hPa</span>';
+  const [trendText, trendCls] = pressureTrendText(pressureTrend);
+  $('statPressureTrend').innerHTML = `${trendText} (${pressureTrend >= 0 ? '+' : ''}${pressureTrend.toFixed(1)} hPa/6t)`;
+
+  $('statWind').innerHTML = cur.wind_speed_10m.toFixed(1) + '<span class="unit">m/s</span>';
+  $('statWindDir').textContent = `${windDirText(cur.wind_direction_10m)} (${Math.round(cur.wind_direction_10m)}°)`;
+
+  $('statClouds').innerHTML = Math.round(cur.cloud_cover) + '<span class="unit">%</span>';
+  $('statPrecip').textContent = `Nedbør ${cur.precipitation.toFixed(1)} mm/t`;
+
+  $('statMoon').innerHTML = HW.astro.moonPhaseIcon(moonIll.phase) + ' ' + HW.astro.moonPhaseName(moonIll.phase);
+  $('statMoonSub').textContent = Math.round(moonIll.fraction * 100) + ' % belyst';
+
+  // Vurdering
+  $('assessment').innerHTML =
+    `<p style="margin-bottom:0.8rem;"><strong>Samlet score: ${score}/100 (${label}).</strong></p>` +
+    '<ul style="margin-left:1.2rem; line-height:1.6;">' +
+    factors.map(f => `<li>${f}</li>`).join('') + '</ul>';
+
+  // Soltabell
+  const sunRows = [
+    ['Astronomisk daggry', sunTimes.nightEnd, 'Sola når −18° under horisonten'],
+    ['Nautisk daggry', sunTimes.nauticalDawn, 'Sola når −12°'],
+    ['Daggry', sunTimes.dawn, 'Sivil tussmørke (−6°)'],
+    ['Soloppgang', sunTimes.sunrise, 'Toppen av sola når horisonten'],
+    ['Gylden time slutt', sunTimes.goldenHourEnd, 'Slutten på morgenens lys'],
+    ['Solens høyeste', sunTimes.solarNoon, 'Sola står høyest på himmelen'],
+    ['Gylden time', sunTimes.goldenHour, 'Starten på kveldens vakre lys'],
+    ['Solnedgang', sunTimes.sunset, 'Toppen av sola treffer horisonten'],
+    ['Skumring', sunTimes.dusk, 'Sivil tussmørke (−6°)'],
+    ['Nautisk skumring', sunTimes.nauticalDusk, 'Sola når −12°'],
+    ['Astronomisk natt', sunTimes.night, 'Sola når −18°'],
+  ];
+  const tbody = $('sunTable').querySelector('tbody');
+  tbody.innerHTML = sunRows.map(([n, t, d]) =>
+    `<tr><td>${n}</td><td class="num">${HW.astro.formatTime(t)}</td><td style="color:var(--fg-dim);font-size:0.85rem;">${d}</td></tr>`
+  ).join('');
+
+  // 5-dagers prognose
+  const fbody = $('forecastTable').querySelector('tbody');
+  let forecastHtml = '';
+  for (let i = 0; i < Math.min(6, data.daily.time.length); i++) {
+    const dayDate = new Date(data.daily.time[i]);
+    // Hent middag-data fra hourly for den dagen
+    const dayStartIdx = data.hourly.time.findIndex(t => t.startsWith(data.daily.time[i]));
+    const dayMidIdx = dayStartIdx + 13; // ~13:00
+    if (dayMidIdx < 0 || dayMidIdx >= data.hourly.time.length) continue;
+
+    const dayPressure = data.hourly.pressure_msl[dayMidIdx];
+    const prevPressure = dayMidIdx > 12 ? data.hourly.pressure_msl[dayMidIdx - 12] : dayPressure;
+    const dayTrend = dayPressure - prevPressure;
+
+    const dayMoon = HW.astro.getMoonIllumination(new Date(dayDate.getTime() + 12*3600*1000));
+
+    const dayIdx = calculateFishingIndex({
+      pressureTrend: dayTrend,
+      moonFraction: dayMoon.phase,
+      wind: data.daily.wind_speed_10m_max[i],
+      clouds: data.hourly.cloud_cover[dayMidIdx],
+      precip: data.daily.precipitation_sum[i],
+      temp: (data.daily.temperature_2m_max[i] + data.daily.temperature_2m_min[i]) / 2
+    });
+    const [dlabel, dcls] = indexLabel(dayIdx.score);
+    const cls2 = dcls === 'good' ? 'good' : dcls === 'warn' ? 'warn' : dcls === 'bad' ? 'bad' : '';
+
+    const isToday = i === 0;
+    const dayLabel = isToday ? 'I dag' : HW.astro.formatDate(dayDate);
+
+    forecastHtml += `<tr>
+      <td>${dayLabel}</td>
+      <td class="num"><strong style="color:var(--${cls2 || 'fg'})">${dayIdx.score}</strong></td>
+      <td class="num">${data.daily.temperature_2m_min[i].toFixed(0)}/${data.daily.temperature_2m_max[i].toFixed(0)}°</td>
+      <td class="num">${data.daily.wind_speed_10m_max[i].toFixed(1)}</td>
+      <td class="num">${Math.round(dayPressure)}</td>
+      <td>${HW.astro.moonPhaseIcon(dayMoon.phase)}</td>
+      <td style="color:var(--fg-dim);font-size:0.85rem;">${dlabel}</td>
+    </tr>`;
+  }
+  fbody.innerHTML = forecastHtml;
+
+  $('locationMeta').textContent = `${lat.toFixed(4)}°, ${lon.toFixed(4)}°`;
+  $('results').style.display = 'block';
+}
+
+// ---- Event handlers ----
+$('presetSelect').addEventListener('change', (e) => {
+  if (!e.target.value) return;
+  const [lat, lon] = e.target.value.split(',');
+  $('lat').value = lat;
+  $('lon').value = lon;
+});
+
+$('useGeo').addEventListener('click', () => {
+  if (!navigator.geolocation) {
+    alert('Nettleseren støtter ikke geolokasjon');
+    return;
+  }
+  navigator.geolocation.getCurrentPosition(
+    (pos) => {
+      $('lat').value = pos.coords.latitude.toFixed(4);
+      $('lon').value = pos.coords.longitude.toFixed(4);
+    },
+    (err) => alert('Klarte ikke hente posisjon: ' + err.message)
+  );
+});
+
+$('fetchBtn').addEventListener('click', async () => {
+  const lat = parseFloat($('lat').value);
+  const lon = parseFloat($('lon').value);
+  if (isNaN(lat) || isNaN(lon)) {
+    $('error').textContent = 'Ugyldige koordinater';
+    $('error').style.display = 'block';
+    return;
+  }
+
+  $('loading').style.display = 'block';
+  $('error').style.display = 'none';
+  $('results').style.display = 'none';
+
+  try {
+    const data = await fetchData(lat, lon);
+    render(data, lat, lon);
+    // Lagre siste lokasjon
+    localStorage.setItem('hw_fish_loc', JSON.stringify({ lat, lon }));
+  } catch (err) {
+    $('error').textContent = 'Feil: ' + err.message;
+    $('error').style.display = 'block';
+  } finally {
+    $('loading').style.display = 'none';
+  }
+});
+
+// Last forrige lokasjon hvis lagret
+window.addEventListener('DOMContentLoaded', () => {
+  const saved = localStorage.getItem('hw_fish_loc');
+  if (saved) {
+    try {
+      const { lat, lon } = JSON.parse(saved);
+      $('lat').value = lat;
+      $('lon').value = lon;
+    } catch {}
+  }
+});
+</script>
+
+</body>
+</html>

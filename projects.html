@@ -4,11 +4,10 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Prosjekter — Heming Westad</title>
-<meta name="description" content="Oversikt over pågående og planlagte prosjekter.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..800;1,9..144,300..800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="/style.css">
 </head>
 <body>
 
@@ -17,9 +16,9 @@
   <nav>
     <ul>
       <li><a href="/">heim</a></li>
+      <li><a href="/tools.html">verktøy</a></li>
       <li><a href="/projects.html" class="current">prosjekter</a></li>
       <li><a href="/now.html">nå</a></li>
-      <li><a href="/uses.html">utstyr</a></li>
       <li><a href="/about.html">om</a></li>
     </ul>
   </nav>
@@ -28,124 +27,79 @@
 <main>
 
   <div class="page-meta mono fade-up">
-    <span>INDEX / PROSJEKTER</span>
-    <span>04 AKTIVE</span>
-    <span>02 PÅ HYLLA</span>
+    <span>PERSONLIGE PROSJEKTER</span>
+    <span>STATUS: VARIERER</span>
   </div>
 
-  <h1 class="fade-up">Prosjekter.</h1>
+  <h1 class="fade-up">Pågående <em>prosjekter</em>.</h1>
 
   <p class="lede fade-up">
-    Ting jeg har bygget eller bygger på. Mest hobby, noen for studier, noen for Orbit.
-    De fleste er underveis &mdash; sjelden ferdige.
+    Ting jeg holder på med ved siden av studiet og vervet i Orbit. Noen er
+    ferdige, noen er pågående, noen er <em>kommer i posten</em>.
   </p>
 
-  <h2 class="section-header">Aktive <span class="count mono">[ 04 ]</span></h2>
+  <h2 class="section-header">Aktivt <span class="count mono">[ pågår ]</span></h2>
 
-  <div class="project-grid">
-
-    <a href="/projects/adsb.html" class="project">
-      <div class="project-header">
-        <span class="project-id">PRJ_01</span>
-        <span class="status wip">UNDER ARBEID</span>
-      </div>
-      <h3>ADS-B <em>flightradar</em></h3>
-      <p>Mottakerstasjon for flyposisjoner på 1090 MHz. Pi 4 + RTL-SDR + dipol. Lokal flightradar over Trondheim.</p>
-      <div class="project-tags">
-        <span class="tag">RTL-SDR</span>
-        <span class="tag">raspberry pi</span>
-        <span class="tag">dump1090</span>
-      </div>
-    </a>
-
-    <a href="/projects/satellites.html" class="project">
-      <div class="project-header">
-        <span class="project-id">PRJ_02</span>
-        <span class="status planned">PLANLAGT</span>
-      </div>
-      <h3>Satellittpeker</h3>
-      <p>TLE-henting, pass-prediksjon og waterfall i nettleseren. Skal også støtte Orbit sine satellitter når de er i bane.</p>
-      <div class="project-tags">
-        <span class="tag">skyfield</span>
-        <span class="tag">GNU Radio</span>
-        <span class="tag">websocket</span>
-      </div>
-    </a>
-
-    <a href="/projects/cubesat-tools.html" class="project">
-      <div class="project-header">
-        <span class="project-id">PRJ_03</span>
-        <span class="status planned">PLANLAGT</span>
-      </div>
-      <h3>CubeSat <em>budget tools</em></h3>
-      <p>Link budget, power budget, orbit-prediksjon og strålingsestimat samlet i ett verktøy. PMO-bruk for Orbit.</p>
-      <div class="project-tags">
-        <span class="tag">python</span>
-        <span class="tag">streamlit</span>
-        <span class="tag">sgp4</span>
-      </div>
-    </a>
-
-    <a href="/projects/fishlog.html" class="project">
-      <div class="project-header">
-        <span class="project-id">PRJ_04</span>
-        <span class="status planned">PLANLAGT</span>
-      </div>
-      <h3>Fiske- &amp; <em>jaktlogg</em></h3>
-      <p>Personlig logg for fangst, vær, lokasjon, fluevalg. Bygger over tid en ekte database for mine egne vann.</p>
-      <div class="project-tags">
-        <span class="tag">sqlite</span>
-        <span class="tag">fastapi</span>
-        <span class="tag">leaflet</span>
-      </div>
-    </a>
-
+  <div class="card">
+    <div class="card-header">
+      <h3>Orbit ground track-verktøy</h3>
+      <span class="badge accent">PÅGÅR</span>
+    </div>
+    <p>
+      Python-program for å plotte ground tracks og finne passes for
+      satellitter. Bruker klassiske orbital elements (eller cartesian state)
+      og propagerer banen med to-legeme-mekanikk. Kan integreres med
+      bakkestasjon-data og brukes for å forutsi når satellitten er over
+      bakkestasjonen vår.
+    </p>
+    <p style="margin: 0;">
+      <a href="/tools/orbit.html">Web-versjon her</a> &middot; Python på <a href="https://github.com/hemingwestad-glitch/Nettside-public" target="_blank">GitHub</a>.
+    </p>
   </div>
 
-  <h2 class="section-header">På hylla <span class="count mono">[ 02 ]</span></h2>
-
-  <p style="color: var(--fg-dim); font-size: 0.95rem;">
-    Ideer som er parkert &mdash; ikke døde, men ikke prioritert nå.
-  </p>
-
-  <div class="project-grid">
-
-    <div class="project">
-      <div class="project-header">
-        <span class="project-id">PRJ_05</span>
-        <span class="status shelved">PÅ HYLLA</span>
-      </div>
-      <h3>Viltkamera <em>med ML</em></h3>
-      <p>Pi + kamera + bevegelsessensor som klassifiserer dyr automatisk. Tester YOLO på elg, rådyr, rev. Krever litt mer 3D-printing først.</p>
-      <div class="project-tags">
-        <span class="tag">raspberry pi</span>
-        <span class="tag">YOLO</span>
-        <span class="tag">3d-print</span>
-      </div>
+  <div class="card">
+    <div class="card-header">
+      <h3>RTL-SDR ADS-B mottaker</h3>
+      <span class="badge">VENTER</span>
     </div>
-
-    <div class="project">
-      <div class="project-header">
-        <span class="project-id">PRJ_06</span>
-        <span class="status shelved">PÅ HYLLA</span>
-      </div>
-      <h3>Vær- &amp; <em>luftstasjon</em></h3>
-      <p>Egen liten værstasjon med BMP280, DHT22, partikkelsensor. Logger til hemingwestad.no, sammenligner med yr.no over tid.</p>
-      <div class="project-tags">
-        <span class="tag">arduino</span>
-        <span class="tag">influxdb</span>
-        <span class="tag">grafana</span>
-      </div>
-    </div>
-
+    <p>
+      Bygge en passiv flymottaker basert på RTL-SDR-pinne (kommer i posten)
+      og Raspberry Pi. Skal lytte på 1090 MHz, dekode ADS-B-meldinger fra
+      fly i luftrommet over Trondheim, og sende posisjonsdata til
+      flightradar24/adsbexchange.
+    </p>
+    <p style="margin: 0; color: var(--fg-dim);">
+      Status: SDR-pinne er bestilt. Trenger Raspberry Pi.
+    </p>
   </div>
 
-  <hr>
+  <h2 class="section-header">Verv <span class="count mono">[ orbit ntnu ]</span></h2>
 
-  <p style="color: var(--fg-dim); font-size: 0.92rem;">
-    Tips til prosjekter eller spørsmål om noe? Send meg en e-post på
-    <a href="mailto:heming@hemingwestad.no">heming@hemingwestad.no</a>.
-  </p>
+  <div class="card">
+    <div class="card-header">
+      <h3>Orbit NTNU — programdirektør</h3>
+      <span class="badge good">AKTIV</span>
+    </div>
+    <p>
+      Studentdrevet organisasjon ved NTNU som designer og bygger CubeSats.
+      Som programdirektør har jeg PMO-rolle: ressursfordeling mellom team,
+      sponsor-arbeid, langsiktig planlegging av hvilke missions vi skal kjøre.
+      Får ikke direkte sittet med kabling og kode, men jobben er å sørge for
+      at de som faktisk gjør det har det de trenger.
+    </p>
+    <p style="margin: 0;">
+      <a href="https://www.orbitntnu.com" target="_blank">orbitntnu.com</a>
+    </p>
+  </div>
+
+  <h2 class="section-header">Idéer <span class="count mono">[ kommer kanskje ]</span></h2>
+
+  <ul style="color: var(--fg-dim);">
+    <li>Fluefiske-logg som kobler fangst til vær- og månedata (selv-eksperimenter for å validere fiskeindeksen)</li>
+    <li>Værstasjon på hytta med Pi + Cloudflare Workers</li>
+    <li>Print-i-3D-CAD-bibliotek for vanlige jakt/fiske-tilbehør (rifle-ammunisjonsholdere, fluespoler, osv.)</li>
+    <li>Bedre feltball for vindavdrift &mdash; G7 i stedet for G1, atmosfære-input</li>
+  </ul>
 
 </main>
 

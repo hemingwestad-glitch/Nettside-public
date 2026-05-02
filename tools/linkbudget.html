@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Link Budget — Heming Westad</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..800;1,9..144,300..800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/style.css">
+</head>
+<body>
+
+<header>
+  <div class="logo"><a href="/">HW<span class="dot">.</span></a></div>
+  <nav>
+    <ul>
+      <li><a href="/">heim</a></li>
+      <li><a href="/tools.html" class="current">verktøy</a></li>
+      <li><a href="/projects.html">prosjekter</a></li>
+      <li><a href="/now.html">nå</a></li>
+      <li><a href="/about.html">om</a></li>
+    </ul>
+  </nav>
+</header>
+
+<main>
+
+  <div class="page-meta mono fade-up">
+    <span>VERKTØY / RADIO</span>
+    <span>LINK BUDGET</span>
+  </div>
+
+  <h1 class="fade-up">Link <em>budget</em>.</h1>
+
+  <p class="lede fade-up">
+    Quick calculator for radio link budget. Sender effekt og gain, fri romdemping,
+    atmosfæriske og polarisasjonstap, mottaker. Ut: SNR-margin og om linken er
+    realistisk.
+  </p>
+
+  <div class="card fade-up">
+    <div class="card-header">
+      <h3>Sender</h3>
+    </div>
+    <div class="field-row">
+      <div class="field">
+        <label>Effekt (W)</label>
+        <input type="number" id="txPower" value="2" step="0.1">
+        <div class="field-hint">f.eks. 2W for typisk CubeSat UHF</div>
+      </div>
+      <div class="field">
+        <label>Antennegain (dBi)</label>
+        <input type="number" id="txGain" value="2" step="0.1">
+        <div class="field-hint">2 dBi = enkel monopol; 14 dBi = patch</div>
+      </div>
+    </div>
+    <div class="field-row">
+      <div class="field">
+        <label>Kabeltap sender (dB)</label>
+        <input type="number" id="txLoss" value="1" step="0.1">
+      </div>
+      <div class="field">
+        <label>Pekenøyaktighetstap (dB)</label>
+        <input type="number" id="pointLoss" value="1" step="0.1">
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <h3>Forplantning</h3>
+    </div>
+    <div class="field-row">
+      <div class="field">
+        <label>Frekvens (MHz)</label>
+        <input type="number" id="freq" value="437.5" step="0.1">
+        <div class="field-hint">144 / 437 / 2400 typiske amatør-bånd</div>
+      </div>
+      <div class="field">
+        <label>Avstand (km)</label>
+        <input type="number" id="distance" value="2000" step="10">
+        <div class="field-hint">Maks slant range for LEO-passes</div>
+      </div>
+    </div>
+    <div class="field-row">
+      <div class="field">
+        <label>Atmosfæriske tap (dB)</label>
+        <input type="number" id="atmLoss" value="0.5" step="0.1">
+        <div class="field-hint">Avhengig av elevasjon og frekvens</div>
+      </div>
+      <div class="field">
+        <label>Polarisasjonstap (dB)</label>
+        <input type="number" id="polLoss" value="3" step="0.1">
+        <div class="field-hint">3 dB ved lineær/sirkulær mismatch</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <h3>Mottaker</h3>
+    </div>
+    <div class="field-row">
+      <div class="field">
+        <label>Antennegain (dBi)</label>
+        <input type="number" id="rxGain" value="14" step="0.1">
+      </div>
+      <div class="field">
+        <label>Kabeltap mottaker (dB)</label>
+        <input type="number" id="rxLoss" value="2" step="0.1">
+      </div>
+    </div>
+    <div class="field-row">
+      <div class="field">
+        <label>Systemstøytemperatur (K)</label>
+        <input type="number" id="tSys" value="500" step="10">
+        <div class="field-hint">~290K LNA + atmosfærebidrag</div>
+      </div>
+      <div class="field">
+        <label>Datarate (bps)</label>
+        <input type="number" id="dataRate" value="9600" step="100">
+      </div>
+    </div>
+    <div class="field-row">
+      <div class="field">
+        <label>Modulasjon</label>
+        <select id="modulation">
+          <option value="9.6">FSK / GMSK (Eb/N0 krav: 9.6 dB)</option>
+          <option value="10.5">BPSK (10.5 dB)</option>
+          <option value="13.5">QPSK uten kodning (13.5 dB)</option>
+          <option value="6.8">BPSK + Convolutional 1/2 (6.8 dB)</option>
+          <option value="3.0">BPSK + Turbo (3.0 dB)</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Implementeringstap (dB)</label>
+        <input type="number" id="implLoss" value="2" step="0.1">
+      </div>
+    </div>
+  </div>
+
+  <button id="calcBtn" type="button">Beregn link budget</button>
+
+  <div id="results" style="display:none; margin-top: 2rem;">
+    <h2 class="section-header">Resultat</h2>
+
+    <div class="stat-grid">
+      <div class="stat">
+        <div class="label">Margin</div>
+        <div class="value accent" id="statMargin">—<span class="unit">dB</span></div>
+        <div class="sub" id="statMarginLabel">—</div>
+      </div>
+      <div class="stat">
+        <div class="label">EIRP</div>
+        <div class="value" id="statEirp">—<span class="unit">dBW</span></div>
+        <div class="sub" id="statEirpW">— W</div>
+      </div>
+      <div class="stat">
+        <div class="label">FSPL</div>
+        <div class="value" id="statFspl">—<span class="unit">dB</span></div>
+        <div class="sub" id="statFsplLabel">Free Space Path Loss</div>
+      </div>
+      <div class="stat">
+        <div class="label">G/T</div>
+        <div class="value" id="statGT">—<span class="unit">dB/K</span></div>
+        <div class="sub">Mottaker-figur</div>
+      </div>
+      <div class="stat">
+        <div class="label">C/N0</div>
+        <div class="value" id="statCN0">—<span class="unit">dBHz</span></div>
+        <div class="sub">Carrier-to-noise</div>
+      </div>
+      <div class="stat">
+        <div class="label">Eb/N0 mottatt</div>
+        <div class="value" id="statEbN0">—<span class="unit">dB</span></div>
+        <div class="sub" id="statEbN0Required">Krav: — dB</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <h3>Detaljert oppsett</h3>
+      </div>
+      <div class="output" id="detailOut"></div>
+    </div>
+  </div>
+
+  <hr>
+
+  <h3>Notater</h3>
+  <ul style="color: var(--fg-dim); font-size: 0.95rem;">
+    <li>Margin <strong style="color:var(--good);">≥ 6 dB</strong> regnes som komfortabel.</li>
+    <li>Margin <strong style="color:var(--warn);">3-6 dB</strong> er funksjonell, men utsatt.</li>
+    <li>Margin <strong style="color:var(--bad);">&lt; 3 dB</strong> er marginal og bør forbedres.</li>
+    <li>Verktøyet bruker forenklede modeller. For seriøs design, bruk STK eller GMSEC.</li>
+  </ul>
+
+</main>
+
+<footer>
+  <div class="footer-content">
+    <div>© 2026 — HEMING WESTAD</div>
+    <div>BUILT IN TRONDHEIM · <a href="https://github.com/hemingwestad-glitch/Nettside-public">SOURCE</a></div>
+  </div>
+</footer>
+
+<script>
+const $ = (id) => document.getElementById(id);
+const v = (id) => parseFloat($(id).value);
+
+$('calcBtn').addEventListener('click', () => {
+  const txPowerW = v('txPower');
+  const txPower_dBW = 10 * Math.log10(txPowerW);
+  const txGain = v('txGain');
+  const txLoss = v('txLoss');
+  const pointLoss = v('pointLoss');
+
+  const freqMHz = v('freq');
+  const distanceKm = v('distance');
+  const atmLoss = v('atmLoss');
+  const polLoss = v('polLoss');
+
+  const rxGain = v('rxGain');
+  const rxLoss = v('rxLoss');
+  const tSys = v('tSys');
+  const dataRate = v('dataRate');
+  const ebn0Required = parseFloat($('modulation').value);
+  const implLoss = v('implLoss');
+
+  // EIRP
+  const eirp = txPower_dBW + txGain - txLoss - pointLoss;
+
+  // FSPL: 32.45 + 20log10(f_MHz) + 20log10(d_km)
+  const fspl = 32.45 + 20 * Math.log10(freqMHz) + 20 * Math.log10(distanceKm);
+
+  // G/T
+  const tSysDb = 10 * Math.log10(tSys);
+  const gOverT = rxGain - rxLoss - tSysDb;
+
+  // Boltzmann konstant: 10log10(1.38e-23) = -228.6 dBW/Hz/K
+  const k_dB = -228.6;
+
+  // C/N0 = EIRP - FSPL - atm - pol + G/T - k
+  const cn0 = eirp - fspl - atmLoss - polLoss + gOverT - k_dB;
+
+  // Eb/N0 = C/N0 - 10log10(R)
+  const ebn0 = cn0 - 10 * Math.log10(dataRate);
+
+  // Margin
+  const margin = ebn0 - ebn0Required - implLoss;
+
+  // Render
+  $('statMargin').innerHTML = margin.toFixed(1) + '<span class="unit">dB</span>';
+  let label = '', cls = '';
+  if (margin >= 6) { label = 'Komfortabel'; cls = 'good'; }
+  else if (margin >= 3) { label = 'Funksjonell'; cls = 'warn'; }
+  else if (margin >= 0) { label = 'Marginal'; cls = 'warn'; }
+  else { label = 'Linken vil ikke fungere'; cls = 'bad'; }
+  $('statMargin').className = 'value ' + cls;
+  $('statMarginLabel').textContent = label;
+
+  $('statEirp').innerHTML = eirp.toFixed(1) + '<span class="unit">dBW</span>';
+  $('statEirpW').textContent = `${(Math.pow(10, eirp/10)).toFixed(2)} W`;
+
+  $('statFspl').innerHTML = fspl.toFixed(1) + '<span class="unit">dB</span>';
+
+  $('statGT').innerHTML = gOverT.toFixed(1) + '<span class="unit">dB/K</span>';
+  $('statCN0').innerHTML = cn0.toFixed(1) + '<span class="unit">dBHz</span>';
+  $('statEbN0').innerHTML = ebn0.toFixed(1) + '<span class="unit">dB</span>';
+  $('statEbN0Required').textContent = `Krav: ${ebn0Required.toFixed(1)} dB + ${implLoss} dB impl.`;
+
+  // Detaljert oppsett
+  const detail =
+`SENDER
+  Effekt:                    ${txPowerW.toFixed(2)} W = ${txPower_dBW.toFixed(2)} dBW
+  Antennegain:               +${txGain.toFixed(1)} dBi
+  Kabeltap:                  −${txLoss.toFixed(1)} dB
+  Pekefeil:                  −${pointLoss.toFixed(1)} dB
+  ─────────────────────────
+  EIRP:                      ${eirp.toFixed(2)} dBW
+
+FORPLANTNING (${freqMHz} MHz, ${distanceKm} km)
+  Fri romdemping (FSPL):     −${fspl.toFixed(2)} dB
+  Atmosfærisk tap:           −${atmLoss.toFixed(1)} dB
+  Polarisasjonstap:          −${polLoss.toFixed(1)} dB
+
+MOTTAKER
+  Antennegain:               +${rxGain.toFixed(1)} dBi
+  Kabeltap:                  −${rxLoss.toFixed(1)} dB
+  Systemstøytemp:            ${tSys.toFixed(0)} K = ${tSysDb.toFixed(2)} dBK
+  ─────────────────────────
+  G/T:                       ${gOverT.toFixed(2)} dB/K
+
+LINK
+  C/N0:                      ${cn0.toFixed(2)} dBHz
+  Datarate:                  ${dataRate} bps = ${(10*Math.log10(dataRate)).toFixed(2)} dBHz
+  ─────────────────────────
+  Eb/N0 mottatt:             ${ebn0.toFixed(2)} dB
+  Eb/N0 krav:                ${ebn0Required.toFixed(1)} dB
+  Implementeringstap:        ${implLoss.toFixed(1)} dB
+  ─────────────────────────
+  MARGIN:                    ${margin >= 0 ? '+' : ''}${margin.toFixed(2)} dB  (${label})`;
+
+  $('detailOut').textContent = detail;
+  $('results').style.display = 'block';
+});
+</script>
+
+</body>
+</html>

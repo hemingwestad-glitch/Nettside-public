@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vindavdrift — Heming Westad</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..800;1,9..144,300..800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/style.css">
+</head>
+<body>
+
+<header>
+  <div class="logo"><a href="/">HW<span class="dot">.</span></a></div>
+  <nav>
+    <ul>
+      <li><a href="/">heim</a></li>
+      <li><a href="/tools.html" class="current">verktøy</a></li>
+      <li><a href="/projects.html">prosjekter</a></li>
+      <li><a href="/now.html">nå</a></li>
+      <li><a href="/about.html">om</a></li>
+    </ul>
+  </nav>
+</header>
+
+<main>
+
+  <div class="page-meta mono fade-up">
+    <span>VERKTØY / SKYTING</span>
+    <span>FORENKLET BALLISTIKK</span>
+  </div>
+
+  <h1 class="fade-up">Vind<em>avdrift</em>.</h1>
+
+  <p class="lede fade-up">
+    Forenklet beregning av vindavdrift og kulefall for jakt og skytetrening.
+    Bruker G1 ballistisk koeffisient og standard atmosfære. For nøyaktig
+    skyting på lang distanse, bruk dedikert ballistisk programvare (Strelok,
+    Applied Ballistics).
+  </p>
+
+  <div class="card fade-up">
+    <div class="card-header">
+      <h3>Ammunisjon</h3>
+    </div>
+
+    <div class="field">
+      <label>Forhåndsvalg</label>
+      <select id="ammoPreset">
+        <option value="">— Velg —</option>
+        <option value="3000,11.66,0.482">.308 Win — 11,66 g (180 gr) Sako Super Hammerhead, BC 0.482 / V0 ~820 m/s</option>
+        <option value="2700,12.96,0.500">.30-06 — 12,96 g (200 gr) Norma Oryx, BC 0.500 / V0 ~810 m/s</option>
+        <option value="2950,11.34,0.450">6.5×55 SE — 9,72 g (140 gr), BC 0.510 / V0 ~830 m/s</option>
+        <option value="2700,9.72,0.510">6.5×55 SE — 10,1 g Norma Oryx</option>
+        <option value="3100,10.69,0.486">9,3×62 — 18,5 g (286 gr) Norma Oryx, BC 0.286</option>
+        <option value="2700,18.50,0.286">9,3×62 — 18,5 g Norma Oryx (V0 ~720 m/s)</option>
+      </select>
+      <div class="field-hint">Eller fyll inn manuelt under</div>
+    </div>
+
+    <div class="field-row-3">
+      <div class="field">
+        <label>Munningshastighet (m/s)</label>
+        <input type="number" id="velocity" value="800" step="10">
+      </div>
+      <div class="field">
+        <label>Kulevekt (g)</label>
+        <input type="number" id="weight" value="11.66" step="0.1">
+      </div>
+      <div class="field">
+        <label>BC (G1)</label>
+        <input type="number" id="bc" value="0.482" step="0.01">
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <h3>Skytesetup</h3>
+    </div>
+
+    <div class="field-row">
+      <div class="field">
+        <label>Innskytningsdistanse (m)</label>
+        <input type="number" id="zero" value="100" step="10">
+      </div>
+      <div class="field">
+        <label>Sikthøyde over løp (cm)</label>
+        <input type="number" id="sightHeight" value="4" step="0.1">
+        <div class="field-hint">Avstand fra senter løp til senter sikte</div>
+      </div>
+    </div>
+
+    <div class="field-row">
+      <div class="field">
+        <label>Vindhastighet (m/s)</label>
+        <input type="number" id="wind" value="3" step="0.5">
+        <div class="field-hint">Sidevind, 90° til skuddretning</div>
+      </div>
+      <div class="field">
+        <label>Vindvinkel (°)</label>
+        <input type="number" id="windAngle" value="90" step="5">
+        <div class="field-hint">90° = full sidevind, 0°/180° = ingen avdrift</div>
+      </div>
+    </div>
+  </div>
+
+  <button id="calcBtn" type="button">Beregn ballistikk</button>
+
+  <div id="results" style="display:none; margin-top: 2rem;">
+    <h2 class="section-header">Tabell</h2>
+
+    <table class="data" id="ballisticTable">
+      <thead>
+        <tr>
+          <th class="num">Distanse (m)</th>
+          <th class="num">Hastighet (m/s)</th>
+          <th class="num">Energi (J)</th>
+          <th class="num">Fall (cm)</th>
+          <th class="num">Hold-over (klikk¹)</th>
+          <th class="num">Vindavdrift (cm)</th>
+          <th class="num">Flytid (s)</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+
+    <p style="font-size: 0.85rem; color: var(--fg-dim);">
+      ¹ Klikk antatt 1 cm/100m (1 cm for 100m, 2 cm for 200m osv.) — typisk
+      jaktkikkert. Sjekk din egen kikkert.
+    </p>
+  </div>
+
+  <hr>
+
+  <h3>Begrensninger</h3>
+  <ul style="color: var(--fg-dim); font-size: 0.95rem;">
+    <li>Bruker G1 ballistisk modell &mdash; for jaktkuler er G1 vanligvis OK opp til ~600m. For lengre skudd, G7 er bedre.</li>
+    <li>Antar standard atmosfære (15°C, havnivå, 1013 hPa). Høyde og temperatur påvirker.</li>
+    <li>Ingen Coriolis, spin-drift eller tyngdekraftsvariasjon &mdash; relevant kun ved &gt;800m.</li>
+    <li>Verdier er pedagogiske &mdash; bruk Strelok eller AB for reell jakt på lang distanse.</li>
+    <li><strong>Tren alltid</strong>. Kalkulator erstatter ikke skyteprøver.</li>
+  </ul>
+
+</main>
+
+<footer>
+  <div class="footer-content">
+    <div>© 2026 — HEMING WESTAD</div>
+    <div>BUILT IN TRONDHEIM · <a href="https://github.com/hemingwestad-glitch/Nettside-public">SOURCE</a></div>
+  </div>
+</footer>
+
+<script>
+const $ = (id) => document.getElementById(id);
+
+$('ammoPreset').addEventListener('change', (e) => {
+  if (!e.target.value) return;
+  const [vel, weight, bc] = e.target.value.split(',');
+  $('velocity').value = vel;
+  $('weight').value = weight;
+  $('bc').value = bc;
+});
+
+// G1 standard projectile drag function — forenklet implementasjon
+// Bruker numerisk integrasjon med tidssteg
+function calculateBallistics() {
+  const v0 = parseFloat($('velocity').value);
+  const mass_g = parseFloat($('weight').value);
+  const mass_kg = mass_g / 1000;
+  const bc = parseFloat($('bc').value);
+  const zero_m = parseFloat($('zero').value);
+  const sightHeight_cm = parseFloat($('sightHeight').value);
+  const sightHeight_m = sightHeight_cm / 100;
+  const wind_ms = parseFloat($('wind').value);
+  const windAngle_deg = parseFloat($('windAngle').value);
+  const windPerp = wind_ms * Math.sin(windAngle_deg * Math.PI / 180);
+
+  const g = 9.81;
+  const rho = 1.225; // kg/m^3 standard atm
+
+  // Forenklet drag: a = -k * v^2 hvor k justeres etter BC
+  // En mer korrekt G1-modell ville bruke tabell, men dette er greit nok for jakt < 600m
+  // Effective drag-konstant for å matche G1 omtrentlig:
+  // k = rho / (2 * BC * mass) men skalert empirisk
+  const dragK = rho / (2 * bc * mass_kg) * 0.0008; // empirisk skalert
+
+  function simulate(launchAngle_rad) {
+    // Steg-for-steg simulering
+    const dt = 0.001;
+    let x = 0, y = -sightHeight_m;
+    let vx = v0 * Math.cos(launchAngle_rad);
+    let vy = v0 * Math.sin(launchAngle_rad);
+    let t = 0;
+    const states = [];
+    while (x < 1000 && t < 5) {
+      const v = Math.sqrt(vx*vx + vy*vy);
+      const drag = dragK * v;
+      vx -= vx * drag * dt;
+      vy -= (vy * drag + g) * dt;
+      x += vx * dt;
+      y += vy * dt;
+      t += dt;
+      states.push({ t, x, y, v, vx, vy });
+    }
+    return states;
+  }
+
+  // Find launch angle that gives zero at zero distance
+  // Bisection
+  function findZeroAngle() {
+    let lo = 0, hi = 0.05;
+    for (let i = 0; i < 30; i++) {
+      const mid = (lo + hi) / 2;
+      const states = simulate(mid);
+      // Finn y ved zero_m
+      let yAtZero = 0;
+      for (let j = 0; j < states.length - 1; j++) {
+        if (states[j].x <= zero_m && states[j+1].x >= zero_m) {
+          const frac = (zero_m - states[j].x) / (states[j+1].x - states[j].x);
+          yAtZero = states[j].y + frac * (states[j+1].y - states[j].y);
+          break;
+        }
+      }
+      if (yAtZero < 0) lo = mid;
+      else hi = mid;
+    }
+    return (lo + hi) / 2;
+  }
+
+  const launchAngle = findZeroAngle();
+  const states = simulate(launchAngle);
+
+  // Resultat ved hver 50m
+  const distances = [50, 100, 150, 200, 250, 300, 400, 500, 600, 700, 800];
+  const results = [];
+  for (const d of distances) {
+    let entry = null;
+    for (let j = 0; j < states.length - 1; j++) {
+      if (states[j].x <= d && states[j+1].x >= d) {
+        const frac = (d - states[j].x) / (states[j+1].x - states[j].x);
+        entry = {
+          x: d,
+          y: states[j].y + frac * (states[j+1].y - states[j].y),
+          v: states[j].v + frac * (states[j+1].v - states[j].v),
+          t: states[j].t + frac * (states[j+1].t - states[j].t)
+        };
+        break;
+      }
+    }
+    if (entry) {
+      const energy = 0.5 * mass_kg * entry.v * entry.v;
+      // Vindavdrift = wind * (t - x/v0) — forenklet
+      const windDrift = windPerp * (entry.t - d / v0);
+      results.push({
+        d,
+        v: entry.v,
+        energy,
+        drop: -entry.y * 100, // i cm, positiv = under siktet
+        time: entry.t,
+        wind: windDrift * 100
+      });
+    }
+  }
+
+  return results;
+}
+
+$('calcBtn').addEventListener('click', () => {
+  const results = calculateBallistics();
+  const tbody = $('ballisticTable').querySelector('tbody');
+  tbody.innerHTML = results.map(r => {
+    // Klikk-utregning: 1 klikk = 1 cm per 100m typisk
+    const clicksPerCm = (r.d / 100); // 1 cm fall ved 100m = 1 klikk; 2 cm ved 200m = 1 klikk osv
+    const clicksUp = r.drop > 0 ? (r.drop / clicksPerCm).toFixed(1) : '0.0';
+    return `<tr>
+      <td class="num">${r.d}</td>
+      <td class="num">${r.v.toFixed(0)}</td>
+      <td class="num">${r.energy.toFixed(0)}</td>
+      <td class="num">${r.drop > 0 ? '+' : ''}${r.drop.toFixed(1)}</td>
+      <td class="num">${r.drop > 0 ? clicksUp + ' opp' : '—'}</td>
+      <td class="num">${r.wind >= 0 ? '+' : ''}${r.wind.toFixed(1)}</td>
+      <td class="num">${r.time.toFixed(2)}</td>
+    </tr>`;
+  }).join('');
+  $('results').style.display = 'block';
+});
+</script>
+
+</body>
+</html>

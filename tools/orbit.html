@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Orbit Ground Track — Heming Westad</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..800;1,9..144,300..800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<link rel="stylesheet" href="/style.css">
+<style>
+  #map {
+    width: 100%;
+    height: 480px;
+    background: var(--bg-soft);
+    border: 1px solid var(--line);
+    margin: 1.5rem 0;
+  }
+  .leaflet-container {
+    background: #0a1628 !important;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .leaflet-tile-pane { filter: invert(1) hue-rotate(180deg) brightness(0.85) contrast(1.1); }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo"><a href="/">HW<span class="dot">.</span></a></div>
+  <nav>
+    <ul>
+      <li><a href="/">heim</a></li>
+      <li><a href="/tools.html" class="current">verktøy</a></li>
+      <li><a href="/projects.html">prosjekter</a></li>
+      <li><a href="/now.html">nå</a></li>
+      <li><a href="/about.html">om</a></li>
+    </ul>
+  </nav>
+</header>
+
+<main>
+
+  <div class="page-meta mono fade-up">
+    <span>VERKTØY / ROMFART</span>
+    <span>WEB-PORT AV PYTHON-VERKTØY</span>
+  </div>
+
+  <h1 class="fade-up">Orbit <em>ground track</em>.</h1>
+
+  <p class="lede fade-up">
+    Lim inn klassiske orbital elements eller velg en av eksempel-banene.
+    Verktøyet propagerer banen, plotter ground track, og finner passes over
+    valgt bakkestasjon. Alt regnes lokalt i nettleseren.
+  </p>
+
+  <div class="card fade-up">
+    <div class="card-header">
+      <h3>Orbital elements</h3>
+      <span class="meta">samme format som Python-verktøyet</span>
+    </div>
+
+    <div class="field">
+      <label>Last inn fra fil eller lim inn tekst</label>
+      <input type="file" id="fileInput" accept=".txt">
+    </div>
+
+    <div class="field">
+      <label>Eller velg eksempel</label>
+      <select id="exampleSelect">
+        <option value="">— Velg —</option>
+        <option value="iss">ISS (typisk LEO, ~400 km)</option>
+        <option value="sso">SSO (sun-synchronous, 600 km)</option>
+        <option value="cubesat">CubeSat (typisk Orbit-bane)</option>
+      </select>
+    </div>
+
+    <div class="field">
+      <label>Orbital elements (paste her)</label>
+      <textarea id="elemText" rows="11" placeholder="Spacecraft: ExampleSat
+UTC time at deployment: 2026-05-01T12:00:00Z
+Semi-major axis (km): 6778.0
+Eccentricity (-): 0.0001
+Inclination (deg): 51.6
+RAAN (deg): 120.0
+Argument of perigee (deg): 90.0
+True anomaly (deg): 0.0
+Period (s): 5544.0"></textarea>
+      <div class="field-hint">Format: én linje per parameter, samme nøkler som i Python-skriptet.</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <h3>Bakkestasjon</h3>
+      <span class="meta">for pass-prediksjoner</span>
+    </div>
+
+    <div class="field">
+      <label>Forhåndsvalg</label>
+      <select id="stationPreset">
+        <option value="63.4305,10.3951,10,Trondheim">Trondheim (NTNU)</option>
+        <option value="69.29,16.02,80,Andøya">Andøya (oppskytning)</option>
+        <option value="59.95,10.72,50,Oslo">Oslo</option>
+        <option value="78.22,15.65,8,Svalbard">Svalbard (SvalSat)</option>
+        <option value="custom">Egen lokasjon</option>
+      </select>
+    </div>
+
+    <div class="field-row-3">
+      <div class="field">
+        <label>Lat (°)</label>
+        <input type="number" id="staLat" value="63.4305" step="0.0001">
+      </div>
+      <div class="field">
+        <label>Lon (°)</label>
+        <input type="number" id="staLon" value="10.3951" step="0.0001">
+      </div>
+      <div class="field">
+        <label>Høyde (m)</label>
+        <input type="number" id="staAlt" value="10" step="1">
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <h3>Beregningsparametere</h3>
+    </div>
+    <div class="field-row-3">
+      <div class="field">
+        <label>Antall baner å plotte</label>
+        <input type="number" id="plotOrbits" value="3" step="0.5" min="0.5">
+      </div>
+      <div class="field">
+        <label>Pass-søk (baner)</label>
+        <input type="number" id="passOrbits" value="16" step="1" min="1">
+      </div>
+      <div class="field">
+        <label>Min elevasjon (°)</label>
+        <input type="number" id="minElev" value="5" step="1" min="0">
+      </div>
+    </div>
+    <button id="runBtn" type="button">Kjør beregning</button>
+  </div>
+
+  <div id="loading" class="loading" style="display:none;">Beregner...</div>
+  <div id="error" class="error" style="display:none;"></div>
+
+  <div id="results" style="display:none;">
+
+    <h2 class="section-header">Sammendrag <span class="count mono" id="satName">—</span></h2>
+
+    <div class="stat-grid">
+      <div class="stat">
+        <div class="label">Orbithøyde</div>
+        <div class="value accent" id="statAlt">—<span class="unit">km</span></div>
+        <div class="sub" id="statApogee">—</div>
+      </div>
+      <div class="stat">
+        <div class="label">Periode</div>
+        <div class="value" id="statPeriod">—<span class="unit">min</span></div>
+        <div class="sub" id="statRev">—</div>
+      </div>
+      <div class="stat">
+        <div class="label">Inklinasjon</div>
+        <div class="value" id="statInc">—<span class="unit">°</span></div>
+        <div class="sub" id="statIncType">—</div>
+      </div>
+      <div class="stat">
+        <div class="label">Antall passes</div>
+        <div class="value accent" id="statPasses">—</div>
+        <div class="sub" id="statPassWindow">—</div>
+      </div>
+    </div>
+
+    <h2 class="section-header">Ground track <span class="count mono">[ kart ]</span></h2>
+    <div id="map"></div>
+
+    <h2 class="section-header">Passes over bakkestasjon <span class="count mono" id="passesCount">—</span></h2>
+
+    <table class="data" id="passTable">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Rise (UTC)</th>
+          <th>Rise (lokal)</th>
+          <th class="num">TCA</th>
+          <th class="num">Set</th>
+          <th class="num">Maks elev</th>
+          <th class="num">Slant</th>
+          <th class="num">Varighet</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+
+  </div>
+
+  <hr>
+
+  <p style="color: var(--fg-faint); font-size: 0.85rem;">
+    Implementasjon basert på klassisk to-legeme-mekanikk &mdash; samme algoritme
+    som Python-verktøyet ditt. Forskjell i nøyaktighet vs. SGP4 er lite for
+    korte tidsvinduer, men bli oppmerksom på at perturbasjoner (J2, drag) ikke
+    er inkludert.
+    Kartdata: <a href="https://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap</a>.
+  </p>
+
+</main>
+
+<footer>
+  <div class="footer-content">
+    <div>© 2026 — HEMING WESTAD</div>
+    <div>BUILT IN TRONDHEIM · <a href="https://github.com/hemingwestad-glitch/Nettside-public">SOURCE</a></div>
+  </div>
+</footer>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="/orbit.js"></script>
+<script>
+const $ = (id) => document.getElementById(id);
+
+const EXAMPLES = {
+  iss: `Spacecraft: ISS (typical)
+UTC time at deployment: 2026-05-01T12:00:00Z
+Semi-major axis (km): 6778.0
+Eccentricity (-): 0.0001
+Inclination (deg): 51.64
+RAAN (deg): 120.0
+Argument of perigee (deg): 90.0
+True anomaly (deg): 0.0
+Period (s): 5544.0`,
+  sso: `Spacecraft: Sun-Synchronous Demo
+UTC time at deployment: 2026-05-01T10:00:00Z
+Semi-major axis (km): 6978.0
+Eccentricity (-): 0.001
+Inclination (deg): 97.79
+RAAN (deg): 60.0
+Argument of perigee (deg): 90.0
+True anomaly (deg): 0.0
+Period (s): 5800.0`,
+  cubesat: `Spacecraft: Generic CubeSat
+UTC time at deployment: 2026-05-01T08:00:00Z
+Semi-major axis (km): 6878.0
+Eccentricity (-): 0.0015
+Inclination (deg): 97.5
+RAAN (deg): 90.0
+Argument of perigee (deg): 0.0
+True anomaly (deg): 0.0
+Period (s): 5670.0`
+};
+
+let map = null;
+let trackLayer = null;
+let stationMarker = null;
+
+function initMap() {
+  if (map) return;
+  map = L.map('map').setView([63.4305, 10.3951], 2);
+  L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 8,
+    attribution: '© OpenStreetMap'
+  }).addTo(map);
+}
+
+function classifyInc(inc) {
+  if (inc < 0.5) return 'Ekvatorial';
+  if (Math.abs(inc - 51.6) < 2) return 'ISS-lignende';
+  if (Math.abs(inc - 90) < 5) return 'Polar';
+  if (inc > 95 && inc < 105) return 'Sun-synchronous';
+  if (inc > 90) return 'Retrograd';
+  return 'Inklinert';
+}
+
+function plotTrack(points) {
+  initMap();
+  if (trackLayer) map.removeLayer(trackLayer);
+
+  // Split track on dateline
+  const segments = [[]];
+  for (let i = 0; i < points.length; i++) {
+    if (i > 0 && Math.abs(points[i].lon - points[i-1].lon) > 180) {
+      segments.push([]);
+    }
+    segments[segments.length - 1].push([points[i].lat, points[i].lon]);
+  }
+
+  trackLayer = L.featureGroup();
+  for (const seg of segments) {
+    if (seg.length > 1) {
+      L.polyline(seg, { color: '#d97843', weight: 2.5, opacity: 0.9 }).addTo(trackLayer);
+    }
+  }
+  // Start/end markers
+  L.circleMarker([points[0].lat, points[0].lon], {
+    radius: 6, color: '#6fb07b', fillColor: '#6fb07b', fillOpacity: 1
+  }).bindPopup('Start').addTo(trackLayer);
+  L.circleMarker([points[points.length-1].lat, points[points.length-1].lon], {
+    radius: 6, color: '#c95d4a', fillColor: '#c95d4a', fillOpacity: 1
+  }).bindPopup('Slutt').addTo(trackLayer);
+
+  trackLayer.addTo(map);
+}
+
+function plotStation(lat, lon, name) {
+  if (stationMarker) map.removeLayer(stationMarker);
+  stationMarker = L.marker([lat, lon])
+    .bindPopup(`<strong>${name}</strong><br>${lat.toFixed(4)}°, ${lon.toFixed(4)}°`)
+    .addTo(map);
+}
+
+function formatLocal(date) {
+  return date.toLocaleString('no-NO', {
+    year: 'numeric', month: '2-digit', day: '2-digit',
+    hour: '2-digit', minute: '2-digit', second: '2-digit',
+    hour12: false
+  });
+}
+function formatUTC(date) {
+  return date.toISOString().replace('T', ' ').substring(0, 19) + ' UTC';
+}
+
+$('exampleSelect').addEventListener('change', (e) => {
+  if (EXAMPLES[e.target.value]) $('elemText').value = EXAMPLES[e.target.value];
+});
+
+$('fileInput').addEventListener('change', (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (ev) => {
+    $('elemText').value = ev.target.result;
+  };
+  reader.readAsText(file);
+});
+
+$('stationPreset').addEventListener('change', (e) => {
+  if (e.target.value === 'custom') return;
+  const [lat, lon, alt, name] = e.target.value.split(',');
+  $('staLat').value = lat;
+  $('staLon').value = lon;
+  $('staAlt').value = alt;
+});
+
+$('runBtn').addEventListener('click', () => {
+  $('error').style.display = 'none';
+  $('results').style.display = 'none';
+  $('loading').style.display = 'block';
+
+  setTimeout(() => {
+    try {
+      const text = $('elemText').value;
+      if (!text.trim()) throw new Error('Lim inn orbital elements eller velg et eksempel');
+
+      const elements = HW.orbit.parseOrbitalFile(text);
+      const required = ['epoch', 'a', 'e', 'inc', 'raan', 'argp', 'nu', 'period'];
+      for (const k of required) {
+        if (elements[k] === undefined) throw new Error(`Mangler felt: ${k}`);
+      }
+
+      const station = {
+        lat: parseFloat($('staLat').value),
+        lon: parseFloat($('staLon').value),
+        alt: parseFloat($('staAlt').value)
+      };
+      const stationName = $('stationPreset').value === 'custom'
+        ? 'Egen' : $('stationPreset').value.split(',')[3];
+
+      const plotOrbits = parseFloat($('plotOrbits').value);
+      const passOrbits = parseFloat($('passOrbits').value);
+      const minElev = parseFloat($('minElev').value);
+
+      // Beregn ground track
+      const stepS = Math.max(15, elements.period / 200);
+      const points = HW.orbit.computeGroundTrack(
+        elements, elements.epoch, plotOrbits * elements.period, stepS
+      );
+
+      // Beregn passes
+      const passes = HW.orbit.findPasses(
+        elements, elements.epoch, station,
+        passOrbits * elements.period, 10, minElev
+      );
+
+      // Stats
+      const altitudes = points.map(p => p.alt);
+      const meanAlt = altitudes.reduce((a,b) => a+b, 0) / altitudes.length;
+      const apogeeAlt = elements.a * (1 + elements.e) - HW.orbit.WGS84_A;
+      const perigeeAlt = elements.a * (1 - elements.e) - HW.orbit.WGS84_A;
+
+      $('satName').textContent = elements.name || 'Unnamed';
+      $('statAlt').innerHTML = meanAlt.toFixed(0) + '<span class="unit">km</span>';
+      $('statApogee').textContent = `Perigee ${perigeeAlt.toFixed(0)} / Apogee ${apogeeAlt.toFixed(0)}`;
+      $('statPeriod').innerHTML = (elements.period / 60).toFixed(1) + '<span class="unit">min</span>';
+      $('statRev').textContent = (86400 / elements.period).toFixed(2) + ' rev/dag';
+      $('statInc').innerHTML = elements.inc.toFixed(1) + '<span class="unit">°</span>';
+      $('statIncType').textContent = classifyInc(elements.inc);
+      $('statPasses').textContent = passes.length;
+      $('statPassWindow').textContent = `${passOrbits.toFixed(0)} baner søkt, ≥ ${minElev}° elev`;
+
+      // Plot
+      plotTrack(points);
+      plotStation(station.lat, station.lon, stationName);
+
+      // Pass tabell
+      const tbody = $('passTable').querySelector('tbody');
+      $('passesCount').textContent = `[ ${passes.length} treff ]`;
+      tbody.innerHTML = passes.map((p, i) => `
+        <tr>
+          <td>${i + 1}</td>
+          <td style="font-family:monospace;font-size:0.8rem;">${formatUTC(p.rise)}</td>
+          <td style="font-family:monospace;font-size:0.8rem;">${formatLocal(p.rise)}</td>
+          <td class="num">${p.tca.toLocaleTimeString('no-NO', {hour:'2-digit', minute:'2-digit', second:'2-digit', hour12:false})}</td>
+          <td class="num">${p.set.toLocaleTimeString('no-NO', {hour:'2-digit', minute:'2-digit', second:'2-digit', hour12:false})}</td>
+          <td class="num"><strong style="color:var(--accent);">${p.maxElev.toFixed(1)}°</strong></td>
+          <td class="num">${p.slant.toFixed(0)} km</td>
+          <td class="num">${Math.floor(p.duration/60)}m ${Math.round(p.duration%60)}s</td>
+        </tr>
+      `).join('');
+
+      $('results').style.display = 'block';
+    } catch (err) {
+      $('error').textContent = 'Feil: ' + err.message;
+      $('error').style.display = 'block';
+    } finally {
+      $('loading').style.display = 'none';
+    }
+  }, 50);
+});
+
+// Forhåndsutfyll med ISS
+$('elemText').value = EXAMPLES.iss;
+</script>
+
+</body>
+</html>
