@@ -16,51 +16,53 @@ Ren statisk HTML/CSS/JS. Ingen build-step, ingen backend.
 ├── now.html                Hva som skjer nå
 ├── about.html              Om meg
 ├── 404.html                404-side
-├── style.css               Felles stil
-├── astro.js                Sol/måne-beregninger (delt)
-├── orbit.js                Orbital mekanikk (delt)
+├── style.css               Designsystem (4 temaer)
+├── common.js               Tema-bytte + SVG verdenskart
+├── astro.js                Sol/måne-beregninger
+├── orbit.js                Orbital mekanikk
 └── tools/
-    ├── fishing.html        Fiskeforhold-prediktor (MET Norway)
-    ├── hunting.html        Jaktkalender Notodden
-    ├── orbit.html          Orbit ground track
+    ├── fishing.html        Fiskeforhold (MET Norway)
+    ├── hunting.html        Jaktkalender (klauvdyr)
+    ├── orbit.html          Orbit ground track + passes
+    ├── satellites.html     Live satellittracker (TLE/SGP4)
+    ├── tle.html            TLE-leser/dekoder
     ├── linkbudget.html     Radio link budget
-    ├── wind.html           Vindavdrift
+    ├── antenna.html        Antenne-beregner (dipol/yagi/helix)
+    ├── wind.html           Avansert ballistikk (G1/G7, miljø)
     ├── converter.html      Konverterer (frekvens, dB, enheter)
-    ├── satellites.html     Satellittracker (TLE/SGP4)
+    ├── pressure.html       Trykk-omregner (vakuum/atmosfære)
+    ├── time.html           Tidskonverterer (UTC/JD/GMST/TLE)
     └── sun.html            Sol & måne-kalender
 ```
 
+## Temaer
+
+Fire valgbare utseender, byttes via knapper øverst. Lagres i nettleseren.
+
+- **terminal** – mørkt, JetBrains Mono + Fraunces, varm orange
+- **lab** – lyst papirnotat, Caveat + Spectral, rødbrunt blekk
+- **cyber** – neon-grønt på dyp blå, VT323-font, CRT-aktig
+- **brutalist** – hvit + svart + neon-orange, Archivo Black, harde skygger
+
 ## Eksterne avhengigheter
 
-- **Google Fonts** — Fraunces, JetBrains Mono
-- **Open-Meteo** (proxy til MET Norway) — værdata for fiskeforhold
-- **CelesTrak** — TLE-data for satellittracker
-- **OpenStreetMap + Leaflet** — kart for orbit og satellittracker
-- **satellite.js** — SGP4-implementasjon
+- **Google Fonts** – Fraunces, JetBrains Mono, Caveat, Spectral, VT323, Archivo Black, Inter
+- **Open-Meteo** (MET Norway proxy) – værdata for fiskeforhold
+- **CelesTrak** – TLE-data for satellittracker
+- **satellite.js** – SGP4-implementasjon
 
-Ingen API-nøkler kreves. Alle beregninger som kan gjøres lokalt, gjøres lokalt.
+Kart er bygget som SVG i common.js – ingen eksterne tile-servere lenger.
 
 ## Deploy
 
-Auto-deploy via Cloudflare Workers på push til `main`-branch på GitHub.
-
-## Lokalt
-
-Bare åpne `index.html` i en nettleser. For best resultat (på grunn av
-relative stier), kjør en simpel server:
+Cloudflare Workers, auto-deploy fra `main`-branch på GitHub.
 
 ```bash
-python -m http.server 8000
-# eller
-npx serve
+git add -A
+git commit -m "..."
+git push
 ```
-
-## Kreditter
-
-Astronomiske formler basert på Jean Meeus' *Astronomical Algorithms*.
-SGP4 implementasjon via [satellite.js](https://github.com/shashwatak/satellite-js).
-Orbital mekanikk web-portet fra eget Python-verktøy.
 
 ## Lisens
 
-Innholdet er mitt — koden står du fritt til å låne fra hvis du finner noe nyttig.
+Personlig nettside – kode er åpen for inspirasjon, men design og innhold er mitt.

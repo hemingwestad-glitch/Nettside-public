@@ -6,23 +6,8 @@
 <title>Orbit Ground Track — Heming Westad</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..800;1,9..144,300..800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..800;1,9..144,300..800&family=JetBrains+Mono:wght@400;500;700&family=Caveat:wght@400;700&family=Spectral:wght@400;500&family=VT323&family=Archivo+Black&family=Inter:wght@400;500;700;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/style.css">
-<style>
-  #map {
-    width: 100%;
-    height: 480px;
-    background: var(--bg-soft);
-    border: 1px solid var(--line);
-    margin: 1.5rem 0;
-  }
-  .leaflet-container {
-    background: #0a1628 !important;
-    font-family: 'JetBrains Mono', monospace;
-  }
-  .leaflet-tile-pane { filter: invert(1) hue-rotate(180deg) brightness(0.85) contrast(1.1); }
-</style>
 </head>
 <body>
 
@@ -36,6 +21,12 @@
       <li><a href="/now.html">nå</a></li>
       <li><a href="/about.html">om</a></li>
     </ul>
+    <div class="theme-picker" title="Bytt utseende">
+      <button class="theme-btn" data-bg="terminal" title="Terminal"></button>
+      <button class="theme-btn" data-bg="lab" title="Lab notebook"></button>
+      <button class="theme-btn" data-bg="cyber" title="Cyber"></button>
+      <button class="theme-btn" data-bg="brutalist" title="Brutalist"></button>
+    </div>
   </nav>
 </header>
 
@@ -53,6 +44,78 @@
     Verktøyet propagerer banen, plotter ground track, og finner passes over
     valgt bakkestasjon. Alt regnes lokalt i nettleseren.
   </p>
+
+  <details class="card fade-up">
+    <summary style="cursor:pointer; list-style:none; display:flex; justify-content:space-between; align-items:center;">
+      <h3 style="margin:0;">Hva betyr alle disse verdiene?</h3>
+      <span class="mono" style="color:var(--fg-dim); font-size:0.75rem;">[ klikk for å åpne ]</span>
+    </summary>
+    <div style="margin-top: 1.5rem;">
+      <p><strong>Orbital elements</strong> beskriver en bane fullt og helt. Du trenger seks tall for å definere én unik bane:</p>
+
+      <table class="data" style="margin-bottom: 1.5rem;">
+        <tr>
+          <td style="vertical-align:top; width:200px;"><strong>Semi-major axis (a)</strong></td>
+          <td>Halv-storaksen, i kilometer fra jordas sentrum. Forteller hvor stor banen er. For en sirkulær bane er dette samme som radien. ISS har a ≈ 6778 km (≈ 400 km høyde).</td>
+        </tr>
+        <tr>
+          <td style="vertical-align:top;"><strong>Eccentricity (e)</strong></td>
+          <td>0 = perfekt sirkel. 0.0–0.05 = nesten sirkulær. 0.5 = veldig elliptisk. ≥1 = banen er hyperbolisk og satellitten rømmer jorden.</td>
+        </tr>
+        <tr>
+          <td style="vertical-align:top;"><strong>Inclination (inc)</strong></td>
+          <td>Vinkelen banen lager med ekvator. 0° = ekvatorial, 90° = polar, 51.6° = ISS, ~98° = sun-synchronous (vandrer baklengs slik at den følger sola).</td>
+        </tr>
+        <tr>
+          <td style="vertical-align:top;"><strong>RAAN (Ω)</strong></td>
+          <td>Right Ascension of Ascending Node. Hvor banen krysser ekvator når satellitten beveger seg nordover, målt fra vårjevndøgn-retningen. Roterer banen rundt jordaksen.</td>
+        </tr>
+        <tr>
+          <td style="vertical-align:top;"><strong>Argument of perigee (ω)</strong></td>
+          <td>Hvor i banen perigeum (nærmeste punkt til jorda) ligger, målt fra ascending node. Bare relevant for elliptiske baner.</td>
+        </tr>
+        <tr>
+          <td style="vertical-align:top;"><strong>True anomaly (ν)</strong></td>
+          <td>Hvor satellitten er <em>nå</em> i banen, fra perigeum. 0° = ved perigeum. 180° = ved apogeum.</td>
+        </tr>
+        <tr>
+          <td style="vertical-align:top;"><strong>Period</strong></td>
+          <td>Hvor lang tid det tar for satellitten å gå én gang rundt jorda. Kan også regnes ut fra a alene via Keplers tredje lov.</td>
+        </tr>
+      </table>
+
+      <p><strong>For pass-prediksjonen:</strong></p>
+      <table class="data">
+        <tr>
+          <td style="vertical-align:top; width:200px;"><strong>Rise / Set</strong></td>
+          <td>Når satellitten kommer over og forsvinner under horisonten (fra bakkestasjonens synspunkt).</td>
+        </tr>
+        <tr>
+          <td style="vertical-align:top;"><strong>TCA (Time of Closest Approach)</strong></td>
+          <td>Tidspunktet da satellitten er <em>høyest på himmelen</em> – maks elevasjon under passet. Best tidspunkt for kommunikasjon.</td>
+        </tr>
+        <tr>
+          <td style="vertical-align:top;"><strong>Maks elevasjon</strong></td>
+          <td>Hvor høyt over horisonten satellitten kommer på det høyeste, i grader. 90° = rett over hodet. &lt;10° = lavt på himmelen, dårlig for kommunikasjon pga. atmosfære og horisonthindringer.</td>
+        </tr>
+        <tr>
+          <td style="vertical-align:top;"><strong>Slant range</strong></td>
+          <td>Avstanden i en rett linje fra bakkestasjon til satellitt på TCA-tidspunktet. Brukes til link-budget-beregninger.</td>
+        </tr>
+      </table>
+
+      <h3 style="margin-top: 2rem;">Hvordan regner verktøyet?</h3>
+      <p>Verktøyet løser <strong>Keplers ligning</strong> numerisk (Newton-Raphson) for å finne satellittens posisjon i ECI (Earth-Centered Inertial). Deretter:</p>
+      <ul>
+        <li>Transformeres til ECEF (Earth-Centered Earth-Fixed) ved hjelp av jordrotasjon (GMST).</li>
+        <li>Geodetisk lat/lon kommer fra ECEF via Bowrings algoritme.</li>
+        <li>For passes brukes bisection-søk på rise/set, og golden-section for å låse maks-elevasjon (TCA).</li>
+      </ul>
+      <p style="color: var(--fg-dim); font-size: 0.9rem; margin: 0;">
+        Klassisk to-legeme-mekanikk – ingen J2 eller drag. For LEO over flere dager: forvent merkbart drift sammenlignet med SGP4. For et par baner er forskjellen liten.
+      </p>
+    </div>
+  </details>
 
   <div class="card fade-up">
     <div class="card-header">
@@ -77,15 +140,7 @@
 
     <div class="field">
       <label>Orbital elements (paste her)</label>
-      <textarea id="elemText" rows="11" placeholder="Spacecraft: ExampleSat
-UTC time at deployment: 2026-05-01T12:00:00Z
-Semi-major axis (km): 6778.0
-Eccentricity (-): 0.0001
-Inclination (deg): 51.6
-RAAN (deg): 120.0
-Argument of perigee (deg): 90.0
-True anomaly (deg): 0.0
-Period (s): 5544.0"></textarea>
+      <textarea id="elemText" rows="11" placeholder="Spacecraft: ExampleSat..."></textarea>
       <div class="field-hint">Format: én linje per parameter, samme nøkler som i Python-skriptet.</div>
     </div>
   </div>
@@ -131,25 +186,32 @@ Period (s): 5544.0"></textarea>
       <div class="field">
         <label>Antall baner å plotte</label>
         <input type="number" id="plotOrbits" value="3" step="0.5" min="0.5">
+        <div class="field-hint">Hvor mange ganger satellitten går rundt jorden i visualiseringen</div>
       </div>
       <div class="field">
         <label>Pass-søk (baner)</label>
         <input type="number" id="passOrbits" value="16" step="1" min="1">
+        <div class="field-hint">Hvor langt fram i tid pass-prediksjonen søker</div>
       </div>
       <div class="field">
         <label>Min elevasjon (°)</label>
         <input type="number" id="minElev" value="5" step="1" min="0">
+        <div class="field-hint">Hvor høyt over horisonten satellitten må være for å regnes som «pass»</div>
       </div>
     </div>
     <button id="runBtn" type="button">Kjør beregning</button>
   </div>
 
-  <div id="loading" class="loading" style="display:none;">Beregner...</div>
+  <div id="loading" class="loading" style="display:none;">Beregner</div>
   <div id="error" class="error" style="display:none;"></div>
 
   <div id="results" style="display:none;">
 
     <h2 class="section-header">Sammendrag <span class="count mono" id="satName">—</span></h2>
+
+    <p style="color: var(--fg-dim); font-size: 0.9rem; margin-bottom: 1rem;">
+      Hovedtallene for banen din. Klikk på «Hva betyr alle disse verdiene?» over for full forklaring.
+    </p>
 
     <div class="stat-grid">
       <div class="stat">
@@ -175,10 +237,16 @@ Period (s): 5544.0"></textarea>
     </div>
 
     <h2 class="section-header">Ground track <span class="count mono">[ kart ]</span></h2>
-    <div id="map"></div>
+    <div id="mapContainer"></div>
+    <p style="font-size: 0.85rem; color: var(--fg-dim);">
+      <span style="color: var(--good);">●</span> Start &middot;
+      <span style="color: var(--bad);">●</span> Slutt &middot;
+      <span style="color: var(--accent);">●</span> Bakkestasjon
+    </p>
 
     <h2 class="section-header">Passes over bakkestasjon <span class="count mono" id="passesCount">—</span></h2>
 
+    <div style="overflow-x: auto;">
     <table class="data" id="passTable">
       <thead>
         <tr>
@@ -194,6 +262,7 @@ Period (s): 5544.0"></textarea>
       </thead>
       <tbody></tbody>
     </table>
+    </div>
 
   </div>
 
@@ -201,10 +270,9 @@ Period (s): 5544.0"></textarea>
 
   <p style="color: var(--fg-faint); font-size: 0.85rem;">
     Implementasjon basert på klassisk to-legeme-mekanikk &mdash; samme algoritme
-    som Python-verktøyet ditt. Forskjell i nøyaktighet vs. SGP4 er lite for
-    korte tidsvinduer, men bli oppmerksom på at perturbasjoner (J2, drag) ikke
-    er inkludert.
-    Kartdata: <a href="https://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap</a>.
+    som Python-verktøyet ditt. Forskjell i nøyaktighet vs. SGP4 er liten for
+    korte tidsvinduer, men perturbasjoner (J2, drag) er ikke inkludert.
+    For LEO-baner over flere dager: forvent merkbart drift.
   </p>
 
 </main>
@@ -216,7 +284,7 @@ Period (s): 5544.0"></textarea>
   </div>
 </footer>
 
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="/common.js"></script>
 <script src="/orbit.js"></script>
 <script>
 const $ = (id) => document.getElementById(id);
@@ -251,19 +319,6 @@ True anomaly (deg): 0.0
 Period (s): 5670.0`
 };
 
-let map = null;
-let trackLayer = null;
-let stationMarker = null;
-
-function initMap() {
-  if (map) return;
-  map = L.map('map').setView([63.4305, 10.3951], 2);
-  L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    maxZoom: 8,
-    attribution: '© OpenStreetMap'
-  }).addTo(map);
-}
-
 function classifyInc(inc) {
   if (inc < 0.5) return 'Ekvatorial';
   if (Math.abs(inc - 51.6) < 2) return 'ISS-lignende';
@@ -271,43 +326,6 @@ function classifyInc(inc) {
   if (inc > 95 && inc < 105) return 'Sun-synchronous';
   if (inc > 90) return 'Retrograd';
   return 'Inklinert';
-}
-
-function plotTrack(points) {
-  initMap();
-  if (trackLayer) map.removeLayer(trackLayer);
-
-  // Split track on dateline
-  const segments = [[]];
-  for (let i = 0; i < points.length; i++) {
-    if (i > 0 && Math.abs(points[i].lon - points[i-1].lon) > 180) {
-      segments.push([]);
-    }
-    segments[segments.length - 1].push([points[i].lat, points[i].lon]);
-  }
-
-  trackLayer = L.featureGroup();
-  for (const seg of segments) {
-    if (seg.length > 1) {
-      L.polyline(seg, { color: '#d97843', weight: 2.5, opacity: 0.9 }).addTo(trackLayer);
-    }
-  }
-  // Start/end markers
-  L.circleMarker([points[0].lat, points[0].lon], {
-    radius: 6, color: '#6fb07b', fillColor: '#6fb07b', fillOpacity: 1
-  }).bindPopup('Start').addTo(trackLayer);
-  L.circleMarker([points[points.length-1].lat, points[points.length-1].lon], {
-    radius: 6, color: '#c95d4a', fillColor: '#c95d4a', fillOpacity: 1
-  }).bindPopup('Slutt').addTo(trackLayer);
-
-  trackLayer.addTo(map);
-}
-
-function plotStation(lat, lon, name) {
-  if (stationMarker) map.removeLayer(stationMarker);
-  stationMarker = L.marker([lat, lon])
-    .bindPopup(`<strong>${name}</strong><br>${lat.toFixed(4)}°, ${lon.toFixed(4)}°`)
-    .addTo(map);
 }
 
 function formatLocal(date) {
@@ -329,15 +347,13 @@ $('fileInput').addEventListener('change', (e) => {
   const file = e.target.files[0];
   if (!file) return;
   const reader = new FileReader();
-  reader.onload = (ev) => {
-    $('elemText').value = ev.target.result;
-  };
+  reader.onload = (ev) => { $('elemText').value = ev.target.result; };
   reader.readAsText(file);
 });
 
 $('stationPreset').addEventListener('change', (e) => {
   if (e.target.value === 'custom') return;
-  const [lat, lon, alt, name] = e.target.value.split(',');
+  const [lat, lon, alt] = e.target.value.split(',');
   $('staLat').value = lat;
   $('staLon').value = lon;
   $('staAlt').value = alt;
@@ -371,19 +387,16 @@ $('runBtn').addEventListener('click', () => {
       const passOrbits = parseFloat($('passOrbits').value);
       const minElev = parseFloat($('minElev').value);
 
-      // Beregn ground track
       const stepS = Math.max(15, elements.period / 200);
       const points = HW.orbit.computeGroundTrack(
         elements, elements.epoch, plotOrbits * elements.period, stepS
       );
 
-      // Beregn passes
       const passes = HW.orbit.findPasses(
         elements, elements.epoch, station,
         passOrbits * elements.period, 10, minElev
       );
 
-      // Stats
       const altitudes = points.map(p => p.alt);
       const meanAlt = altitudes.reduce((a,b) => a+b, 0) / altitudes.length;
       const apogeeAlt = elements.a * (1 + elements.e) - HW.orbit.WGS84_A;
@@ -399,18 +412,21 @@ $('runBtn').addEventListener('click', () => {
       $('statPasses').textContent = passes.length;
       $('statPassWindow').textContent = `${passOrbits.toFixed(0)} baner søkt, ≥ ${minElev}° elev`;
 
-      // Plot
-      plotTrack(points);
-      plotStation(station.lat, station.lon, stationName);
+      // Render kart
+      $('mapContainer').innerHTML = HW.map.renderWorldMap({
+        points,
+        stations: [{ lat: station.lat, lon: station.lon, name: stationName }],
+        width: 1000
+      });
 
-      // Pass tabell
+      // Pass-tabell
       const tbody = $('passTable').querySelector('tbody');
       $('passesCount').textContent = `[ ${passes.length} treff ]`;
       tbody.innerHTML = passes.map((p, i) => `
         <tr>
           <td>${i + 1}</td>
-          <td style="font-family:monospace;font-size:0.8rem;">${formatUTC(p.rise)}</td>
-          <td style="font-family:monospace;font-size:0.8rem;">${formatLocal(p.rise)}</td>
+          <td style="font-family:var(--font-mono);font-size:0.8rem;">${formatUTC(p.rise)}</td>
+          <td style="font-family:var(--font-mono);font-size:0.8rem;">${formatLocal(p.rise)}</td>
           <td class="num">${p.tca.toLocaleTimeString('no-NO', {hour:'2-digit', minute:'2-digit', second:'2-digit', hour12:false})}</td>
           <td class="num">${p.set.toLocaleTimeString('no-NO', {hour:'2-digit', minute:'2-digit', second:'2-digit', hour12:false})}</td>
           <td class="num"><strong style="color:var(--accent);">${p.maxElev.toFixed(1)}°</strong></td>
@@ -429,7 +445,6 @@ $('runBtn').addEventListener('click', () => {
   }, 50);
 });
 
-// Forhåndsutfyll med ISS
 $('elemText').value = EXAMPLES.iss;
 </script>
 

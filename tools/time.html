@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tidskonverterer — Heming Westad</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..800;1,9..144,300..800&family=JetBrains+Mono:wght@400;500;700&family=Caveat:wght@400;700&family=Spectral:wght@400;500&family=VT323&family=Archivo+Black&family=Inter:wght@400;500;700;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/style.css">
+</head>
+<body>
+
+<header>
+  <div class="logo"><a href="/">HW<span class="dot">.</span></a></div>
+  <nav>
+    <ul>
+      <li><a href="/">heim</a></li>
+      <li><a href="/tools.html" class="current">verktøy</a></li>
+      <li><a href="/projects.html">prosjekter</a></li>
+      <li><a href="/now.html">nå</a></li>
+      <li><a href="/about.html">om</a></li>
+    </ul>
+    <div class="theme-picker" title="Bytt utseende">
+      <button class="theme-btn" data-bg="terminal" title="Terminal"></button>
+      <button class="theme-btn" data-bg="lab" title="Lab notebook"></button>
+      <button class="theme-btn" data-bg="cyber" title="Cyber"></button>
+      <button class="theme-btn" data-bg="brutalist" title="Brutalist"></button>
+    </div>
+  </nav>
+</header>
+
+<main>
+  <div class="page-meta mono fade-up">
+    <span>VERKTØY / TID</span>
+    <span>UTC · LOKAL · GMST · JD</span>
+  </div>
+
+  <h1 class="fade-up">Tidskonverterer.</h1>
+
+  <p class="lede fade-up">
+    UTC, lokal norsk tid, julian date, GMST og unix epoch &mdash; alt på en gang.
+    Skriv inn tid i ett format, få alle de andre. Nyttig for orbital mekanikk,
+    TLE-feltet og loggtidstempling.
+  </p>
+
+  <div class="card fade-up">
+    <div class="card-header">
+      <h3>Skriv inn tid</h3>
+    </div>
+
+    <div class="field-row">
+      <div class="field">
+        <label>Format</label>
+        <select id="inputType">
+          <option value="now" selected>Nå</option>
+          <option value="iso">ISO 8601 / UTC</option>
+          <option value="local">Lokal norsk tid</option>
+          <option value="unix">Unix timestamp (sekunder)</option>
+          <option value="jd">Julian Date</option>
+          <option value="mjd">Modified Julian Date</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Verdi</label>
+        <input type="text" id="inputValue" placeholder="auto">
+      </div>
+    </div>
+
+    <button id="convert" type="button">Konverter</button>
+    <button id="liveBtn" type="button" class="secondary">Start live-oppdatering</button>
+  </div>
+
+  <h2 class="section-header">Resultater</h2>
+
+  <div class="stat-grid" id="results"></div>
+
+  <h2 class="section-header">Mer informasjon</h2>
+
+  <div class="card">
+    <div class="card-header">
+      <h3>Hva er hva</h3>
+    </div>
+    <p><strong>UTC:</strong> Coordinated Universal Time, samme overalt på jorden.</p>
+    <p><strong>Lokal:</strong> Trondheim/Oslo &mdash; CET (+01:00) om vinteren, CEST (+02:00) om sommeren.</p>
+    <p><strong>Unix timestamp:</strong> Sekunder siden 1. januar 1970 UTC. Standardtid for de fleste systemer.</p>
+    <p><strong>Julian Date (JD):</strong> Antall dager siden 1. januar 4713 f.Kr., 12:00 UT. Brukes i astronomi og orbital mekanikk fordi den gir lange, kontinuerlige tidsintervaller.</p>
+    <p><strong>Modified Julian Date (MJD):</strong> JD &minus; 2400000.5. Mindre tall, og dagsskift skjer ved midnatt UTC.</p>
+    <p><strong>GMST:</strong> Greenwich Mean Sidereal Time &mdash; vinkelen mellom vårjevndøgn og Greenwich-meridianen. Brukes til å konvertere ECI til ECEF.</p>
+    <p style="margin: 0;"><strong>Day of Year:</strong> Dagnummer fra 1. januar. Dukker opp i TLE-er.</p>
+  </div>
+</main>
+
+<footer>
+  <div class="footer-content">
+    <div>© 2026 — HEMING WESTAD</div>
+    <div>BUILT IN TRONDHEIM · <a href="https://github.com/hemingwestad-glitch/Nettside-public">SOURCE</a></div>
+  </div>
+</footer>
+
+<script src="/common.js"></script>
+<script>
+const $ = (id) => document.getElementById(id);
+
+function dateToJD(d) {
+  return d.getTime() / 86400000 + 2440587.5;
+}
+
+function jdToDate(jd) {
+  return new Date((jd - 2440587.5) * 86400000);
+}
+
+function gmst(d) {
+  // Vallado, fra UT1≈UTC
+  const jd = dateToJD(d);
+  const T = (jd - 2451545.0) / 36525;
+  let theta = 280.46061837 + 360.98564736629 * (jd - 2451545.0)
+              + 0.000387933 * T * T - T * T * T / 38710000;
+  theta = theta % 360;
+  if (theta < 0) theta += 360;
+  return theta; // grader
+}
+
+function dayOfYear(d) {
+  const start = Date.UTC(d.getUTCFullYear(), 0, 0);
+  return Math.floor((d.getTime() - start) / 86400000);
+}
+
+function update(date) {
+  const utcStr = date.toISOString().replace('T', ' ').substring(0, 23) + ' UTC';
+  const locStr = date.toLocaleString('no-NO', {
+    year: 'numeric', month: '2-digit', day: '2-digit',
+    hour: '2-digit', minute: '2-digit', second: '2-digit',
+    hour12: false, timeZone: 'Europe/Oslo'
+  });
+  const tzOffset = date.toLocaleString('en', {
+    timeZone: 'Europe/Oslo', timeZoneName: 'short'
+  }).split(' ').pop();
+
+  const unix = (date.getTime() / 1000).toFixed(3);
+  const jd = dateToJD(date);
+  const mjd = jd - 2400000.5;
+  const gm = gmst(date);
+  const doy = dayOfYear(date);
+  const utcFracDay = (date.getUTCHours() + date.getUTCMinutes()/60 + date.getUTCSeconds()/3600) / 24;
+
+  // TLE-format epoch: YYDDD.fffffff
+  const yy = date.getUTCFullYear() % 100;
+  const tleEpoch = String(yy).padStart(2, '0') + (doy + utcFracDay).toFixed(8).padStart(12, '0');
+
+  $('results').innerHTML = `
+    <div class="stat">
+      <div class="label">UTC</div>
+      <div class="value" style="font-family:var(--font-mono); font-size:1rem;">${utcStr}</div>
+    </div>
+    <div class="stat">
+      <div class="label">Lokal (Norge)</div>
+      <div class="value" style="font-family:var(--font-mono); font-size:1rem;">${locStr} ${tzOffset}</div>
+    </div>
+    <div class="stat">
+      <div class="label">Unix timestamp (s)</div>
+      <div class="value" style="font-family:var(--font-mono); font-size:1.05rem;">${unix}</div>
+      <div class="sub">ms: ${date.getTime()}</div>
+    </div>
+    <div class="stat">
+      <div class="label">Julian Date</div>
+      <div class="value accent" style="font-family:var(--font-mono); font-size:1.1rem;">${jd.toFixed(8)}</div>
+    </div>
+    <div class="stat">
+      <div class="label">Modified Julian Date</div>
+      <div class="value" style="font-family:var(--font-mono); font-size:1.1rem;">${mjd.toFixed(8)}</div>
+    </div>
+    <div class="stat">
+      <div class="label">GMST</div>
+      <div class="value" style="font-family:var(--font-mono); font-size:1.1rem;">${gm.toFixed(4)}<span class="unit">°</span></div>
+      <div class="sub">${(gm/15).toFixed(4)} h</div>
+    </div>
+    <div class="stat">
+      <div class="label">Day of year</div>
+      <div class="value">${doy}<span class="unit"> / ${isLeap(date.getUTCFullYear()) ? 366 : 365}</span></div>
+    </div>
+    <div class="stat">
+      <div class="label">TLE-epoch format</div>
+      <div class="value" style="font-family:var(--font-mono); font-size:0.95rem;">${tleEpoch}</div>
+      <div class="sub">YYDDD.FFFFFFFF</div>
+    </div>
+  `;
+}
+
+function isLeap(y) {
+  return (y % 4 === 0 && y % 100 !== 0) || y % 400 === 0;
+}
+
+function parseInput() {
+  const t = $('inputType').value;
+  const v = $('inputValue').value.trim();
+  if (t === 'now') return new Date();
+  if (t === 'iso') return new Date(v);
+  if (t === 'local') return new Date(v);
+  if (t === 'unix') return new Date(parseFloat(v) * 1000);
+  if (t === 'jd') return jdToDate(parseFloat(v));
+  if (t === 'mjd') return jdToDate(parseFloat(v) + 2400000.5);
+  return new Date();
+}
+
+let liveTimer = null;
+
+$('inputType').addEventListener('change', () => {
+  const t = $('inputType').value;
+  const inp = $('inputValue');
+  if (t === 'now') { inp.value = ''; inp.disabled = true; }
+  else { inp.disabled = false; }
+});
+
+$('convert').addEventListener('click', () => {
+  if (liveTimer) { clearInterval(liveTimer); liveTimer = null; $('liveBtn').textContent = 'Start live-oppdatering'; }
+  try {
+    const d = parseInput();
+    if (isNaN(d.getTime())) throw new Error('Klarer ikke tolke tiden');
+    update(d);
+  } catch (e) {
+    alert(e.message);
+  }
+});
+
+$('liveBtn').addEventListener('click', () => {
+  if (liveTimer) {
+    clearInterval(liveTimer);
+    liveTimer = null;
+    $('liveBtn').textContent = 'Start live-oppdatering';
+  } else {
+    $('inputType').value = 'now';
+    $('inputValue').disabled = true;
+    update(new Date());
+    liveTimer = setInterval(() => update(new Date()), 1000);
+    $('liveBtn').textContent = 'Stopp live-oppdatering';
+  }
+});
+
+$('inputValue').disabled = true;
+update(new Date());
+</script>
+</body>
+</html>

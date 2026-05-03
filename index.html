@@ -7,7 +7,7 @@
 <meta name="description" content="Personlig nettside og verktøyhub for Heming Westad. Flyingeniørstudent ved NTNU.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..800;1,9..144,300..800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..800;1,9..144,300..800&family=JetBrains+Mono:wght@400;500;700&family=Caveat:wght@400;700&family=Spectral:wght@400;500&family=VT323&family=Archivo+Black&family=Inter:wght@400;500;700;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/style.css">
 </head>
 <body>
@@ -22,6 +22,12 @@
       <li><a href="/now.html">nå</a></li>
       <li><a href="/about.html">om</a></li>
     </ul>
+    <div class="theme-picker" title="Bytt utseende">
+      <button class="theme-btn" data-bg="terminal" title="Terminal"></button>
+      <button class="theme-btn" data-bg="lab" title="Lab notebook"></button>
+      <button class="theme-btn" data-bg="cyber" title="Cyber"></button>
+      <button class="theme-btn" data-bg="brutalist" title="Brutalist"></button>
+    </div>
   </nav>
 </header>
 
@@ -111,10 +117,40 @@
       <span class="tool-action">Åpne →</span>
     </a>
 
+    <a href="/tools/satellites.html" class="tool">
+      <div class="tool-header">
+        <span class="tool-icon">●●</span>
+        <span class="tool-tag">LIVE</span>
+      </div>
+      <h3>Live satellitt-tracker</h3>
+      <p>TLE fra CelesTrak + SGP4. Se ISS, Starlink, GPS og mer i sanntid på kart.</p>
+      <span class="tool-action">Åpne →</span>
+    </a>
+
+    <a href="/tools/tle.html" class="tool">
+      <div class="tool-header">
+        <span class="tool-icon">≡</span>
+        <span class="tool-tag">PARSER</span>
+      </div>
+      <h3>TLE-leser</h3>
+      <p>Lim inn et NORAD TLE og få det dekodet til orbital-parametere med forklaring av alle feltene.</p>
+      <span class="tool-action">Åpne →</span>
+    </a>
+
+    <a href="/tools/antenna.html" class="tool">
+      <div class="tool-header">
+        <span class="tool-icon">Y</span>
+        <span class="tool-tag">RADIO</span>
+      </div>
+      <h3>Antenne-beregner</h3>
+      <p>Dipol, ground plane, yagi, helix og quad. Forhåndsvalg for amatør- og sat-frekvenser.</p>
+      <span class="tool-action">Åpne →</span>
+    </a>
+
   </div>
 
   <p style="margin-top: 1.5rem; color: var(--fg-dim); font-size: 0.9rem;">
-    <a href="/tools.html">Se alle verktøy</a> &middot;
+    <a href="/tools.html">Se alle 12 verktøy</a> &middot;
     <a href="/projects.html">Pågående prosjekter</a> &middot;
     <a href="/now.html">Hva som skjer nå</a>
   </p>
@@ -145,5 +181,6 @@
   </div>
 </footer>
 
+<script src="/common.js"></script>
 </body>
 </html>

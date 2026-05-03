@@ -3,35 +3,12 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Satellittracker — Heming Westad</title>
+<title>Live Satellitt-tracker — Heming Westad</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..800;1,9..144,300..800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..800;1,9..144,300..800&family=JetBrains+Mono:wght@400;500;700&family=Caveat:wght@400;700&family=Spectral:wght@400;500&family=VT323&family=Archivo+Black&family=Inter:wght@400;500;700;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/style.css">
-<style>
-  #map {
-    width: 100%;
-    height: 480px;
-    background: var(--bg-soft);
-    border: 1px solid var(--line);
-    margin: 1.5rem 0;
-  }
-  .leaflet-container {
-    background: #0a1628 !important;
-    font-family: 'JetBrains Mono', monospace;
-  }
-  .leaflet-tile-pane { filter: invert(1) hue-rotate(180deg) brightness(0.85) contrast(1.1); }
-  .sat-marker {
-    background: var(--accent);
-    color: var(--bg);
-    border-radius: 50%;
-    width: 16px;
-    height: 16px;
-    border: 2px solid var(--bg);
-    box-shadow: 0 0 12px rgba(217, 120, 67, 0.6);
-  }
-</style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/satellite.js/5.0.0/satellite.min.js"></script>
 </head>
 <body>
 
@@ -45,98 +22,109 @@
       <li><a href="/now.html">nå</a></li>
       <li><a href="/about.html">om</a></li>
     </ul>
+    <div class="theme-picker" title="Bytt utseende">
+      <button class="theme-btn" data-bg="terminal" title="Terminal"></button>
+      <button class="theme-btn" data-bg="lab" title="Lab notebook"></button>
+      <button class="theme-btn" data-bg="cyber" title="Cyber"></button>
+      <button class="theme-btn" data-bg="brutalist" title="Brutalist"></button>
+    </div>
   </nav>
 </header>
 
 <main>
-
   <div class="page-meta mono fade-up">
-    <span>VERKTØY / SATELLITTER</span>
-    <span>TLE: CELESTRAK</span>
-    <span>SGP4 PROPAGASJON</span>
+    <span>VERKTØY / ROMFART</span>
+    <span>LIVE TLE-DATA FRA CELESTRAK</span>
   </div>
 
-  <h1 class="fade-up">Satellitt<em>tracker</em>.</h1>
+  <h1 class="fade-up">Live <em>satellitt-tracker</em>.</h1>
 
   <p class="lede fade-up">
-    Live posisjoner for valgte satellitter. Henter ferske TLE-data fra
-    CelesTrak og propagerer posisjon med SGP4. Oppdaterer hvert 5. sekund.
+    Henter ferske TLE-data fra CelesTrak og propagerer baner med SGP4 i nettleseren.
+    Velg en kategori, så ser du alle satellittene live på kartet. Posisjoner oppdateres
+    hvert 5. sekund.
   </p>
 
   <div class="card fade-up">
     <div class="card-header">
-      <h3>Velg satellitter</h3>
-      <span class="meta" id="lastFetch">—</span>
+      <h3>Velg kategori</h3>
+      <span class="meta" id="cacheStatus">—</span>
     </div>
 
     <div class="field">
-      <label>Forhåndsvalgte grupper</label>
-      <select id="groupSelect">
-        <option value="popular">Populære (ISS, NOAA, Hubble)</option>
-        <option value="stations">Romstasjoner (ISS, CSS)</option>
-        <option value="weather">Værsatellitter (NOAA, METOP)</option>
-        <option value="amateur">Amatørradio</option>
-        <option value="cubesat">Aktive CubeSats</option>
+      <label>TLE-kilde</label>
+      <select id="catSelect">
+        <option value="stations">Romstasjoner (ISS, CSS m.fl.)</option>
+        <option value="visual">100 lyseste satellitter</option>
+        <option value="active">Alle aktive (mange!)</option>
+        <option value="weather">Værsatellitter</option>
+        <option value="noaa">NOAA</option>
+        <option value="gps-ops">GPS-konstellasjon</option>
+        <option value="galileo">Galileo</option>
+        <option value="starlink">Starlink (mange!)</option>
+        <option value="cubesat">CubeSats</option>
       </select>
     </div>
 
-    <button id="loadBtn" type="button">Last satellitter</button>
-    <button id="refreshBtn" type="button" class="secondary" style="margin-left: 0.5rem;">Refresh TLE</button>
-
-    <p style="font-size: 0.85rem; color: var(--fg-dim); margin-top: 1rem;">
-      TLE-data oppdateres typisk 1-3 ganger daglig. Cachet i din nettleser i
-      6 timer for å spare CelesTrak.
-    </p>
+    <button id="loadBtn" type="button">Last inn satellitter</button>
+    <button id="clearCache" type="button" class="secondary">Tøm cache</button>
   </div>
 
-  <div id="loading" class="loading" style="display:none;">Henter TLE fra CelesTrak</div>
+  <div id="loading" class="loading" style="display:none;">Henter TLE-data</div>
   <div id="error" class="error" style="display:none;"></div>
 
   <div id="results" style="display:none;">
+    <h2 class="section-header">Live posisjoner <span class="count mono" id="satCount">—</span></h2>
 
-    <h2 class="section-header">Live-posisjoner <span class="count mono" id="updateClock">—</span></h2>
+    <div class="stat-grid">
+      <div class="stat">
+        <div class="label">Satellitter sporet</div>
+        <div class="value accent" id="statTracking">—</div>
+      </div>
+      <div class="stat">
+        <div class="label">Synlig nå (over horisont)</div>
+        <div class="value" id="statVisible">—</div>
+        <div class="sub">Fra Trondheim, ≥10° elev</div>
+      </div>
+      <div class="stat">
+        <div class="label">TLE-alder</div>
+        <div class="value" id="statAge">—</div>
+        <div class="sub" id="statSource">—</div>
+      </div>
+      <div class="stat">
+        <div class="label">Oppdatering</div>
+        <div class="value" id="statUpdate">—</div>
+        <div class="sub">Hvert 5. sekund</div>
+      </div>
+    </div>
 
-    <div id="map"></div>
+    <div id="mapContainer"></div>
 
-    <table class="data" id="satTable">
+    <h3>Synlige satellitter fra Trondheim akkurat nå</h3>
+    <div style="overflow-x: auto;">
+    <table class="data" id="visTable">
       <thead>
         <tr>
-          <th>Satellitt</th>
-          <th class="num">Bredde (°)</th>
-          <th class="num">Lengde (°)</th>
-          <th class="num">Høyde (km)</th>
-          <th class="num">Hastighet (km/s)</th>
-          <th>Over Trondheim?</th>
+          <th>Navn</th>
+          <th class="num">Elevasjon</th>
+          <th class="num">Asimut</th>
+          <th class="num">Avstand</th>
+          <th class="num">Høyde</th>
         </tr>
       </thead>
       <tbody></tbody>
     </table>
-
+    </div>
   </div>
 
   <hr>
 
-  <h3>Hva er TLE?</h3>
-  <p style="color: var(--fg-dim); font-size: 0.95rem;">
-    <strong>Two-Line Element set</strong> &mdash; det klassiske formatet for
-    å distribuere orbital-data. Hver TLE er to 69-tegns linjer som inneholder
-    alle Keplerske elementer pluss perturbasjonsparametere brukt av SGP4.
-    Formatet stammer fra 1960-tallet (NORAD), og er fortsatt standard for
-    upresise prediksjoner. For nøyaktig prediksjon under ~1 dag holder TLE+SGP4
-    fint, men for lengre prediksjoner trenger du oppdaterte TLE-er.
-  </p>
-
-  <p style="color: var(--fg-dim); font-size: 0.95rem;">
-    Dette verktøyet bruker <a href="https://github.com/shashwatak/satellite-js" target="_blank">satellite.js</a>,
-    som er en JavaScript-port av David Vallados SGP4-implementasjon. Ground
-    track tegnes for ±25 minutter rundt nåværende tid.
-  </p>
-
   <p style="color: var(--fg-faint); font-size: 0.85rem;">
-    Datakilde: <a href="https://celestrak.org" target="_blank">CelesTrak</a> (Dr. T.S. Kelso).
-    Kart: <a href="https://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap</a>.
+    TLE-data fra <a href="https://celestrak.org" target="_blank">CelesTrak</a>,
+    cachet i nettleseren i 6 timer for å spare deres servere. SGP4 via
+    <a href="https://github.com/shashwatak/satellite-js" target="_blank">satellite.js</a>.
+    Ferskheten på TLE-data avgjør nøyaktigheten – jo eldre, jo større drift.
   </p>
-
 </main>
 
 <footer>
@@ -146,93 +134,49 @@
   </div>
 </footer>
 
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-<script src="https://unpkg.com/satellite.js@5.0.0/dist/satellite.min.js"></script>
+<script src="/common.js"></script>
 <script>
 const $ = (id) => document.getElementById(id);
+const STATION = { lat: 63.4305, lon: 10.3951, alt: 0.01 }; // Trondheim
 
-// Trondheim ground station
-const TRONDHEIM = { lat: 63.4305, lon: 10.3951, alt: 0.01 };
-
-// CelesTrak group queries
-const GROUPS = {
-  popular: ['stations', 'weather'],
-  stations: ['stations'],
-  weather: ['weather', 'noaa'],
-  amateur: ['amateur'],
-  cubesat: ['cubesat']
-};
-
-// Filter for navn vi faktisk vil ha
-const NAME_FILTERS = {
-  popular: /^(ISS|NOAA|HST|HUBBLE|TIANGONG|CSS)/i,
-  stations: /./, // alle
-  weather: /^(NOAA|METOP|FENGYUN|GOES)/i,
-  amateur: /./,
-  cubesat: /./
-};
-
-const MAX_SATS = 12;
-
-let map = null;
-let satMarkers = {};
-let satTracks = {};
-let satellites = []; // { name, satrec }
+const CACHE_HOURS = 6;
+let satellites = [];
 let updateTimer = null;
 
-function initMap() {
-  if (map) return;
-  map = L.map('map').setView([TRONDHEIM.lat, TRONDHEIM.lon], 2);
-  L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    maxZoom: 8,
-    attribution: '© OpenStreetMap'
-  }).addTo(map);
-
-  // Marker for Trondheim
-  L.marker([TRONDHEIM.lat, TRONDHEIM.lon])
-    .bindPopup('<strong>Trondheim</strong><br>NTNU')
-    .addTo(map);
-
-  // Sirkel for "synlig fra Trondheim" (ca 1500 km radius for LEO ved 5° elevasjon)
-  L.circle([TRONDHEIM.lat, TRONDHEIM.lon], {
-    radius: 1500000,
-    color: '#d97843',
-    fillColor: '#d97843',
-    fillOpacity: 0.05,
-    weight: 1,
-    dashArray: '4, 6'
-  }).addTo(map);
+function tleUrl(category) {
+  return `https://celestrak.org/NORAD/elements/gp.php?GROUP=${category}&FORMAT=tle`;
 }
 
-async function fetchTLE(group) {
-  // Cache i 6 timer
-  const cacheKey = `hw_tle_${group}`;
+async function fetchTLE(category) {
+  const cacheKey = `tle_${category}`;
   const cached = localStorage.getItem(cacheKey);
   if (cached) {
     try {
-      const parsed = JSON.parse(cached);
-      if (Date.now() - parsed.fetched < 6 * 3600 * 1000) {
-        return parsed.text;
+      const obj = JSON.parse(cached);
+      const ageH = (Date.now() - obj.fetched) / 3600000;
+      if (ageH < CACHE_HOURS) {
+        return { data: obj.data, ageH, fromCache: true };
       }
-    } catch {}
+    } catch (e) {}
   }
 
-  const url = `https://celestrak.org/NORAD/elements/gp.php?GROUP=${group}&FORMAT=tle`;
-  const res = await fetch(url);
-  if (!res.ok) throw new Error(`CelesTrak ${res.status}`);
-  const text = await res.text();
-  localStorage.setItem(cacheKey, JSON.stringify({ fetched: Date.now(), text }));
-  return text;
+  const resp = await fetch(tleUrl(category));
+  if (!resp.ok) throw new Error(`CelesTrak svarte ${resp.status}`);
+  const text = await resp.text();
+  if (text.length < 100) throw new Error('Tomt svar fra CelesTrak');
+
+  localStorage.setItem(cacheKey, JSON.stringify({ data: text, fetched: Date.now() }));
+  return { data: text, ageH: 0, fromCache: false };
 }
 
-function parseTLE(text) {
-  const lines = text.trim().split('\n').map(l => l.trim());
+function parseTLEs(text) {
+  const lines = text.trim().split(/\r?\n/);
   const sats = [];
-  for (let i = 0; i + 2 < lines.length; i += 3) {
-    const name = lines[i];
+  for (let i = 0; i < lines.length - 2; i += 3) {
+    const name = lines[i].trim();
     const l1 = lines[i + 1];
     const l2 = lines[i + 2];
-    if (!l1.startsWith('1 ') || !l2.startsWith('2 ')) continue;
+    if (!l1 || !l2 || !l1.startsWith('1 ') || !l2.startsWith('2 ')) continue;
     try {
       const satrec = satellite.twoline2satrec(l1, l2);
       sats.push({ name, satrec });
@@ -241,190 +185,108 @@ function parseTLE(text) {
   return sats;
 }
 
-function propagateSat(sat, date) {
-  try {
-    const pv = satellite.propagate(sat.satrec, date);
-    if (!pv.position) return null;
-    const gmst = satellite.gstime(date);
+function propagateAll(sats, date) {
+  const gmst = satellite.gstime(date);
+  const out = [];
+  for (const s of sats) {
+    const pv = satellite.propagate(s.satrec, date);
+    if (!pv.position) continue;
     const geo = satellite.eciToGeodetic(pv.position, gmst);
+    const lat = satellite.degreesLat(geo.latitude);
+    const lon = satellite.degreesLong(geo.longitude);
+    const alt = geo.height;
 
-    // Hastighet
-    let speed = 0;
-    if (pv.velocity) {
-      speed = Math.sqrt(pv.velocity.x ** 2 + pv.velocity.y ** 2 + pv.velocity.z ** 2);
-    }
-
-    // Topocentric for Trondheim
     const observerGd = {
-      latitude: TRONDHEIM.lat * Math.PI / 180,
-      longitude: TRONDHEIM.lon * Math.PI / 180,
-      height: 0
+      latitude: STATION.lat * Math.PI / 180,
+      longitude: STATION.lon * Math.PI / 180,
+      height: STATION.alt
     };
-    const positionEcf = satellite.eciToEcf(pv.position, gmst);
-    const lookAngles = satellite.ecfToLookAngles(observerGd, positionEcf);
-    const elevation = lookAngles.elevation * 180 / Math.PI;
+    const ecf = satellite.eciToEcf(pv.position, gmst);
+    const lookAngles = satellite.ecfToLookAngles(observerGd, ecf);
+    const elev = lookAngles.elevation * 180 / Math.PI;
+    const az = lookAngles.azimuth * 180 / Math.PI;
+    const rng = lookAngles.rangeSat;
 
-    return {
-      lat: geo.latitude * 180 / Math.PI,
-      lon: geo.longitude * 180 / Math.PI,
-      alt: geo.height,
-      speed,
-      elevation
-    };
-  } catch (e) {
-    return null;
+    out.push({ name: s.name, lat, lon, alt, elev, az, range: rng });
   }
-}
-
-function computeTrack(sat, centerDate) {
-  // ±25 minutter, hvert 30. sekund
-  const points = [];
-  for (let dt = -25 * 60; dt <= 25 * 60; dt += 30) {
-    const t = new Date(centerDate.getTime() + dt * 1000);
-    const p = propagateSat(sat, t);
-    if (p) points.push([p.lat, p.lon]);
-  }
-  return points;
-}
-
-function splitOnDateline(points) {
-  if (points.length === 0) return [];
-  const segments = [[points[0]]];
-  for (let i = 1; i < points.length; i++) {
-    if (Math.abs(points[i][1] - points[i-1][1]) > 180) {
-      segments.push([]);
-    }
-    segments[segments.length - 1].push(points[i]);
-  }
-  return segments;
+  return out;
 }
 
 function update() {
+  if (satellites.length === 0) return;
   const now = new Date();
-  $('updateClock').textContent = '[ ' + now.toLocaleTimeString('no-NO') + ' ]';
+  const positions = propagateAll(satellites, now);
 
-  const tbody = $('satTable').querySelector('tbody');
-  let html = '';
+  const visible = positions.filter(p => p.elev >= 10)
+    .sort((a, b) => b.elev - a.elev);
 
-  for (const sat of satellites) {
-    const pos = propagateSat(sat, now);
-    if (!pos) continue;
+  $('mapContainer').innerHTML = HW.map.renderWorldMap({
+    satellites: positions.slice(0, 200).map(p => ({ lat: p.lat, lon: p.lon })),
+    stations: [{ lat: STATION.lat, lon: STATION.lon, name: 'Trondheim' }],
+    width: 1000
+  });
 
-    // Oppdater marker
-    if (satMarkers[sat.name]) {
-      satMarkers[sat.name].setLatLng([pos.lat, pos.lon]);
-    } else {
-      const icon = L.divIcon({
-        className: '',
-        html: '<div class="sat-marker"></div>',
-        iconSize: [16, 16],
-        iconAnchor: [8, 8]
-      });
-      satMarkers[sat.name] = L.marker([pos.lat, pos.lon], { icon })
-        .bindPopup(`<strong>${sat.name}</strong>`)
-        .addTo(map);
-    }
+  $('statTracking').textContent = positions.length;
+  $('statVisible').innerHTML = visible.length + ' <span class="unit" style="font-size:0.7em;">stk</span>';
+  $('statUpdate').textContent = now.toLocaleTimeString('no-NO', { hour12: false });
 
-    // Oppdater track (rebygg hvert 30. sekund)
-    if (!satTracks[sat.name] || (now - (satTracks[sat.name]._lastUpdate || 0)) > 30000) {
-      if (satTracks[sat.name]) map.removeLayer(satTracks[sat.name]);
-      const points = computeTrack(sat, now);
-      const segments = splitOnDateline(points);
-      const layer = L.featureGroup();
-      for (const seg of segments) {
-        if (seg.length > 1) {
-          L.polyline(seg, { color: '#d97843', weight: 1.5, opacity: 0.6 }).addTo(layer);
-        }
-      }
-      layer._lastUpdate = now;
-      satTracks[sat.name] = layer.addTo(map);
-    }
-
-    // Tabellrad
-    const visible = pos.elevation > 0;
-    const visibilityCls = pos.elevation > 5 ? 'good' : (pos.elevation > 0 ? 'warn' : '');
-    html += `<tr>
-      <td><strong>${sat.name}</strong></td>
-      <td class="num">${pos.lat.toFixed(2)}</td>
-      <td class="num">${pos.lon.toFixed(2)}</td>
-      <td class="num">${pos.alt.toFixed(0)}</td>
-      <td class="num">${pos.speed.toFixed(2)}</td>
-      <td><span class="badge ${visibilityCls}">${
-        pos.elevation > 5 ? 'JA — elev ' + pos.elevation.toFixed(0) + '°' :
-        pos.elevation > 0 ? 'OVER HORISONT (' + pos.elevation.toFixed(0) + '°)' :
-        'NEI (' + pos.elevation.toFixed(0) + '°)'
-      }</span></td>
-    </tr>`;
+  const tbody = $('visTable').querySelector('tbody');
+  if (visible.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="5" style="color:var(--fg-dim);">Ingen synlige akkurat nå</td></tr>';
+  } else {
+    tbody.innerHTML = visible.slice(0, 20).map(p => `
+      <tr>
+        <td>${p.name}</td>
+        <td class="num"><strong style="color:var(--accent);">${p.elev.toFixed(1)}°</strong></td>
+        <td class="num">${p.az.toFixed(0)}°</td>
+        <td class="num">${p.range.toFixed(0)} km</td>
+        <td class="num">${p.alt.toFixed(0)} km</td>
+      </tr>
+    `).join('');
   }
-  tbody.innerHTML = html;
 }
 
-async function loadSatellites(group) {
-  $('loading').style.display = 'block';
+$('loadBtn').addEventListener('click', async () => {
   $('error').style.display = 'none';
+  $('loading').style.display = 'block';
   $('results').style.display = 'none';
 
-  // Rens gamle markers
-  for (const m of Object.values(satMarkers)) map.removeLayer(m);
-  for (const t of Object.values(satTracks)) map.removeLayer(t);
-  satMarkers = {};
-  satTracks = {};
-  satellites = [];
+  if (updateTimer) { clearInterval(updateTimer); updateTimer = null; }
 
   try {
-    const groupKeys = GROUPS[group] || ['stations'];
-    const filter = NAME_FILTERS[group] || /./;
+    const cat = $('catSelect').value;
+    const { data, ageH, fromCache } = await fetchTLE(cat);
+    satellites = parseTLEs(data);
+    if (satellites.length === 0) throw new Error('Klarte ikke parse TLE-data');
 
-    let allSats = [];
-    for (const g of groupKeys) {
-      const text = await fetchTLE(g);
-      const sats = parseTLE(text);
-      allSats = allSats.concat(sats);
-    }
+    $('satCount').textContent = `[ ${satellites.length} satellitter ]`;
+    $('statAge').textContent = ageH < 1
+      ? Math.round(ageH * 60) + ' min'
+      : ageH.toFixed(1) + ' t';
+    $('statSource').textContent = fromCache ? 'cache' : 'celestrak (fersk)';
+    $('cacheStatus').textContent = fromCache ? 'fra cache' : 'lastet inn fra CelesTrak';
 
-    // Dedupliser og filtrer
-    const seen = new Set();
-    satellites = allSats
-      .filter(s => filter.test(s.name))
-      .filter(s => {
-        if (seen.has(s.name)) return false;
-        seen.add(s.name);
-        return true;
-      })
-      .slice(0, MAX_SATS);
-
-    if (satellites.length === 0) {
-      throw new Error('Ingen satellitter matchet filteret');
-    }
-
-    $('lastFetch').textContent = `[ ${satellites.length} satellitter lastet ]`;
     $('results').style.display = 'block';
-    initMap();
     update();
-
-    if (updateTimer) clearInterval(updateTimer);
     updateTimer = setInterval(update, 5000);
   } catch (err) {
-    $('error').textContent = 'Feil: ' + err.message + '. CelesTrak kan være nede, eller nettleseren blokkerer fetch (sjekk konsollen).';
+    $('error').textContent = 'Feil: ' + err.message;
     $('error').style.display = 'block';
   } finally {
     $('loading').style.display = 'none';
   }
-}
-
-$('loadBtn').addEventListener('click', () => {
-  loadSatellites($('groupSelect').value);
 });
 
-$('refreshBtn').addEventListener('click', () => {
-  // Tøm cache for valgt gruppe
-  const groupKeys = GROUPS[$('groupSelect').value] || [];
-  for (const g of groupKeys) localStorage.removeItem(`hw_tle_${g}`);
-  loadSatellites($('groupSelect').value);
+$('clearCache').addEventListener('click', () => {
+  Object.keys(localStorage).forEach(k => {
+    if (k.startsWith('tle_')) localStorage.removeItem(k);
+  });
+  $('cacheStatus').textContent = 'cache tømt';
 });
 
-initMap();
+window.addEventListener('beforeunload', () => {
+  if (updateTimer) clearInterval(updateTimer);
+});
 </script>
-
 </body>
 </html>

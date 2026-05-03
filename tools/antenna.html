@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Antenneberegner — Heming Westad</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..800;1,9..144,300..800&family=JetBrains+Mono:wght@400;500;700&family=Caveat:wght@400;700&family=Spectral:wght@400;500&family=VT323&family=Archivo+Black&family=Inter:wght@400;500;700;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/style.css">
+</head>
+<body>
+
+<header>
+  <div class="logo"><a href="/">HW<span class="dot">.</span></a></div>
+  <nav>
+    <ul>
+      <li><a href="/">heim</a></li>
+      <li><a href="/tools.html" class="current">verktøy</a></li>
+      <li><a href="/projects.html">prosjekter</a></li>
+      <li><a href="/now.html">nå</a></li>
+      <li><a href="/about.html">om</a></li>
+    </ul>
+    <div class="theme-picker" title="Bytt utseende">
+      <button class="theme-btn" data-bg="terminal" title="Terminal"></button>
+      <button class="theme-btn" data-bg="lab" title="Lab notebook"></button>
+      <button class="theme-btn" data-bg="cyber" title="Cyber"></button>
+      <button class="theme-btn" data-bg="brutalist" title="Brutalist"></button>
+    </div>
+  </nav>
+</header>
+
+<main>
+  <div class="page-meta mono fade-up">
+    <span>VERKTØY / RADIO</span>
+    <span>DIPOL · YAGI · HELIX · QUAD</span>
+  </div>
+
+  <h1 class="fade-up">Antenne-<em>beregner</em>.</h1>
+
+  <p class="lede fade-up">
+    Lengder for halv-bølge dipol, kvart-bølge ground plane, yagi-elementer og
+    helix-antenner. Velg amatør- eller satellittbånd, eller skriv inn
+    egen frekvens.
+  </p>
+
+  <div class="card fade-up">
+    <div class="card-header">
+      <h3>Frekvens</h3>
+    </div>
+
+    <div class="field">
+      <label>Forhåndsvalg</label>
+      <select id="preset">
+        <option value="">— Egen frekvens —</option>
+        <option value="3.7">80 m amatør (3.7 MHz)</option>
+        <option value="7.1">40 m amatør (7.1 MHz)</option>
+        <option value="14.2">20 m amatør (14.2 MHz)</option>
+        <option value="21.2">15 m amatør (21.2 MHz)</option>
+        <option value="28.5">10 m amatør (28.5 MHz)</option>
+        <option value="50.15">6 m amatør (50.15 MHz)</option>
+        <option value="100">FM-radio (100 MHz)</option>
+        <option value="137">NOAA APT (137 MHz)</option>
+        <option value="145">2 m amatør (145 MHz)</option>
+        <option value="162.4">VHF marin (162 MHz)</option>
+        <option value="403">Værballong (403 MHz)</option>
+        <option value="437">CubeSat UHF (437 MHz)</option>
+        <option value="446">2 m amatør repeater output (446 MHz)</option>
+        <option value="868">LoRa Europa (868 MHz)</option>
+        <option value="915">LoRa US (915 MHz)</option>
+        <option value="1090">ADS-B (1090 MHz)</option>
+        <option value="1296">23 cm amatør (1296 MHz)</option>
+        <option value="1575.42">GPS L1 (1575 MHz)</option>
+        <option value="2400">2.4 GHz ISM/WiFi</option>
+        <option value="5800">5.8 GHz ISM</option>
+      </select>
+    </div>
+
+    <div class="field-row">
+      <div class="field">
+        <label>Frekvens</label>
+        <input type="number" id="freq" value="437" step="any">
+      </div>
+      <div class="field">
+        <label>Enhet</label>
+        <select id="unit">
+          <option value="MHz" selected>MHz</option>
+          <option value="kHz">kHz</option>
+          <option value="GHz">GHz</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Forkortningsfaktor (k)</label>
+      <input type="number" id="vf" value="0.95" step="0.01" min="0.5" max="1">
+      <div class="field-hint">Reell antenne er litt kortere enn matematisk halv bølgelengde. 0.95-0.97 for tynn tråd, 0.93-0.95 for tykk.</div>
+    </div>
+  </div>
+
+  <h2 class="section-header">Bølgelengde</h2>
+  <div class="stat-grid" id="wavelength"></div>
+
+  <h2 class="section-header">Halv-bølge dipol</h2>
+  <div class="card">
+    <p>Klassisk antenne &mdash; to like elementer matet i midten. Resonant ved valgt frekvens, ca. 73 Ω impedans, omnidireksjonal i horisontalplanet.</p>
+    <div class="stat-grid" id="dipole"></div>
+  </div>
+
+  <h2 class="section-header">Kvart-bølge ground plane / monopol</h2>
+  <div class="card">
+    <p>Vertikal pinne over jordplan eller radial-skjørt. Vanlig for VHF/UHF-radio og bil-antenner. Ca. 36 Ω.</p>
+    <div class="stat-grid" id="quarter"></div>
+  </div>
+
+  <h2 class="section-header">3-element Yagi (anslag)</h2>
+  <div class="card">
+    <p>Direksjonal antenne med reflektor, drevet element og direktor. Estimat etter standard formler for moderat-gain Yagi (~7 dBi).</p>
+    <div class="stat-grid" id="yagi"></div>
+    <p style="font-size: 0.85rem; color: var(--fg-dim); margin: 0;">
+      Faktiske mål må optimaliseres med simulering (NEC/MMANA). Disse er startverdier.
+    </p>
+  </div>
+
+  <h2 class="section-header">Helix (axial mode)</h2>
+  <div class="card">
+    <p>Sirkulært polarisert &mdash; populær for sat-uplink (cubesats!). Diameter≈λ/π, pitch≈λ/4.</p>
+    <div class="stat-grid" id="helix"></div>
+  </div>
+
+  <h2 class="section-header">Quad-loop</h2>
+  <div class="card">
+    <p>Lukket sløyfe med omkrets ≈ 1 bølgelengde. Litt mer gain enn dipol, lavere støy.</p>
+    <div class="stat-grid" id="quad"></div>
+  </div>
+
+  <h2 class="section-header">Fri-rom-tap</h2>
+  <div class="card">
+    <p>For raske link-budget-anslag &mdash; tap fra ren avstand i fri rom (ingen hindringer).</p>
+    <table class="data" id="fspl">
+      <thead><tr><th>Avstand</th><th class="num">Free-space path loss</th></tr></thead>
+      <tbody></tbody>
+    </table>
+    <p style="font-size: 0.85rem; color: var(--fg-dim); margin: 0;">
+      FSPL = 20·log₁₀(d) + 20·log₁₀(f) + 32.45 (med d i km, f i MHz)
+    </p>
+  </div>
+</main>
+
+<footer>
+  <div class="footer-content">
+    <div>© 2026 — HEMING WESTAD</div>
+    <div>BUILT IN TRONDHEIM · <a href="https://github.com/hemingwestad-glitch/Nettside-public">SOURCE</a></div>
+  </div>
+</footer>
+
+<script src="/common.js"></script>
+<script>
+const $ = (id) => document.getElementById(id);
+const C = 299792458; // m/s
+
+function update() {
+  let f = parseFloat($('freq').value);
+  if (!isFinite(f) || f <= 0) return;
+  const u = $('unit').value;
+  if (u === 'kHz') f *= 1e3;
+  else if (u === 'MHz') f *= 1e6;
+  else if (u === 'GHz') f *= 1e9;
+
+  const k = parseFloat($('vf').value) || 0.95;
+  const lambda = C / f;
+  const fMHz = f / 1e6;
+
+  $('wavelength').innerHTML = `
+    <div class="stat">
+      <div class="label">Frekvens</div>
+      <div class="value accent">${formatFreq(f)}</div>
+    </div>
+    <div class="stat">
+      <div class="label">Bølgelengde (vakuum)</div>
+      <div class="value">${formatLen(lambda)}</div>
+      <div class="sub">${(C / f).toFixed(4)} m eksakt</div>
+    </div>
+    <div class="stat">
+      <div class="label">Bølgelengde (i tråd, k=${k})</div>
+      <div class="value">${formatLen(lambda * k)}</div>
+    </div>
+    <div class="stat">
+      <div class="label">Bånd</div>
+      <div class="value" style="font-size:1.2rem;">${classifyBand(fMHz)}</div>
+    </div>
+  `;
+
+  // Dipol = halv bølgelengde med k
+  const dipoleTotal = lambda * k * 0.5;
+  const dipoleHalf = dipoleTotal / 2;
+  $('dipole').innerHTML = `
+    <div class="stat">
+      <div class="label">Total lengde</div>
+      <div class="value accent">${formatLen(dipoleTotal)}</div>
+    </div>
+    <div class="stat">
+      <div class="label">Hver ben</div>
+      <div class="value">${formatLen(dipoleHalf)}</div>
+    </div>
+    <div class="stat">
+      <div class="label">Impedans</div>
+      <div class="value">73<span class="unit">Ω</span></div>
+      <div class="sub">passer 75 Ω koaks direkte</div>
+    </div>
+  `;
+
+  $('quarter').innerHTML = `
+    <div class="stat">
+      <div class="label">Vertikal element</div>
+      <div class="value accent">${formatLen(lambda * k * 0.25)}</div>
+    </div>
+    <div class="stat">
+      <div class="label">Radialer (4 stk)</div>
+      <div class="value">${formatLen(lambda * 0.25)}</div>
+      <div class="sub">litt lengre enn elementet</div>
+    </div>
+    <div class="stat">
+      <div class="label">Impedans</div>
+      <div class="value">36<span class="unit">Ω</span></div>
+      <div class="sub">SWR ≈ 1.4 mot 50 Ω</div>
+    </div>
+  `;
+
+  // 3-el Yagi
+  const yagiRefl = lambda * 0.495;
+  const yagiDriv = lambda * 0.473;
+  const yagiDir = lambda * 0.443;
+  const yagiSpac = lambda * 0.20;
+  $('yagi').innerHTML = `
+    <div class="stat">
+      <div class="label">Reflektor</div>
+      <div class="value">${formatLen(yagiRefl)}</div>
+    </div>
+    <div class="stat">
+      <div class="label">Driven element</div>
+      <div class="value accent">${formatLen(yagiDriv)}</div>
+    </div>
+    <div class="stat">
+      <div class="label">Direktor</div>
+      <div class="value">${formatLen(yagiDir)}</div>
+    </div>
+    <div class="stat">
+      <div class="label">Element-spacing</div>
+      <div class="value">${formatLen(yagiSpac)}</div>
+      <div class="sub">~7 dBi forventet gain</div>
+    </div>
+  `;
+
+  // Helix
+  $('helix').innerHTML = `
+    <div class="stat">
+      <div class="label">Diameter</div>
+      <div class="value accent">${formatLen(lambda / Math.PI)}</div>
+      <div class="sub">≈ λ/π</div>
+    </div>
+    <div class="stat">
+      <div class="label">Pitch (mellom turns)</div>
+      <div class="value">${formatLen(lambda / 4)}</div>
+      <div class="sub">≈ λ/4</div>
+    </div>
+    <div class="stat">
+      <div class="label">Lengde for 7 turns</div>
+      <div class="value">${formatLen(7 * lambda / 4)}</div>
+      <div class="sub">~12-14 dBi</div>
+    </div>
+    <div class="stat">
+      <div class="label">Reflektor-ground-plane</div>
+      <div class="value">${formatLen(lambda * 0.75)}</div>
+      <div class="sub">diameter</div>
+    </div>
+  `;
+
+  // Quad
+  $('quad').innerHTML = `
+    <div class="stat">
+      <div class="label">Total omkrets</div>
+      <div class="value accent">${formatLen(lambda)}</div>
+    </div>
+    <div class="stat">
+      <div class="label">Per side (firkant)</div>
+      <div class="value">${formatLen(lambda / 4)}</div>
+    </div>
+    <div class="stat">
+      <div class="label">Diameter (sirkel)</div>
+      <div class="value">${formatLen(lambda / Math.PI)}</div>
+    </div>
+  `;
+
+  // FSPL-tabell
+  const distances = [
+    [0.1, '100 m'],
+    [1, '1 km'],
+    [10, '10 km'],
+    [50, '50 km'],
+    [400, '400 km (ISS)'],
+    [2000, '2000 km (LEO grense)'],
+    [35786, '36 000 km (GEO)'],
+  ];
+  $('fspl').querySelector('tbody').innerHTML = distances.map(([d, label]) => {
+    const fspl = 20 * Math.log10(d) + 20 * Math.log10(fMHz) + 32.45;
+    return `<tr><td>${label}</td><td class="num">${fspl.toFixed(1)} dB</td></tr>`;
+  }).join('');
+}
+
+function formatFreq(hz) {
+  if (hz >= 1e9) return `${(hz/1e9).toFixed(3)}<span class="unit">GHz</span>`;
+  if (hz >= 1e6) return `${(hz/1e6).toFixed(3)}<span class="unit">MHz</span>`;
+  if (hz >= 1e3) return `${(hz/1e3).toFixed(3)}<span class="unit">kHz</span>`;
+  return `${hz.toFixed(0)}<span class="unit">Hz</span>`;
+}
+
+function formatLen(m) {
+  if (m >= 1) return `${m.toFixed(3)}<span class="unit">m</span>`;
+  if (m >= 0.01) return `${(m*100).toFixed(1)}<span class="unit">cm</span>`;
+  return `${(m*1000).toFixed(1)}<span class="unit">mm</span>`;
+}
+
+function classifyBand(fMHz) {
+  if (fMHz < 0.3) return 'VLF';
+  if (fMHz < 3) return 'LF';
+  if (fMHz < 30) return 'HF (kortbølge)';
+  if (fMHz < 300) return 'VHF';
+  if (fMHz < 3000) return 'UHF';
+  if (fMHz < 30000) return 'SHF (mikrobølge)';
+  return 'EHF';
+}
+
+$('preset').addEventListener('change', (e) => {
+  if (!e.target.value) return;
+  $('freq').value = e.target.value;
+  $('unit').value = 'MHz';
+  update();
+});
+
+['freq', 'unit', 'vf'].forEach(id => $(id).addEventListener('input', update));
+update();
+</script>
+</body>
+</html>
