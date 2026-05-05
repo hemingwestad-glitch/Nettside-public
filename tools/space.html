@@ -1,0 +1,1575 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Satellitt-arbeidsbord — Heming Westad</title>
+<meta name="description" content="Live satellitt-tracker i 3D, ground track, TLE-leser, link budget, antenne, Doppler og pass-prediksjoner for Trondheim. Med radio-frekvenser per satellitt.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..700;1,9..144,400&family=Inter+Tight:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/style.css">
+<style>
+  .sat-canvas { aspect-ratio: 16/10; background: #0a0d14; }
+  .sat-list {
+    max-height: 22rem;
+    overflow-y: auto;
+    border: 1px solid var(--rule);
+    background: var(--bg-card);
+  }
+  .sat-row {
+    display: grid;
+    grid-template-columns: 1fr auto auto;
+    gap: 0.6rem;
+    padding: 0.5rem 0.7rem;
+    border-bottom: 1px solid var(--rule-soft);
+    cursor: pointer;
+    align-items: center;
+    transition: background 0.1s;
+  }
+  .sat-row:hover { background: var(--bg-soft); }
+  .sat-row.selected { background: var(--bg-soft); border-left: 3px solid var(--accent); padding-left: calc(0.7rem - 3px); }
+  .sat-row .sat-name { font-weight: 500; }
+  .sat-row .sat-meta { font-family: 'JetBrains Mono', monospace; font-size: 0.72rem; color: var(--ink-faint); }
+  .sat-row .sat-freq { font-family: 'JetBrains Mono', monospace; font-size: 0.72rem; color: var(--accent); }
+
+  .freq-list {
+    list-style: none; padding: 0; margin: 0.5rem 0;
+    border-top: 1px solid var(--rule-soft);
+  }
+  .freq-list li {
+    display: grid;
+    grid-template-columns: 7rem 1fr auto;
+    gap: 0.6rem;
+    padding: 0.4rem 0.4rem;
+    border-bottom: 1px solid var(--rule-soft);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.85rem;
+    align-items: center;
+  }
+  .freq-list .freq-mhz { color: var(--accent); font-weight: 500; }
+  .freq-list .freq-mode { color: var(--ink-soft); font-size: 0.78rem; }
+  .freq-list .freq-rx {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 0.1rem 0.4rem;
+    border-radius: 2px;
+  }
+  .freq-list .freq-rx.yes { background: var(--green); color: #fff; }
+  .freq-list .freq-rx.no  { background: var(--rule); color: var(--ink-faint); }
+
+  .selected-bar {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.6rem 0.9rem;
+    background: var(--bg-soft);
+    border: 1px solid var(--rule);
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
+    font-size: 0.9rem;
+  }
+  .selected-bar strong { color: var(--ink); }
+  .selected-bar .mono { font-size: 0.78rem; color: var(--ink-soft); }
+</style>
+</head>
+<body>
+<header>
+  <div class="logo"><a href="/">Heming Westad<span class="dot">.</span></a></div>
+  <nav>
+    <ul>
+      <li><a href="/">heim</a></li>
+      <li><a href="/tools.html" class="current">verktøy</a></li>
+      <li><a href="/projects.html">prosjekter</a></li>
+      <li><a href="/now.html">nå</a></li>
+      <li><a href="/about.html">om</a></li>
+    </ul>
+  </nav>
+</header>
+
+<main>
+  <div class="page-meta fade-up">
+    <span><span class="dot live"></span>Satellitter</span>
+    <span>SGP4 · CelesTrak · Trondheim</span>
+    <span id="sat-count">— sat. lastet</span>
+  </div>
+
+  <h1 class="fade-up">Satellitt-<em>arbeidsbord</em>.</h1>
+  <p class="lede fade-up">
+    Live tracker i 3D, ground track, TLE-leser, link budget, antenne-beregner,
+    Doppler og pass-prediksjoner. Velg en satellitt fra listen, så følger den
+    med på tvers av fanene. Frekvenser merket <span class="tag green" style="font-size: 0.65rem;">RX</span>
+    kan mottas med vanlig amatørradio-utstyr.
+  </p>
+
+  <div class="selected-bar" id="selected-bar">
+    <span>Valgt: <strong id="sel-name">— ingen satellitt valgt —</strong></span>
+    <span class="mono" id="sel-meta"></span>
+  </div>
+
+  <div class="tabs">
+    <button class="tab active" data-tab="live">Live tracker</button>
+    <button class="tab" data-tab="ground">Ground track</button>
+    <button class="tab" data-tab="passes">Pass-prediksjoner</button>
+    <button class="tab" data-tab="doppler">Doppler</button>
+    <button class="tab" data-tab="link">Link budget</button>
+    <button class="tab" data-tab="antenna">Antenne</button>
+    <button class="tab" data-tab="tle">TLE-leser</button>
+  </div>
+
+  <!-- ═══ LIVE TRACKER ═══ -->
+  <div class="tab-panel active" data-panel="live">
+    <div style="display: grid; grid-template-columns: minmax(0,2fr) minmax(16rem,1fr); gap: 1.25rem;">
+      <div>
+        <div class="canvas-wrap sat-canvas" id="globe-canvas">
+          <div class="canvas-overlay top-left" id="globe-overlay">Klikker globusen for å rotere</div>
+          <div class="canvas-overlay bottom-right" id="globe-stats"></div>
+        </div>
+        <div class="controls-grid" style="margin-top: 0.75rem; display: flex; gap: 0.5rem; flex-wrap: wrap;">
+          <button id="btn-spin" class="secondary">Auto-rotér</button>
+          <button id="btn-orbit-show" class="secondary">Skjul baner</button>
+          <button id="btn-fly" class="secondary">Følg valgt</button>
+        </div>
+      </div>
+      <div>
+        <h4 style="margin-top: 0;">Satellitter</h4>
+        <input type="search" id="sat-search" placeholder="Søk navn (ISS, NOAA, ...)" style="margin-bottom: 0.5rem;">
+        <select id="sat-group" style="margin-bottom: 0.5rem;">
+          <option value="amateur">Amatør-radio (mottakbart)</option>
+          <option value="weather">Vær (NOAA, METEOR)</option>
+          <option value="stations">Romstasjoner (ISS m.fl.)</option>
+          <option value="active">Aktive (alle)</option>
+          <option value="starlink">Starlink (utvalg)</option>
+          <option value="gps-ops">GPS</option>
+        </select>
+        <div class="sat-list" id="sat-list"></div>
+        <p class="muted tiny" style="margin: 0.5rem 0 0;">
+          TLE-data fra CelesTrak. Listen oppdateres ved sidelasting.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ GROUND TRACK ═══ -->
+  <div class="tab-panel" data-panel="ground">
+    <div class="controls-grid" style="display: flex; gap: 1rem; flex-wrap: wrap; align-items: end; margin-bottom: 0.75rem;">
+      <div class="field">
+        <label>Antall baner</label>
+        <select id="gt-orbits">
+          <option value="1">1 omløp</option>
+          <option value="2" selected>2 omløp</option>
+          <option value="3">3 omløp</option>
+          <option value="6">6 omløp</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Steglengde</label>
+        <select id="gt-step">
+          <option value="30">30 s</option>
+          <option value="60" selected>60 s</option>
+          <option value="120">120 s</option>
+        </select>
+      </div>
+    </div>
+    <div class="chart">
+      <div class="chart-title" id="gt-title">Velg en satellitt for å se ground track</div>
+      <svg id="gt-svg" viewBox="0 0 800 400" preserveAspectRatio="none"></svg>
+    </div>
+    <p class="muted small">
+      Bakkestasjon (Trondheim, 63,43° N / 10,40° E) markert med kryss. Fyldte
+      sirkler viser hvor satellitten er over horisonten (≥5° elevasjon).
+    </p>
+  </div>
+
+  <!-- ═══ PASS-PREDIKSJONER ═══ -->
+  <div class="tab-panel" data-panel="passes">
+    <div class="controls-grid" style="display: flex; gap: 1rem; flex-wrap: wrap; align-items: end; margin-bottom: 0.75rem;">
+      <div class="field">
+        <label>Bakkestasjon</label>
+        <input type="text" id="pass-station" value="Trondheim (63.43°N / 10.40°E / 51m)" disabled style="min-width: 18rem;">
+      </div>
+      <div class="field">
+        <label>Min. elevasjon</label>
+        <select id="pass-elev">
+          <option value="0">0°</option>
+          <option value="5" selected>5°</option>
+          <option value="10">10°</option>
+          <option value="20">20°</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Antall dager</label>
+        <select id="pass-days">
+          <option value="1">1 dag</option>
+          <option value="3" selected>3 dager</option>
+          <option value="7">7 dager</option>
+        </select>
+      </div>
+      <button id="pass-calc">Beregn passes</button>
+    </div>
+
+    <div id="pass-results">
+      <p class="muted">Velg en satellitt og trykk "Beregn passes".</p>
+    </div>
+  </div>
+
+  <!-- ═══ DOPPLER ═══ -->
+  <div class="tab-panel" data-panel="doppler">
+    <p>
+      Doppler-skift for radio-mottak fra valgt satellitt over Trondheim.
+      Når satellitten kommer mot deg blir frekvensen høyere; når den drar
+      seg unna lavere. Skift er forholdet mellom radial hastighet og
+      lyshastighet, ganget med senderfrekvens.
+    </p>
+
+    <div class="controls-grid" style="display: flex; gap: 1rem; flex-wrap: wrap; align-items: end; margin-bottom: 0.75rem;">
+      <div class="field" style="flex: 0 0 13rem;">
+        <label>Senderfrekvens (MHz)</label>
+        <input type="number" id="dop-freq" value="145.825" step="0.001" min="0">
+      </div>
+      <div class="field" style="flex: 0 0 9rem;">
+        <label>Tidshorisont</label>
+        <select id="dop-window">
+          <option value="900">15 min</option>
+          <option value="1800" selected>30 min</option>
+          <option value="3600">1 time</option>
+        </select>
+      </div>
+      <button id="dop-calc">Beregn</button>
+    </div>
+
+    <div class="stat-grid">
+      <div class="stat"><div class="stat-label">Frekvens nå</div><div class="stat-value" id="dop-now">—</div></div>
+      <div class="stat blue"><div class="stat-label">Skift nå</div><div class="stat-value" id="dop-shift">—</div></div>
+      <div class="stat accent"><div class="stat-label">Maks skift</div><div class="stat-value" id="dop-max">—</div></div>
+      <div class="stat"><div class="stat-label">Radial hast.</div><div class="stat-value" id="dop-rate">—</div></div>
+    </div>
+
+    <div class="chart">
+      <div class="chart-title" id="dop-title">Velg en satellitt og trykk "Beregn"</div>
+      <svg id="dop-svg" viewBox="0 0 800 280" preserveAspectRatio="none"></svg>
+    </div>
+  </div>
+
+  <!-- ═══ LINK BUDGET ═══ -->
+  <div class="tab-panel" data-panel="link">
+    <p>
+      Forenklet link budget i fri-rom. Beregner mottatt signaleffekt og SNR-margin
+      basert på sender, antenner, distanse og mottaker-støy. Bruker FSPL =
+      20·log₁₀(d) + 20·log₁₀(f) + 32,45 (d i km, f i MHz).
+    </p>
+
+    <div class="field-row">
+      <div class="field">
+        <label>Senderfrekvens (MHz)</label>
+        <input type="number" id="lb-freq" value="437.0" step="0.1">
+      </div>
+      <div class="field">
+        <label>Sender-effekt (W)</label>
+        <input type="number" id="lb-power" value="1.0" step="0.1" min="0.001">
+      </div>
+      <div class="field">
+        <label>Sender-antenne G (dBi)</label>
+        <input type="number" id="lb-gtx" value="2.0" step="0.5">
+      </div>
+      <div class="field">
+        <label>Mottaker-antenne G (dBi)</label>
+        <input type="number" id="lb-grx" value="14.0" step="0.5">
+      </div>
+      <div class="field">
+        <label>Diverse tap (dB)</label>
+        <input type="number" id="lb-loss" value="3.0" step="0.5">
+      </div>
+      <div class="field">
+        <label>Distanse (km)</label>
+        <input type="number" id="lb-dist" value="1500" step="50" min="1">
+      </div>
+      <div class="field">
+        <label>Båndbredde (kHz)</label>
+        <input type="number" id="lb-bw" value="15" step="1">
+      </div>
+      <div class="field">
+        <label>NF mottaker (dB)</label>
+        <input type="number" id="lb-nf" value="2.0" step="0.5">
+      </div>
+      <div class="field">
+        <label>Krevd SNR (dB)</label>
+        <input type="number" id="lb-snr" value="10" step="1">
+      </div>
+    </div>
+
+    <div class="stat-grid">
+      <div class="stat"><div class="stat-label">EIRP</div><div class="stat-value" id="lb-eirp">—</div></div>
+      <div class="stat"><div class="stat-label">FSPL</div><div class="stat-value" id="lb-fspl">—</div></div>
+      <div class="stat blue"><div class="stat-label">Pmottatt</div><div class="stat-value" id="lb-prx">—</div></div>
+      <div class="stat"><div class="stat-label">Støygulv</div><div class="stat-value" id="lb-noise">—</div></div>
+      <div class="stat accent"><div class="stat-label">Margin</div><div class="stat-value" id="lb-margin">—</div></div>
+    </div>
+
+    <div id="lb-verdict" style="margin-top: 0.75rem;"></div>
+
+    <p class="muted small" style="margin-top: 1rem;">
+      "Distanse" hentes automatisk fra valgt satellitt om mulig (slant range
+      ved nåværende posisjon over Trondheim).
+    </p>
+    <button id="lb-from-sat" class="secondary">Hent distanse fra valgt satellitt</button>
+  </div>
+
+  <!-- ═══ ANTENNE ═══ -->
+  <div class="tab-panel" data-panel="antenna">
+    <div class="field-row">
+      <div class="field">
+        <label>Type</label>
+        <select id="ant-type">
+          <option value="dipole">Halvbølgedipol</option>
+          <option value="ground">Vertikal kvartbølge (m. jordplan)</option>
+          <option value="yagi3">Yagi 3-elements</option>
+          <option value="yagi5">Yagi 5-elements</option>
+          <option value="yagi7">Yagi 7-elements</option>
+          <option value="helix">Helix (sirk. polarisert)</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Frekvens (MHz)</label>
+        <input type="number" id="ant-freq" value="437" step="0.1">
+      </div>
+    </div>
+
+    <div class="stat-grid">
+      <div class="stat"><div class="stat-label">Bølgelengde</div><div class="stat-value" id="ant-lambda">—</div></div>
+      <div class="stat blue"><div class="stat-label">Hovedmål</div><div class="stat-value" id="ant-len">—</div></div>
+      <div class="stat accent"><div class="stat-label">Forventet G</div><div class="stat-value" id="ant-gain">—</div></div>
+      <div class="stat"><div class="stat-label">3 dB åpning</div><div class="stat-value" id="ant-bw">—</div></div>
+    </div>
+
+    <div id="ant-detail" style="margin-top: 0.75rem;"></div>
+
+    <p class="muted small" style="margin-top: 1rem;">
+      Estimater er basert på tommelfingerregler (½λ-segmenter, dipol = 2,15 dBi,
+      yagi-gain ≈ 10·log10(N+1) dBi for N elementer på "godt" boom-design).
+      Reell ytelse må verifiseres med simulering eller måling.
+    </p>
+  </div>
+
+  <!-- ═══ TLE-LESER ═══ -->
+  <div class="tab-panel" data-panel="tle">
+    <p>
+      Lim inn et TLE (to-linjers element-sett) for å se de orbitale parameterne
+      forklart. Du kan også bytte til en annen satellitt fra listen.
+    </p>
+
+    <label>TLE (3 linjer: navn + linje 1 + linje 2)</label>
+    <textarea id="tle-input" rows="4" style="font-family: 'JetBrains Mono', monospace; font-size: 0.78rem;"
+      placeholder="ISS (ZARYA)
+1 25544U 98067A   24123.50000000  .00012345  00000-0  22822-3 0  9990
+2 25544  51.6400 123.4567 0001234 123.4567 234.5678 15.49000000123456"></textarea>
+    <div style="display: flex; gap: 0.5rem; margin-top: 0.5rem;">
+      <button id="tle-parse">Dekod</button>
+      <button id="tle-from-selected" class="secondary">Hent fra valgt sat.</button>
+    </div>
+
+    <div id="tle-result" style="margin-top: 1rem;"></div>
+  </div>
+
+  <hr>
+  <h2 class="section-header">Frekvens-database for valgt satellitt</h2>
+  <div id="freq-info">
+    <p class="muted small">Velg en satellitt for å se frekvenser.</p>
+  </div>
+
+  <hr>
+  <p class="muted small">
+    TLE-data fra <a href="https://celestrak.org" target="_blank" rel="noopener">CelesTrak</a>
+    via <code>celestrak.org/NORAD/elements/gp.php</code>. Propagering med
+    <a href="https://github.com/shashwatak/satellite-js" target="_blank" rel="noopener">satellite.js</a>
+    (SGP4-implementasjon).
+  </p>
+</main>
+
+<footer>
+  <div class="footer-content">
+    <div>© 2026 — Heming Westad</div>
+    <div>Trondheim · <a href="https://github.com/hemingwestad-glitch/Nettside-public">kildekode</a></div>
+  </div>
+</footer>
+
+<script src="/common.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/satellite.js@5.0.0/dist/satellite.min.js"></script>
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+  }
+}
+</script>
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+/* ═══════════════════════════════════════════════════════════════════════
+   FREKVENSDATABASE
+   "rx: true" betyr enkelt mottakbart med amatør-utstyr (VHF/UHF SDR).
+   "rx: false" er kommersielle/militære/krypterte sendinger.
+   ═══════════════════════════════════════════════════════════════════════ */
+
+const FREQUENCIES = {
+  // ISS — Den internasjonale romstasjonen
+  '25544': {
+    label: 'ISS',
+    notes: 'Romstasjonen sender APRS i 145.825 nesten kontinuerlig. Voice-repeater på 437.800/145.990 åpner periodisk. SSTV-bilder slippes ut ved spesielle anledninger på 145.800.',
+    freqs: [
+      { mhz: 145.825,  mode: 'APRS digipeater (FM/AFSK 1200)', rx: true },
+      { mhz: 145.800,  mode: 'SSTV (når aktiv)', rx: true },
+      { mhz: 437.800,  mode: 'Voice repeater (FM, ned)', rx: true },
+      { mhz: 145.990,  mode: 'Voice repeater (FM, opp)', rx: false },
+      { mhz: 143.625,  mode: 'Russisk voice (FM)', rx: true },
+    ]
+  },
+  // NOAA APT-satellitter — vær
+  '25338': { label: 'NOAA-15', notes: 'APT 137 MHz. Sender kontinuerlig værbilder. Kan tas opp med en enkel V-dipol og en RTL-SDR.', freqs: [
+    { mhz: 137.620,  mode: 'APT (analog FM)', rx: true },
+    { mhz: 1702.5,   mode: 'HRPT (digital)', rx: false },
+  ]},
+  '28654': { label: 'NOAA-18', notes: 'APT 137 MHz. Lik NOAA-15.', freqs: [
+    { mhz: 137.9125, mode: 'APT (analog FM)', rx: true },
+    { mhz: 1707.0,   mode: 'HRPT (digital)', rx: false },
+  ]},
+  '33591': { label: 'NOAA-19', notes: 'APT 137 MHz. Beste av NOAA-flåten i 2026.', freqs: [
+    { mhz: 137.100,  mode: 'APT (analog FM)', rx: true },
+    { mhz: 1698.0,   mode: 'HRPT (digital)', rx: false },
+  ]},
+  // Meteor-M2 — russisk vær
+  '40069': { label: 'Meteor-M2', notes: 'LRPT digital værsatellitt. Krever SDR + LRPT-dekoder, men gir mye bedre bilder enn APT.', freqs: [
+    { mhz: 137.100,  mode: 'LRPT (QPSK 72k)', rx: true },
+  ]},
+  // AMSAT-OSCAR
+  '43017': { label: 'FOX-1B (AO-91)', notes: 'AMSAT-OSCAR repeater (FM). Krever ofte direktiv antenne og litt øvelse for å få ren mottak.', freqs: [
+    { mhz: 145.960,  mode: 'Voice repeater opp (FM)', rx: false },
+    { mhz: 435.250,  mode: 'Voice repeater ned (FM)', rx: true },
+  ]},
+  '43137': { label: 'FOX-1D (AO-92)', notes: 'AMSAT-OSCAR repeater. Samme prinsipp som AO-91.', freqs: [
+    { mhz: 435.350,  mode: 'Voice repeater ned (FM)', rx: true },
+    { mhz: 145.880,  mode: 'Voice repeater opp (FM)', rx: false },
+  ]},
+  // ARISS skolekontakt
+  '50467': { label: 'RS-44', notes: 'Russisk amatørrepeater i Molnija-bane. SSB/CW lineær transponder.', freqs: [
+    { mhz: 435.610,  mode: 'Lineær transponder ned', rx: true },
+    { mhz: 145.965,  mode: 'Lineær transponder opp', rx: false },
+  ]},
+  // PicSat / generic CubeSats
+  '__GENERIC_CUBESAT__': { label: 'Generisk CubeSat', freqs: [
+    { mhz: 437.0, mode: 'Telemetri (BPSK/GMSK 9k6)', rx: true },
+  ]},
+  // GPS
+  '__GENERIC_GPS__': { label: 'GPS / Navigation', notes: 'L1 og L5 er åpne signaler men krever GPS-mottaker, ikke vanlig SDR.', freqs: [
+    { mhz: 1575.42, mode: 'L1 C/A (BPSK)', rx: false },
+    { mhz: 1227.60, mode: 'L2 (begrenset)', rx: false },
+  ]},
+  // Starlink (downlink ikke mottakbart med vanlig utstyr)
+  '__GENERIC_STARLINK__': { label: 'Starlink', notes: 'Ku/Ka-bånd, kryptert, ikke mottakbart med amatørutstyr. Inkludert her bare for sporing.', freqs: [
+    { mhz: 12000, mode: 'Ku-bånd ned (krypt.)', rx: false },
+    { mhz: 14000, mode: 'Ku-bånd opp (krypt.)', rx: false },
+  ]},
+};
+
+// CelesTrak-grupper
+const SAT_GROUPS = {
+  amateur:  'https://celestrak.org/NORAD/elements/gp.php?GROUP=amateur&FORMAT=tle',
+  weather:  'https://celestrak.org/NORAD/elements/gp.php?GROUP=weather&FORMAT=tle',
+  stations: 'https://celestrak.org/NORAD/elements/gp.php?GROUP=stations&FORMAT=tle',
+  active:   'https://celestrak.org/NORAD/elements/gp.php?GROUP=active&FORMAT=tle',
+  starlink: 'https://celestrak.org/NORAD/elements/gp.php?GROUP=starlink&FORMAT=tle',
+  'gps-ops': 'https://celestrak.org/NORAD/elements/gp.php?GROUP=gps-ops&FORMAT=tle',
+};
+
+const STATION = { lat: 63.4305, lon: 10.3951, alt: 0.0513 }; // km
+
+let satellites = [];      // { name, line1, line2, satrec, noradId }
+let selected = null;      // valgt satellitt
+let currentGroup = 'amateur';
+
+const satelliteJS = window.satellite;
+
+/* ═══ HJELPEFUNKSJONER ═══ */
+function parseTLEs(text, group) {
+  const lines = text.split(/\r?\n/).map(l => l.trim()).filter(l => l.length > 0);
+  const sats = [];
+  for (let i = 0; i + 2 < lines.length; i += 3) {
+    if (!lines[i+1].startsWith('1 ') || !lines[i+2].startsWith('2 ')) continue;
+    try {
+      const satrec = satelliteJS.twoline2satrec(lines[i+1], lines[i+2]);
+      sats.push({
+        name: lines[i],
+        line1: lines[i+1],
+        line2: lines[i+2],
+        satrec,
+        noradId: lines[i+1].substring(2, 7).trim()
+      });
+    } catch (e) { /* skip bad TLE */ }
+  }
+  return sats;
+}
+
+async function loadSatGroup(group) {
+  const list = document.getElementById('sat-list');
+  list.innerHTML = '<div class="muted small" style="padding: 1rem;">Henter TLE-data...</div>';
+  try {
+    const r = await fetch(SAT_GROUPS[group]);
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    const text = await r.text();
+    satellites = parseTLEs(text, group);
+    if (group === 'starlink') satellites = satellites.slice(0, 50); // begrens
+    document.getElementById('sat-count').textContent = `${satellites.length} sat. lastet`;
+    renderSatList();
+  } catch (e) {
+    list.innerHTML = `<div class="muted small" style="padding: 1rem;">Klarte ikke laste TLE: ${e.message}</div>`;
+  }
+}
+
+function renderSatList(filter = '') {
+  const list = document.getElementById('sat-list');
+  const f = filter.toLowerCase();
+  const matched = satellites.filter(s => !f || s.name.toLowerCase().includes(f));
+  list.innerHTML = matched.slice(0, 200).map(s => {
+    const fr = FREQUENCIES[s.noradId];
+    let primaryFreq = '';
+    if (fr && fr.freqs && fr.freqs.length > 0) {
+      const rxFreqs = fr.freqs.filter(f => f.rx);
+      const main = rxFreqs[0] || fr.freqs[0];
+      primaryFreq = `${main.mhz.toFixed(3)} MHz`;
+    }
+    const isSel = selected && selected.noradId === s.noradId;
+    return `
+      <div class="sat-row ${isSel ? 'selected' : ''}" data-norad="${s.noradId}">
+        <div>
+          <div class="sat-name">${s.name}</div>
+          <div class="sat-meta">NORAD ${s.noradId}</div>
+        </div>
+        <div class="sat-freq">${primaryFreq}</div>
+      </div>
+    `;
+  }).join('');
+  list.querySelectorAll('.sat-row').forEach(row => {
+    row.addEventListener('click', () => {
+      const norad = row.dataset.norad;
+      const sat = satellites.find(s => s.noradId === norad);
+      if (sat) selectSatellite(sat);
+    });
+  });
+}
+
+function selectSatellite(sat) {
+  selected = sat;
+  // Oppdater valgt-bar
+  document.getElementById('sel-name').textContent = sat.name;
+  document.getElementById('sel-meta').textContent = `NORAD ${sat.noradId}`;
+  // Marker i listen
+  document.querySelectorAll('.sat-row').forEach(r => {
+    r.classList.toggle('selected', r.dataset.norad === sat.noradId);
+  });
+  // Frekvens-info
+  renderFrequencyInfo(sat);
+  // Reagér i alle aktive faner
+  HW.bus.dispatchEvent(new CustomEvent('satchange', { detail: sat }));
+  // Trigger nåværende fane
+  const active = document.querySelector('.tab-panel.active');
+  if (active) refreshTab(active.dataset.panel);
+}
+
+function renderFrequencyInfo(sat) {
+  const c = document.getElementById('freq-info');
+  let entry = FREQUENCIES[sat.noradId];
+
+  // Heuristikk: gjenkjenn generic-typer
+  if (!entry) {
+    const u = sat.name.toUpperCase();
+    if (u.startsWith('STARLINK')) entry = FREQUENCIES['__GENERIC_STARLINK__'];
+    else if (u.startsWith('GPS') || u.includes('NAVSTAR')) entry = FREQUENCIES['__GENERIC_GPS__'];
+    else if (u.includes('CUBESAT') || /^[A-Z]{2,4}-?\d{1,3}/.test(u)) entry = FREQUENCIES['__GENERIC_CUBESAT__'];
+  }
+
+  if (!entry || !entry.freqs || entry.freqs.length === 0) {
+    c.innerHTML = `<p class="muted small">Ingen frekvensdata registrert for <strong>${sat.name}</strong> i denne databasen. Sjekk <a href="https://www.satnogs.org/" target="_blank">SatNOGS</a> eller <a href="https://amsat.org" target="_blank">AMSAT</a>.</p>`;
+    return;
+  }
+
+  c.innerHTML = `
+    <h4 style="margin-top: 0;">${entry.label || sat.name}</h4>
+    ${entry.notes ? `<p class="small">${entry.notes}</p>` : ''}
+    <ul class="freq-list">
+      ${entry.freqs.map(f => `
+        <li>
+          <span class="freq-mhz">${f.mhz.toFixed(3)} MHz</span>
+          <span class="freq-mode">${f.mode}</span>
+          <span class="freq-rx ${f.rx ? 'yes' : 'no'}">${f.rx ? 'rx' : 'kryptert'}</span>
+        </li>
+      `).join('')}
+    </ul>
+  `;
+}
+
+/* ═══ POSISJONS-BEREGNING ═══ */
+function getSatPosition(sat, date = new Date()) {
+  if (!sat || !sat.satrec) return null;
+  const pv = satelliteJS.propagate(sat.satrec, date);
+  if (!pv.position) return null;
+  const gmst = satelliteJS.gstime(date);
+  const geo = satelliteJS.eciToGeodetic(pv.position, gmst);
+  return {
+    lat: satelliteJS.degreesLat(geo.latitude),
+    lon: satelliteJS.degreesLong(geo.longitude),
+    alt: geo.height,  // km
+    eci: pv.position,
+    eciVel: pv.velocity,
+    gmst
+  };
+}
+
+/* Solens posisjon i ECI (lavpresisjon, men nok for skygge-sjekk).
+   Basert på Vallado, Fundamentals of Astrodynamics. */
+function sunPositionECI(date) {
+  const ms = date.getTime();
+  // Julian Date
+  const jd = ms / 86400000 + 2440587.5;
+  const T = (jd - 2451545.0) / 36525.0;
+  const L = ((280.460 + 36000.771 * T) % 360) * Math.PI / 180;
+  const g = ((357.528 + 35999.050 * T) % 360) * Math.PI / 180;
+  const lambda = L + (1.915 * Math.sin(g) + 0.020 * Math.sin(2*g)) * Math.PI / 180;
+  const rAu = 1.00014 - 0.01671 * Math.cos(g) - 0.00014 * Math.cos(2*g);
+  const rKm = rAu * 149597870.7;
+  const eps = (23.439 - 0.013 * T) * Math.PI / 180;
+  return {
+    x: rKm * Math.cos(lambda),
+    y: rKm * Math.sin(lambda) * Math.cos(eps),
+    z: rKm * Math.sin(lambda) * Math.sin(eps)
+  };
+}
+
+/* Cylindrisk skygge-modell: sjekker om satellitten er i jordens skygge.
+   Returnerer true om satellitten er i sollys. */
+function isSunlit(eciPos, date) {
+  if (!eciPos) return false;
+  const sun = sunPositionECI(date);
+  const sunMag = Math.sqrt(sun.x*sun.x + sun.y*sun.y + sun.z*sun.z);
+  const sunDir = { x: sun.x/sunMag, y: sun.y/sunMag, z: sun.z/sunMag };
+  // Projiser sat-pos på sol-retning
+  const proj = eciPos.x * sunDir.x + eciPos.y * sunDir.y + eciPos.z * sunDir.z;
+  if (proj < 0) {
+    // På nattsiden — sjekk om innenfor skygge-sylinderen
+    const perpX = eciPos.x - proj * sunDir.x;
+    const perpY = eciPos.y - proj * sunDir.y;
+    const perpZ = eciPos.z - proj * sunDir.z;
+    const perpMag = Math.sqrt(perpX*perpX + perpY*perpY + perpZ*perpZ);
+    if (perpMag < 6378.137) return false; // i skygge
+  }
+  return true;
+}
+
+function lookAngles(sat, date = new Date()) {
+  if (!sat || !sat.satrec) return null;
+  const pv = satelliteJS.propagate(sat.satrec, date);
+  if (!pv.position) return null;
+  const gmst = satelliteJS.gstime(date);
+  const observerGd = {
+    longitude: STATION.lon * Math.PI / 180,
+    latitude:  STATION.lat * Math.PI / 180,
+    height: STATION.alt
+  };
+  const positionEcf = satelliteJS.eciToEcf(pv.position, gmst);
+  const velocityEcf = satelliteJS.eciToEcf(pv.velocity, gmst);
+  const la = satelliteJS.ecfToLookAngles(observerGd, positionEcf);
+
+  // Radiell hastighet (positiv = bort fra)
+  const stationEcf = satelliteJS.eciToEcf({
+    x: 0, y: 0, z: 0
+  }, gmst);
+  // Faktisk bakkestasjon i ECF:
+  const Re = 6378.137;
+  const lat = STATION.lat * Math.PI / 180;
+  const lon = STATION.lon * Math.PI / 180;
+  const cosLat = Math.cos(lat), sinLat = Math.sin(lat);
+  const cosLon = Math.cos(lon), sinLon = Math.sin(lon);
+  const N = Re / Math.sqrt(1 - 0.00669437999014 * sinLat * sinLat);
+  const sx = (N + STATION.alt) * cosLat * cosLon;
+  const sy = (N + STATION.alt) * cosLat * sinLon;
+  const sz = (N * (1 - 0.00669437999014) + STATION.alt) * sinLat;
+
+  const dx = positionEcf.x - sx;
+  const dy = positionEcf.y - sy;
+  const dz = positionEcf.z - sz;
+  const range = Math.sqrt(dx*dx + dy*dy + dz*dz);
+  const radialVel = (dx * velocityEcf.x + dy * velocityEcf.y + dz * velocityEcf.z) / range;
+
+  return {
+    azimuth: la.azimuth * 180 / Math.PI,
+    elevation: la.elevation * 180 / Math.PI,
+    rangeKm: range,
+    radialVelKmS: radialVel
+  };
+}
+
+/* ═══ 3D GLOBE (LIVE TRACKER) ═══ */
+let globe = null;
+
+function initGlobe() {
+  const canvas = document.getElementById('globe-canvas');
+  const scene = new THREE.Scene();
+  scene.background = new THREE.Color(0x0a0d14);
+
+  const camera = new THREE.PerspectiveCamera(40, 16/10, 0.1, 5000);
+  camera.position.set(0, 5, 22);
+
+  const renderer = new THREE.WebGLRenderer({ antialias: true });
+  renderer.setPixelRatio(window.devicePixelRatio);
+  canvas.appendChild(renderer.domElement);
+
+  function resize() {
+    const r = canvas.getBoundingClientRect();
+    renderer.setSize(r.width, r.height, false);
+    camera.aspect = r.width / r.height;
+    camera.updateProjectionMatrix();
+  }
+  new ResizeObserver(resize).observe(canvas);
+  resize();
+
+  const controls = new OrbitControls(camera, renderer.domElement);
+  controls.enableDamping = true;
+  controls.minDistance = 8;
+  controls.maxDistance = 40;
+
+  // Lys
+  scene.add(new THREE.AmbientLight(0x404858, 0.6));
+  const sun = new THREE.DirectionalLight(0xffeec0, 1.0);
+  sun.position.set(20, 10, 15);
+  scene.add(sun);
+
+  // Jord (radius 6.378)
+  const R = 6.378;
+  const earthGeo = new THREE.SphereGeometry(R, 64, 48);
+  const earthMat = new THREE.MeshPhongMaterial({
+    color: 0x254858,
+    emissive: 0x0a141a,
+    specular: 0x445566,
+    shininess: 8,
+    flatShading: false
+  });
+  const earth = new THREE.Mesh(earthGeo, earthMat);
+  scene.add(earth);
+
+  // Wireframe overlay (lat/lon-grid)
+  const grid = new THREE.LineSegments(
+    new THREE.WireframeGeometry(new THREE.SphereGeometry(R + 0.01, 24, 18)),
+    new THREE.LineBasicMaterial({ color: 0x4a6b7a, transparent: true, opacity: 0.18 })
+  );
+  scene.add(grid);
+
+  // Stjerner
+  const starGeo = new THREE.BufferGeometry();
+  const starPos = new Float32Array(800 * 3);
+  for (let i = 0; i < 800; i++) {
+    const r = 100;
+    const t = Math.random() * Math.PI * 2;
+    const u = Math.random() * 2 - 1;
+    const sr = Math.sqrt(1 - u * u);
+    starPos[i * 3] = sr * Math.cos(t) * r;
+    starPos[i * 3 + 1] = u * r;
+    starPos[i * 3 + 2] = sr * Math.sin(t) * r;
+  }
+  starGeo.setAttribute('position', new THREE.BufferAttribute(starPos, 3));
+  const stars = new THREE.Points(starGeo,
+    new THREE.PointsMaterial({ color: 0xddccaa, size: 0.15, sizeAttenuation: true, opacity: 0.6, transparent: true })
+  );
+  scene.add(stars);
+
+  // Bakkestasjon-markør (Trondheim)
+  const stationGroup = new THREE.Group();
+  const lat = STATION.lat * Math.PI / 180, lon = STATION.lon * Math.PI / 180;
+  // ECEF-konvensjon der jord ikke roterer i scenen — bakkestasjon "fester" på jorden ved jordrotasjon
+  const stationDot = new THREE.Mesh(
+    new THREE.SphereGeometry(0.08, 12, 8),
+    new THREE.MeshBasicMaterial({ color: 0xffaa44 })
+  );
+  stationGroup.add(stationDot);
+  scene.add(stationGroup);
+
+  // Satellitt-mesh
+  const satMesh = new THREE.Mesh(
+    new THREE.SphereGeometry(0.12, 12, 10),
+    new THREE.MeshBasicMaterial({ color: 0xb8552e })
+  );
+  satMesh.visible = false;
+  scene.add(satMesh);
+
+  // Linje fra bakkestasjon til satellitt
+  const linkGeo = new THREE.BufferGeometry();
+  linkGeo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(6), 3));
+  const linkLine = new THREE.Line(
+    linkGeo,
+    new THREE.LineBasicMaterial({ color: 0xb8552e, transparent: true, opacity: 0.5 })
+  );
+  linkLine.visible = false;
+  scene.add(linkLine);
+
+  // Bane-kurve (forutsi 1 omløp framover)
+  const orbitGeo = new THREE.BufferGeometry();
+  orbitGeo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(720 * 3), 3));
+  const orbitLine = new THREE.Line(
+    orbitGeo,
+    new THREE.LineBasicMaterial({ color: 0xb8552e, transparent: true, opacity: 0.45 })
+  );
+  scene.add(orbitLine);
+
+  // Mange-satellitter visualisering (når flere er lastet)
+  const manyGeo = new THREE.BufferGeometry();
+  const manyPos = new Float32Array(2000 * 3);
+  manyGeo.setAttribute('position', new THREE.BufferAttribute(manyPos, 3));
+  const manyMat = new THREE.PointsMaterial({ color: 0x88ccdd, size: 0.07, transparent: true, opacity: 0.6 });
+  const manyPoints = new THREE.Points(manyGeo, manyMat);
+  scene.add(manyPoints);
+
+  let autoSpin = false;
+  let showOrbit = true;
+  let followSelected = false;
+
+  document.getElementById('btn-spin').addEventListener('click', e => {
+    autoSpin = !autoSpin;
+    e.target.textContent = autoSpin ? 'Stopp rotasjon' : 'Auto-rotér';
+  });
+  document.getElementById('btn-orbit-show').addEventListener('click', e => {
+    showOrbit = !showOrbit;
+    orbitLine.visible = showOrbit;
+    e.target.textContent = showOrbit ? 'Skjul baner' : 'Vis baner';
+  });
+  document.getElementById('btn-fly').addEventListener('click', e => {
+    followSelected = !followSelected;
+    e.target.textContent = followSelected ? 'Slipp valgt' : 'Følg valgt';
+  });
+
+  // ECEF-konvertering for satellitt-posisjoner (lon, lat, alt over jord)
+  function lla2xyz(latDeg, lonDeg, altKm, gmst, scale = 1) {
+    // Vi tegner i ECI (jorden roterer ikke i scenen).
+    // For å plassere bakkestasjon konsekvent, bruker vi en "stillegjort" ECEF
+    // der vi roterer alt sammen med GMST.
+    const Re = 6.378; // skaleringsenheter, 1 = 1000 km
+    const lat = latDeg * Math.PI / 180;
+    const lon = lonDeg * Math.PI / 180;
+    const r = Re + altKm / 1000;
+    return [
+      r * Math.cos(lat) * Math.cos(lon),
+      r * Math.sin(lat),
+      -r * Math.cos(lat) * Math.sin(lon)
+    ];
+  }
+
+  function update() {
+    const now = new Date();
+    const gmst = satelliteJS.gstime(now);
+
+    // Bakkestasjon på jorden — vi får jorden til å rotere i stedet
+    earth.rotation.y = -gmst;
+    grid.rotation.y = -gmst;
+    stationGroup.rotation.y = -gmst;
+
+    // Bakkestasjon-posisjon (i jordens roterende referansesystem, men her plassert via gmst)
+    const stXYZ = lla2xyz(STATION.lat, STATION.lon, STATION.alt, 0);
+    stationDot.position.set(stXYZ[0], stXYZ[1], stXYZ[2]);
+
+    // Mange-satellitter: tegn alle som punkter
+    let nMany = 0;
+    for (const s of satellites) {
+      if (selected && s.noradId === selected.noradId) continue;
+      const pos = getSatPosition(s, now);
+      if (!pos) continue;
+      const xyz = lla2xyz(pos.lat, pos.lon, pos.alt, gmst);
+      manyPos[nMany * 3] = xyz[0];
+      manyPos[nMany * 3 + 1] = xyz[1];
+      manyPos[nMany * 3 + 2] = xyz[2];
+      nMany++;
+      if (nMany >= 2000) break;
+    }
+    manyGeo.attributes.position.needsUpdate = true;
+    manyGeo.setDrawRange(0, nMany);
+
+    // Valgt satellitt
+    if (selected) {
+      const pos = getSatPosition(selected, now);
+      if (pos) {
+        const xyz = lla2xyz(pos.lat, pos.lon, pos.alt, gmst);
+        satMesh.position.set(xyz[0], xyz[1], xyz[2]);
+        satMesh.visible = true;
+
+        // Link-linje
+        const lp = linkGeo.attributes.position.array;
+        lp[0] = stXYZ[0]; lp[1] = stXYZ[1]; lp[2] = stXYZ[2];
+        lp[3] = xyz[0];   lp[4] = xyz[1];   lp[5] = xyz[2];
+        linkGeo.attributes.position.needsUpdate = true;
+        const la = lookAngles(selected, now);
+        if (la) {
+          linkLine.visible = la.elevation > 0;
+          linkLine.material.color.setHex(la.elevation > 5 ? 0x66bb88 : 0xb8552e);
+        }
+
+        // Orbit-bane (forutsi 90 minutter framover)
+        if (showOrbit) {
+          const op = orbitGeo.attributes.position.array;
+          for (let i = 0; i < 720; i++) {
+            const t = new Date(now.getTime() + i * 8 * 1000);
+            const p = getSatPosition(selected, t);
+            if (!p) {
+              op[i*3] = 0; op[i*3+1] = 0; op[i*3+2] = 0;
+              continue;
+            }
+            const gm = satelliteJS.gstime(t);
+            // Vi tegner banen i ECI; men jorden roterer i scenen, så vi må
+            // konvertere posisjonen til scene-koordinater som tar hensyn til
+            // forskjellen mellom GMST(now) og GMST(t).
+            const dGmst = gm - gmst;
+            const cosD = Math.cos(dGmst), sinD = Math.sin(dGmst);
+            const Re = 6.378;
+            const lat = p.lat * Math.PI / 180;
+            const lon = p.lon * Math.PI / 180;
+            const r = Re + p.alt / 1000;
+            // Først plasser i nåværende GMST-aligned ramme:
+            const x0 = r * Math.cos(lat) * Math.cos(lon);
+            const y0 = r * Math.sin(lat);
+            const z0 = -r * Math.cos(lat) * Math.sin(lon);
+            // Roter framover med dGmst (banen forblir i ECI, jorden har rotert):
+            op[i*3]   = x0 * cosD - z0 * sinD;
+            op[i*3+1] = y0;
+            op[i*3+2] = x0 * sinD + z0 * cosD;
+          }
+          orbitGeo.attributes.position.needsUpdate = true;
+        }
+
+        if (followSelected) {
+          // Pek kameraet mot sat
+          const target = new THREE.Vector3(xyz[0], xyz[1], xyz[2]);
+          controls.target.lerp(target, 0.05);
+        }
+
+        // Stats overlay
+        const la2 = lookAngles(selected, now);
+        document.getElementById('globe-stats').innerHTML = `
+          ${selected.name}<br>
+          lat ${pos.lat.toFixed(2)}° / lon ${pos.lon.toFixed(2)}°<br>
+          alt ${pos.alt.toFixed(0)} km<br>
+          ${la2 ? `el ${la2.elevation.toFixed(1)}° / az ${la2.azimuth.toFixed(0)}°<br>${la2.rangeKm.toFixed(0)} km` : ''}
+        `;
+      }
+    } else {
+      satMesh.visible = false;
+      linkLine.visible = false;
+      orbitGeo.setDrawRange(0, 0);
+    }
+
+    if (autoSpin) {
+      controls.azimuthAngle = (controls.getAzimuthalAngle ? controls.getAzimuthalAngle() : 0) + 0.001;
+    }
+
+    controls.update();
+    renderer.render(scene, camera);
+    requestAnimationFrame(update);
+  }
+  update();
+
+  return { scene, camera, renderer };
+}
+
+/* ═══ GROUND TRACK ═══ */
+function refreshGroundTrack() {
+  const svg = document.getElementById('gt-svg');
+  if (!selected) {
+    svg.innerHTML = '<text x="400" y="200" text-anchor="middle" fill="#9a9087" font-family="JetBrains Mono" font-size="14">Velg en satellitt fra Live tracker-fanen</text>';
+    document.getElementById('gt-title').textContent = 'Ground track';
+    return;
+  }
+
+  const orbits = +document.getElementById('gt-orbits').value;
+  const stepS = +document.getElementById('gt-step').value;
+
+  // Estimat for omløpstid: 2π / no_kozai (rad/min)
+  const no = selected.satrec.no;  // rad/min
+  const periodMin = (2 * Math.PI) / no;
+  const totalMin = periodMin * orbits;
+  const stepMin = stepS / 60;
+  const samples = Math.ceil(totalMin / stepMin);
+
+  const points = [];
+  const now = new Date();
+  for (let i = 0; i <= samples; i++) {
+    const t = new Date(now.getTime() + i * stepS * 1000);
+    const p = getSatPosition(selected, t);
+    if (!p) continue;
+    const la = lookAngles(selected, t);
+    points.push({
+      lat: p.lat,
+      lon: p.lon,
+      visible: la && la.elevation >= 5,
+      time: t
+    });
+  }
+
+  // Tegn på Mercator-aktig ekvirektangulær projeksjon
+  const W = 800, H = 400;
+  const x = lon => (lon + 180) / 360 * W;
+  const y = lat => (90 - lat) / 180 * H;
+
+  let s = '';
+
+  // Bakgrunn (hav)
+  s += `<rect x="0" y="0" width="${W}" height="${H}" fill="#dee5ea"/>`;
+  // Land — veldig stilisert (vi har ikke geo-data, men vi kan tegne et grid)
+  // Lag et lat/lon-rutenett
+  for (let lon = -180; lon <= 180; lon += 30) {
+    s += `<line x1="${x(lon)}" y1="0" x2="${x(lon)}" y2="${H}" stroke="#c4cbd0" stroke-width="0.5"/>`;
+  }
+  for (let lat = -60; lat <= 60; lat += 30) {
+    s += `<line x1="0" y1="${y(lat)}" x2="${W}" y2="${y(lat)}" stroke="#c4cbd0" stroke-width="0.5"/>`;
+  }
+  // Ekvator
+  s += `<line x1="0" y1="${y(0)}" x2="${W}" y2="${y(0)}" stroke="#9a9087" stroke-width="0.8" stroke-dasharray="4,4"/>`;
+
+  // Bakkestasjon
+  const sx = x(STATION.lon), sy = y(STATION.lat);
+  s += `<g transform="translate(${sx},${sy})">
+    <line x1="-7" y1="-7" x2="7" y2="7" stroke="#b8552e" stroke-width="2"/>
+    <line x1="7" y1="-7" x2="-7" y2="7" stroke="#b8552e" stroke-width="2"/>
+    <text x="10" y="3" fill="#b8552e" font-family="JetBrains Mono" font-size="10">Trondheim</text>
+  </g>`;
+
+  // Trekk bane med dateline-håndtering
+  let path = '', currentlyDrawing = false;
+  for (let i = 0; i < points.length; i++) {
+    const p = points[i];
+    if (i > 0 && Math.abs(p.lon - points[i-1].lon) > 180) {
+      // Dateline-krysning: avbryt
+      currentlyDrawing = false;
+      continue;
+    }
+    if (!currentlyDrawing) {
+      path += `M${x(p.lon).toFixed(1)},${y(p.lat).toFixed(1)} `;
+      currentlyDrawing = true;
+    } else {
+      path += `L${x(p.lon).toFixed(1)},${y(p.lat).toFixed(1)} `;
+    }
+  }
+  s += `<path d="${path}" fill="none" stroke="#b8552e" stroke-width="1.5" opacity="0.85"/>`;
+
+  // Synlige punkter
+  for (const p of points) {
+    if (!p.visible) continue;
+    s += `<circle cx="${x(p.lon).toFixed(1)}" cy="${y(p.lat).toFixed(1)}" r="2.5" fill="#5a6b3e"/>`;
+  }
+
+  // Start/slutt
+  if (points.length > 0) {
+    s += `<circle cx="${x(points[0].lon).toFixed(1)}" cy="${y(points[0].lat).toFixed(1)}" r="4" fill="#1a1814"/>`;
+    s += `<circle cx="${x(points[points.length-1].lon).toFixed(1)}" cy="${y(points[points.length-1].lat).toFixed(1)}" r="4" fill="none" stroke="#1a1814" stroke-width="2"/>`;
+  }
+
+  svg.innerHTML = s;
+  document.getElementById('gt-title').textContent =
+    `Ground track — ${selected.name} (${orbits} omløp ≈ ${(totalMin/60).toFixed(1)} t)`;
+}
+
+/* ═══ PASS-PREDIKSJONER ═══ */
+function calculatePasses() {
+  const result = document.getElementById('pass-results');
+  if (!selected) {
+    result.innerHTML = '<p class="muted">Velg en satellitt først.</p>';
+    return;
+  }
+
+  const minElev = +document.getElementById('pass-elev').value;
+  const days = +document.getElementById('pass-days').value;
+
+  result.innerHTML = '<p class="muted">Beregner...</p>';
+
+  setTimeout(() => {  // gi UI tid til å oppdatere
+    const passes = [];
+    const stepS = 30;  // 30s skanning
+    const start = new Date();
+    const end = new Date(start.getTime() + days * 86400 * 1000);
+
+    let inPass = false;
+    let passData = null;
+
+    for (let t = start.getTime(); t < end.getTime(); t += stepS * 1000) {
+      const date = new Date(t);
+      const la = lookAngles(selected, date);
+      if (!la) continue;
+
+      if (la.elevation >= minElev && !inPass) {
+        // Pass starter
+        passData = {
+          aos: date,
+          aosAz: la.azimuth,
+          maxEl: la.elevation,
+          maxElAz: la.azimuth,
+          maxElTime: date,
+          maxRange: la.rangeKm,
+          minRange: la.rangeKm,
+        };
+        inPass = true;
+      } else if (la.elevation >= minElev && inPass) {
+        if (la.elevation > passData.maxEl) {
+          passData.maxEl = la.elevation;
+          passData.maxElAz = la.azimuth;
+          passData.maxElTime = date;
+          // Lagre ECI-pos for sunlit-sjekk ved TCA
+          const pv = satelliteJS.propagate(selected.satrec, date);
+          passData.tcaEci = pv.position;
+        }
+        if (la.rangeKm < passData.minRange) passData.minRange = la.rangeKm;
+        if (la.rangeKm > passData.maxRange) passData.maxRange = la.rangeKm;
+      } else if (la.elevation < minElev && inPass) {
+        // Pass slutter
+        passData.los = date;
+        passData.losAz = la.azimuth;
+        passData.duration = (passData.los - passData.aos) / 1000;
+        passData.sunlit = isSunlit(passData.tcaEci, passData.maxElTime);
+        passes.push(passData);
+        inPass = false;
+        passData = null;
+      }
+    }
+
+    if (passes.length === 0) {
+      result.innerHTML = `<p class="muted small">Ingen passes med min. ${minElev}° elevasjon over Trondheim de neste ${days} dagene. Sjekk om TLE er fersk eller prøv lavere elevasjonskrav.</p>`;
+      return;
+    }
+
+    // Hint: hvis det er en frekvensoppføring, vis hva som er mottakbart
+    const fr = FREQUENCIES[selected.noradId];
+    const rxFreqs = fr ? fr.freqs.filter(f => f.rx) : [];
+    let freqHint = '';
+    if (rxFreqs.length > 0) {
+      freqHint = `<p class="small">Mottakbare frekvenser: ${rxFreqs.map(f => `<span class="mono">${f.mhz.toFixed(3)} MHz</span> (${f.mode.split(' ')[0]})`).join(', ')}.</p>`;
+    }
+
+    result.innerHTML = `
+      <p class="muted small">Fant ${passes.length} pass med min. ${minElev}° elevasjon de neste ${days} dagene.</p>
+      ${freqHint}
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Start (lokal)</th>
+            <th>Varighet</th>
+            <th>Maks elev.</th>
+            <th>Az start → maks → slutt</th>
+            <th class="num">Maks slant</th>
+            <th>Sollys</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${passes.map(p => `
+            <tr>
+              <td>${HW.fmt.dt(p.aos)}</td>
+              <td class="num">${(p.duration / 60).toFixed(1)} min</td>
+              <td class="num">${p.maxEl.toFixed(0)}°</td>
+              <td>${p.aosAz.toFixed(0)}° → ${p.maxElAz.toFixed(0)}° → ${p.losAz.toFixed(0)}°</td>
+              <td class="num">${p.minRange.toFixed(0)} km</td>
+              <td>${p.sunlit ? '<span class="tag green" style="font-size:0.65rem;">sol</span>' : '<span class="tag" style="font-size:0.65rem;">skygge</span>'}</td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+      <p class="muted tiny" style="margin-top: 0.5rem;">
+        AOS = "Acquisition of Signal" (signal kommer over horisonten).
+        Az = peilingsvinkel målt fra nord, med klokka. El = vinkel over horisonten.
+        Sol = satellitten er i sollys ved TCA og kan ses visuelt om himmelen er mørk.
+      </p>
+    `;
+  }, 50);
+}
+
+/* ═══ DOPPLER ═══ */
+function calculateDoppler() {
+  const svg = document.getElementById('dop-svg');
+  const fMHz = +document.getElementById('dop-freq').value;
+  const window = +document.getElementById('dop-window').value;
+
+  if (!selected) {
+    svg.innerHTML = '<text x="400" y="140" text-anchor="middle" fill="#9a9087" font-family="JetBrains Mono" font-size="14">Velg en satellitt</text>';
+    return;
+  }
+  if (!fMHz || fMHz <= 0) return;
+
+  const c = 299792.458;  // km/s
+  const fHz = fMHz * 1e6;
+  const samples = 200;
+  const stepS = window / samples;
+  const start = new Date();
+
+  const data = [];
+  let maxAbsShift = 0;
+  for (let i = 0; i <= samples; i++) {
+    const t = new Date(start.getTime() + i * stepS * 1000);
+    const la = lookAngles(selected, t);
+    if (!la) continue;
+    // Doppler-skift: Δf = -f * v_radial / c (negativt v = mot oss = positiv skift)
+    const shiftHz = -fHz * la.radialVelKmS / c;
+    const shiftKHz = shiftHz / 1000;
+    const observed = fMHz + shiftKHz / 1000;
+    data.push({
+      t,
+      shift: shiftKHz,
+      observed,
+      vRad: la.radialVelKmS,
+      el: la.elevation
+    });
+    if (Math.abs(shiftKHz) > maxAbsShift) maxAbsShift = Math.abs(shiftKHz);
+  }
+
+  // Stats
+  const now0 = data[0];
+  if (now0) {
+    document.getElementById('dop-now').innerHTML =
+      `${now0.observed.toFixed(4)}<span class="stat-unit">MHz</span>`;
+    document.getElementById('dop-shift').innerHTML =
+      `${now0.shift >= 0 ? '+' : ''}${now0.shift.toFixed(2)}<span class="stat-unit">kHz</span>`;
+    document.getElementById('dop-rate').innerHTML =
+      `${now0.vRad >= 0 ? '+' : ''}${now0.vRad.toFixed(2)}<span class="stat-unit">km/s</span>`;
+  }
+  document.getElementById('dop-max').innerHTML =
+    `±${maxAbsShift.toFixed(2)}<span class="stat-unit">kHz</span>`;
+
+  // Diagram
+  const W = 800, H = 280;
+  const m = { l: 60, r: 16, t: 20, b: 36 };
+  const w = W - m.l - m.r;
+  const h = H - m.t - m.b;
+  const t0 = data[0].t.getTime();
+  const t1 = data[data.length - 1].t.getTime();
+  const max = maxAbsShift * 1.1 || 1;
+  const xS = t => m.l + ((t - t0) / (t1 - t0)) * w;
+  const yS = v => m.t + h/2 - (v / max) * (h / 2);
+
+  let s = '';
+  // Y-grid
+  for (let v = -Math.ceil(max); v <= Math.ceil(max); v += Math.max(1, Math.round(max / 4))) {
+    const y = yS(v);
+    s += `<line x1="${m.l}" y1="${y}" x2="${W-m.r}" y2="${y}" stroke="#e6e0d2"/>`;
+    s += `<text x="${m.l-6}" y="${y+4}" text-anchor="end" fill="#9a9087" font-family="JetBrains Mono" font-size="10">${v >= 0 ? '+' : ''}${v.toFixed(1)}</text>`;
+  }
+  s += `<line x1="${m.l}" y1="${yS(0)}" x2="${W-m.r}" y2="${yS(0)}" stroke="#6b645b" stroke-dasharray="3,3"/>`;
+
+  // Tidstikker (5)
+  for (let i = 0; i <= 5; i++) {
+    const tt = t0 + (t1 - t0) * i / 5;
+    const x = xS(tt);
+    s += `<line x1="${x}" y1="${m.t}" x2="${x}" y2="${m.t+h}" stroke="#e6e0d2"/>`;
+    s += `<text x="${x}" y="${H-m.b+14}" text-anchor="middle" fill="#6b645b" font-family="JetBrains Mono" font-size="10">${HW.fmt.time(new Date(tt))}</text>`;
+  }
+
+  // Doppler-kurve
+  let path = '';
+  data.forEach((d, i) => {
+    path += (i === 0 ? 'M' : 'L') + xS(d.t.getTime()).toFixed(1) + ',' + yS(d.shift).toFixed(1) + ' ';
+  });
+  s += `<path d="${path}" fill="none" stroke="var(--accent)" stroke-width="2"/>`;
+
+  // Synlig-skraver (elevasjon > 0)
+  let visStart = null;
+  for (let i = 0; i < data.length; i++) {
+    if (data[i].el >= 0 && visStart == null) visStart = data[i].t.getTime();
+    else if (data[i].el < 0 && visStart != null) {
+      const x1 = xS(visStart), x2 = xS(data[i].t.getTime());
+      s = `<rect x="${x1}" y="${m.t}" width="${x2-x1}" height="${h}" fill="#5a6b3e" opacity="0.08"/>` + s;
+      visStart = null;
+    }
+  }
+  if (visStart != null) {
+    const x1 = xS(visStart), x2 = xS(data[data.length-1].t.getTime());
+    s = `<rect x="${x1}" y="${m.t}" width="${x2-x1}" height="${h}" fill="#5a6b3e" opacity="0.08"/>` + s;
+  }
+
+  svg.innerHTML = s;
+  document.getElementById('dop-title').textContent =
+    `Doppler-skift for ${selected.name} på ${fMHz} MHz — kHz`;
+}
+
+/* ═══ LINK BUDGET ═══ */
+function calculateLinkBudget() {
+  const f = +document.getElementById('lb-freq').value;
+  const Pw = +document.getElementById('lb-power').value;
+  const Gtx = +document.getElementById('lb-gtx').value;
+  const Grx = +document.getElementById('lb-grx').value;
+  const loss = +document.getElementById('lb-loss').value;
+  const d = +document.getElementById('lb-dist').value;
+  const bwKHz = +document.getElementById('lb-bw').value;
+  const NF = +document.getElementById('lb-nf').value;
+  const reqSNR = +document.getElementById('lb-snr').value;
+
+  const PdBm = 10 * Math.log10(Pw * 1000);
+  const EIRP = PdBm + Gtx;
+  const FSPL = 20 * Math.log10(d) + 20 * Math.log10(f) + 32.45;
+  const Prx = EIRP - FSPL + Grx - loss;
+  // Støygulv: -174 dBm/Hz + 10log10(BW) + NF
+  const Noise = -174 + 10 * Math.log10(bwKHz * 1000) + NF;
+  const SNR = Prx - Noise;
+  const margin = SNR - reqSNR;
+
+  document.getElementById('lb-eirp').innerHTML = `${EIRP.toFixed(1)}<span class="stat-unit">dBm</span>`;
+  document.getElementById('lb-fspl').innerHTML = `${FSPL.toFixed(1)}<span class="stat-unit">dB</span>`;
+  document.getElementById('lb-prx').innerHTML = `${Prx.toFixed(1)}<span class="stat-unit">dBm</span>`;
+  document.getElementById('lb-noise').innerHTML = `${Noise.toFixed(1)}<span class="stat-unit">dBm</span>`;
+  document.getElementById('lb-margin').innerHTML = `${margin >= 0 ? '+' : ''}${margin.toFixed(1)}<span class="stat-unit">dB</span>`;
+
+  let verdict;
+  if (margin >= 10) verdict = `<span class="tag green">Robust</span> — Margin på ${margin.toFixed(1)} dB gir god feiltoleranse.`;
+  else if (margin >= 3) verdict = `<span class="tag warn">Marginal</span> — Margin på ${margin.toFixed(1)} dB. Kan fungere, men sårbart for fading og pekefeil.`;
+  else if (margin >= 0) verdict = `<span class="tag warn">På grensen</span> — Margin ${margin.toFixed(1)} dB. Forvent dropouts.`;
+  else verdict = `<span class="tag accent">For svakt</span> — Mangler ${(-margin).toFixed(1)} dB for å oppnå krav. Øk antenne-gain, effekt eller reduser båndbredde.`;
+  document.getElementById('lb-verdict').innerHTML = verdict;
+}
+
+document.getElementById('lb-from-sat').addEventListener('click', () => {
+  if (!selected) {
+    alert('Velg en satellitt først.');
+    return;
+  }
+  const la = lookAngles(selected);
+  if (la) {
+    document.getElementById('lb-dist').value = la.rangeKm.toFixed(0);
+    calculateLinkBudget();
+  }
+});
+
+// Auto-update link budget når noe endres
+['lb-freq','lb-power','lb-gtx','lb-grx','lb-loss','lb-dist','lb-bw','lb-nf','lb-snr'].forEach(id => {
+  document.getElementById(id).addEventListener('input', calculateLinkBudget);
+});
+
+/* ═══ ANTENNE ═══ */
+function calculateAntenna() {
+  const type = document.getElementById('ant-type').value;
+  const f = +document.getElementById('ant-freq').value;
+  if (!f || f <= 0) return;
+
+  const c = 299.792458; // m·MHz
+  const lambda = c / f;  // meter
+
+  let len, gain, bw, detail;
+  switch (type) {
+    case 'dipole':
+      len = lambda / 2 * 0.95;  // velocity factor
+      gain = 2.15;
+      bw = 78;  // ca. 78° elev-aperatur, 360° azimuth
+      detail = `
+        <p>Halvbølgedipol — den klassiske antennen. Lengde 0,475·λ (95% velocity factor).
+        Beam-mønster er omnidireksjonal i azimuth, ca. 78° i elevasjon.</p>
+        <ul>
+          <li>Total lengde: ${(len*100).toFixed(1)} cm</li>
+          <li>Hver halvdel: ${(len*50).toFixed(1)} cm</li>
+          <li>Impedans: ~73 Ω (50 Ω med litt tilpasning)</li>
+        </ul>
+      `;
+      break;
+    case 'ground':
+      len = lambda / 4;
+      gain = 5.15;  // ~3 dB over dipol pga. jordplan
+      bw = 45;
+      detail = `
+        <p>Vertikal kvartbølge med 4 radielle jordplan-elementer. Brukes ofte i basestasjon-rigg.</p>
+        <ul>
+          <li>Vertikal: ${(len*100).toFixed(1)} cm</li>
+          <li>Jordplan-elementer: ${(len*1.05*100).toFixed(1)} cm (slightly longer)</li>
+          <li>Impedans: ~36 Ω (50 Ω om jordplanet helles 30°)</li>
+        </ul>
+      `;
+      break;
+    case 'yagi3':
+    case 'yagi5':
+    case 'yagi7':
+      const N = type === 'yagi3' ? 3 : type === 'yagi5' ? 5 : 7;
+      gain = 10 * Math.log10(N + 1) + 1.5;  // tommelfingerregel
+      len = lambda / 2 * 0.95;  // driver
+      bw = 90 - 8 * N;  // mindre med flere elementer
+      const boom = (N - 1) * lambda * 0.25;
+      const refl = lambda * 0.5 * 1.05;
+      const dirA = lambda * 0.5 * 0.92;
+      detail = `
+        <p>Yagi med ${N} elementer (1 reflektor + 1 driver + ${N-2} direktorer).
+        Bommen er ca. ${boom.toFixed(2)} m lang for optimalt design.</p>
+        <ul>
+          <li>Driver (halvbølgedipol): ${(len*100).toFixed(1)} cm</li>
+          <li>Reflektor: ${(refl*100).toFixed(1)} cm</li>
+          <li>Direktorer: ${(dirA*100).toFixed(1)}–${(dirA*0.95*100).toFixed(1)} cm (avtagende)</li>
+          <li>Element-avstand: ${(lambda*0.2*100).toFixed(1)}–${(lambda*0.3*100).toFixed(1)} cm</li>
+        </ul>
+      `;
+      break;
+    case 'helix':
+      const turns = 8;
+      const C = lambda;  // omkrets ≈ λ for axial mode
+      const D = C / Math.PI;
+      const S = lambda * 0.25;  // spacing per turn
+      const L = turns * S;
+      gain = 10 * Math.log10(15 * turns * S / lambda * (C/lambda)*(C/lambda));
+      len = L;
+      bw = 52 / Math.sqrt(turns * S / lambda * (C/lambda));
+      detail = `
+        <p>Helix-antenne i axial mode — sirkulært polarisert. Veldig god for satellitt-kommunikasjon (kompenserer Faraday-rotasjon).</p>
+        <ul>
+          <li>Diameter: ${(D*100).toFixed(1)} cm</li>
+          <li>Steg per omdreining: ${(S*100).toFixed(1)} cm</li>
+          <li>Antall omdreininger: ${turns}</li>
+          <li>Total lengde: ${(L*100).toFixed(1)} cm</li>
+          <li>Reflektorplate: ~${(lambda*0.8*100).toFixed(0)}×${(lambda*0.8*100).toFixed(0)} cm</li>
+        </ul>
+      `;
+      break;
+  }
+
+  document.getElementById('ant-lambda').innerHTML = `${(lambda*100).toFixed(1)}<span class="stat-unit">cm</span>`;
+  document.getElementById('ant-len').innerHTML = `${(len*100).toFixed(1)}<span class="stat-unit">cm</span>`;
+  document.getElementById('ant-gain').innerHTML = `${gain.toFixed(1)}<span class="stat-unit">dBi</span>`;
+  document.getElementById('ant-bw').innerHTML = `${bw.toFixed(0)}<span class="stat-unit">°</span>`;
+  document.getElementById('ant-detail').innerHTML = detail;
+}
+
+document.getElementById('ant-type').addEventListener('change', calculateAntenna);
+document.getElementById('ant-freq').addEventListener('input', calculateAntenna);
+
+/* ═══ TLE-LESER ═══ */
+function parseTLEManual() {
+  const text = document.getElementById('tle-input').value.trim();
+  const lines = text.split(/\r?\n/).map(l => l.trim()).filter(l => l.length);
+  const result = document.getElementById('tle-result');
+
+  if (lines.length < 2) {
+    result.innerHTML = '<p class="muted">Lim inn TLE først.</p>';
+    return;
+  }
+
+  let name, line1, line2;
+  if (lines[0].startsWith('1 ')) {
+    name = '— ukjent —';
+    line1 = lines[0]; line2 = lines[1];
+  } else {
+    name = lines[0]; line1 = lines[1]; line2 = lines[2];
+  }
+
+  if (!line1 || !line1.startsWith('1 ') || !line2 || !line2.startsWith('2 ')) {
+    result.innerHTML = '<p class="muted">Ugyldig TLE-format.</p>';
+    return;
+  }
+
+  let satrec;
+  try {
+    satrec = satelliteJS.twoline2satrec(line1, line2);
+  } catch (e) {
+    result.innerHTML = `<p class="muted">Kunne ikke parse: ${e.message}</p>`;
+    return;
+  }
+
+  // Parse felter manuelt for forklaring
+  const noradId = line1.substring(2, 7).trim();
+  const classification = line1.substring(7, 8);
+  const intlDesignator = line1.substring(9, 17).trim();
+  const epochYear = +line1.substring(18, 20);
+  const epochDay = +line1.substring(20, 32);
+  const meanMotion1 = parseFloat('0.' + line1.substring(34, 43).replace(/^[+\-]/, '').replace(/\s/g, ''));
+  const bstar = line1.substring(53, 61).trim();
+  const setNum = line1.substring(64, 68).trim();
+
+  const incl = +line2.substring(8, 16);
+  const raan = +line2.substring(17, 25);
+  const ecc = +('0.' + line2.substring(26, 33));
+  const argp = +line2.substring(34, 42);
+  const meanAnom = +line2.substring(43, 51);
+  const meanMotion = +line2.substring(52, 63);
+  const revs = +line2.substring(63, 68);
+
+  // Beregn avledede størrelser
+  const periodMin = 1440 / meanMotion;
+  // Semi-major axis (Kepler 3): a^3 = μ / n²
+  const mu = 398600.4418;
+  const nRadS = (meanMotion * 2 * Math.PI) / 86400;
+  const a = Math.pow(mu / (nRadS * nRadS), 1/3);
+  const apogee = a * (1 + ecc) - 6378.137;
+  const perigee = a * (1 - ecc) - 6378.137;
+
+  // Epoch -> Date
+  const yr = epochYear < 57 ? 2000 + epochYear : 1900 + epochYear;
+  const epoch = new Date(Date.UTC(yr, 0, 1) + (epochDay - 1) * 86400 * 1000);
+
+  result.innerHTML = `
+    <h4 style="margin-top: 0;">${name}</h4>
+    <table class="data-table">
+      <tbody>
+        <tr><td>NORAD-ID</td><td class="num">${noradId}</td><td class="muted small">Unik nummer i amerikansk katalog</td></tr>
+        <tr><td>Internasjonal betegnelse</td><td>${intlDesignator}</td><td class="muted small">YYNNNAAA — år, oppskytningsnummer, fragment</td></tr>
+        <tr><td>Klassifikasjon</td><td>${classification}</td><td class="muted small">U = unclassified</td></tr>
+        <tr><td>Epoch</td><td>${HW.fmt.dt(epoch)}</td><td class="muted small">Tidspunktet TLE er gyldig for</td></tr>
+        <tr><td>Inklinasjon</td><td class="num">${incl.toFixed(4)}°</td><td class="muted small">Banens helning mot ekvator</td></tr>
+        <tr><td>RAAN</td><td class="num">${raan.toFixed(4)}°</td><td class="muted small">Lengdegrad av oppstigende node</td></tr>
+        <tr><td>Eksentrisitet</td><td class="num">${ecc.toFixed(7)}</td><td class="muted small">0 = sirkulær, &lt;1 = ellipse</td></tr>
+        <tr><td>Argument of perigee</td><td class="num">${argp.toFixed(4)}°</td><td class="muted small">Vinkel fra node til perigeum</td></tr>
+        <tr><td>Mean anomaly</td><td class="num">${meanAnom.toFixed(4)}°</td><td class="muted small">Posisjon i banen ved epoch</td></tr>
+        <tr><td>Mean motion</td><td class="num">${meanMotion.toFixed(8)} rev/dag</td><td class="muted small">Hvor mange omløp per døgn</td></tr>
+        <tr><td>BSTAR drag</td><td class="num">${bstar}</td><td class="muted small">Drag-koeff. (1/Earth radii)</td></tr>
+        <tr><td>Antall omløp</td><td class="num">${revs}</td><td class="muted small">Tall siden oppskytning</td></tr>
+      </tbody>
+    </table>
+
+    <h4>Avledet</h4>
+    <table class="data-table">
+      <tbody>
+        <tr><td>Omløpstid</td><td class="num">${periodMin.toFixed(2)} min</td></tr>
+        <tr><td>Semi-major axis</td><td class="num">${a.toFixed(2)} km</td></tr>
+        <tr><td>Apogeum (høyeste punkt)</td><td class="num">${apogee.toFixed(0)} km</td></tr>
+        <tr><td>Perigeum (laveste punkt)</td><td class="num">${perigee.toFixed(0)} km</td></tr>
+      </tbody>
+    </table>
+  `;
+}
+
+document.getElementById('tle-parse').addEventListener('click', parseTLEManual);
+document.getElementById('tle-from-selected').addEventListener('click', () => {
+  if (!selected) { alert('Velg en sat først'); return; }
+  document.getElementById('tle-input').value = `${selected.name}\n${selected.line1}\n${selected.line2}`;
+  parseTLEManual();
+});
+
+/* ═══ FANE-OPPDATERING ═══ */
+function refreshTab(tab) {
+  if (tab === 'ground') refreshGroundTrack();
+  if (tab === 'doppler') {
+    // Forhåndsutfyll Doppler med valgt sats hovedfrekvens
+    if (selected) {
+      const fr = FREQUENCIES[selected.noradId];
+      if (fr && fr.freqs) {
+        const rxFreq = fr.freqs.find(f => f.rx) || fr.freqs[0];
+        if (rxFreq) document.getElementById('dop-freq').value = rxFreq.mhz;
+      }
+    }
+  }
+  if (tab === 'antenna') calculateAntenna();
+  if (tab === 'link') calculateLinkBudget();
+}
+
+window.addEventListener('tabchange', e => refreshTab(e.detail.tab));
+
+/* ═══ EVENT-WIRING ═══ */
+document.getElementById('sat-search').addEventListener('input', e => renderSatList(e.target.value));
+document.getElementById('sat-group').addEventListener('change', e => {
+  currentGroup = e.target.value;
+  loadSatGroup(currentGroup);
+});
+document.getElementById('gt-orbits').addEventListener('change', refreshGroundTrack);
+document.getElementById('gt-step').addEventListener('change', refreshGroundTrack);
+document.getElementById('pass-calc').addEventListener('click', calculatePasses);
+document.getElementById('dop-calc').addEventListener('click', calculateDoppler);
+
+/* ═══ START ═══ */
+initGlobe();
+calculateAntenna();
+calculateLinkBudget();
+loadSatGroup(currentGroup);
+</script>
+</body>
+</html>

@@ -1,0 +1,837 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dynamikk-sandkasse — Heming Westad</title>
+<meta name="description" content="3D numerisk integrasjon. Tre-legeme, dobbel pendel, Lorenz-attraktor, kjedet pendel. RK4-integrasjon i nettleseren.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..700;1,9..144,400&family=Inter+Tight:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/style.css">
+<style>
+  .sim-canvas {
+    aspect-ratio: 16/10;
+    background: #0e0c09;
+    position: relative;
+  }
+  .sim-info {
+    position: absolute;
+    top: 0.75rem;
+    left: 0.75rem;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.72rem;
+    color: rgba(245, 241, 234, 0.85);
+    pointer-events: none;
+    line-height: 1.5;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+  }
+  .controls-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(8rem, 1fr));
+    gap: 0.75rem 1rem;
+    margin: 0.75rem 0;
+  }
+  .control-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+  .control-group .val {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75rem;
+    color: var(--ink-soft);
+  }
+  .sys-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin: 0.75rem 0;
+  }
+  .sys-btn {
+    background: var(--bg-soft);
+    color: var(--ink-soft);
+    border: 1px solid var(--rule);
+  }
+  .sys-btn:hover {
+    background: var(--ink);
+    color: var(--bg);
+  }
+  .sys-btn.active {
+    background: var(--accent);
+    color: #fff;
+    border-color: var(--accent);
+  }
+</style>
+</head>
+<body>
+<header>
+  <div class="logo"><a href="/">Heming Westad<span class="dot">.</span></a></div>
+  <nav>
+    <ul>
+      <li><a href="/">heim</a></li>
+      <li><a href="/tools.html" class="current">verktøy</a></li>
+      <li><a href="/projects.html">prosjekter</a></li>
+      <li><a href="/now.html">nå</a></li>
+      <li><a href="/about.html">om</a></li>
+    </ul>
+  </nav>
+</header>
+
+<main>
+  <div class="page-meta fade-up">
+    <span>Dynamikk</span>
+    <span>Numerisk integrasjon — RK4</span>
+    <span>Three.js</span>
+  </div>
+
+  <h1 class="fade-up">Dynamikk-<em>sandkasse</em>.</h1>
+  <p class="lede fade-up">
+    Klassiske dynamiske systemer integrert i sanntid med fjerde ordens
+    Runge-Kutta. Velg system, dra rundt med musa, juster parametre. Alt
+    kjører lokalt i nettleseren.
+  </p>
+
+  <div class="sys-buttons" id="system-buttons"></div>
+
+  <div class="canvas-wrap sim-canvas" id="sim-canvas">
+    <div class="sim-info" id="sim-info"></div>
+    <div class="canvas-overlay bottom-right" id="sim-stats"></div>
+  </div>
+
+  <div class="controls-grid">
+    <button id="btn-play">Pause</button>
+    <button id="btn-reset" class="secondary">Reset</button>
+    <button id="btn-trail" class="secondary">Skjul spor</button>
+    <div class="control-group">
+      <label>Tidsskritt (×)</label>
+      <input type="range" id="time-scale" min="0.1" max="3" step="0.05" value="1">
+      <span class="val" id="time-scale-val">1.00×</span>
+    </div>
+  </div>
+
+  <div class="panel" id="system-controls">
+    <div class="panel-title" id="system-title">Parametre</div>
+    <div id="system-params"></div>
+  </div>
+
+  <h2 class="section-header">Om systemet <span class="count" id="about-tag"></span></h2>
+  <div id="about-text"></div>
+
+  <hr>
+  <p class="muted small">
+    Integrasjon: klassisk RK4 med fast steglengde. Visualisering med
+    Three.js. Trail-lengden er begrenset til ~5000 punkter for ytelse.
+    Alle systemer simuleres i dimensjonsløse enheter.
+  </p>
+</main>
+
+<footer>
+  <div class="footer-content">
+    <div>© 2026 — Heming Westad</div>
+    <div>Trondheim · <a href="https://github.com/hemingwestad-glitch/Nettside-public">kildekode</a></div>
+  </div>
+</footer>
+
+<script src="/common.js"></script>
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+  }
+}
+</script>
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+/* ═══════════════════════════════════════════════════════════════════════
+   RK4-INTEGRATOR (generisk)
+   y_dot = f(t, y), y er en vektor (Float64Array)
+   ═══════════════════════════════════════════════════════════════════════ */
+function rk4Step(f, t, y, dt) {
+  const n = y.length;
+  const k1 = f(t, y);
+  const y2 = new Float64Array(n);
+  for (let i = 0; i < n; i++) y2[i] = y[i] + 0.5 * dt * k1[i];
+  const k2 = f(t + 0.5 * dt, y2);
+  const y3 = new Float64Array(n);
+  for (let i = 0; i < n; i++) y3[i] = y[i] + 0.5 * dt * k2[i];
+  const k3 = f(t + 0.5 * dt, y3);
+  const y4 = new Float64Array(n);
+  for (let i = 0; i < n; i++) y4[i] = y[i] + dt * k3[i];
+  const k4 = f(t + dt, y4);
+
+  const out = new Float64Array(n);
+  for (let i = 0; i < n; i++) {
+    out[i] = y[i] + (dt / 6) * (k1[i] + 2 * k2[i] + 2 * k3[i] + k4[i]);
+  }
+  return out;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   SYSTEMER
+   Hver definerer: name, description, params, init() -> state, derivs(t,y),
+   bodies(state) -> array av {pos: [x,y,z], color, size}
+   ═══════════════════════════════════════════════════════════════════════ */
+
+const SYSTEMS = {
+
+  /* ─── LORENZ-ATTRAKTOR ─── */
+  lorenz: {
+    name: 'Lorenz-attraktor',
+    tag: 'kaos',
+    description: `
+      Lorenz' tre koblede ligninger fra atmosfæremodellering (1963). De gjorde
+      kaosteori berømt — for visse parameterverdier er løsningen sensitiv for
+      initialbetingelser men forblir på en fraktal "sommerfugl"-mengde.
+      <br><br>
+      <code>dx/dt = σ(y - x)</code><br>
+      <code>dy/dt = x(ρ - z) - y</code><br>
+      <code>dz/dt = xy - βz</code>
+    `,
+    params: [
+      { id: 'sigma', label: 'σ (Prandtl)',        min: 1, max: 30, step: 0.5, val: 10 },
+      { id: 'rho',   label: 'ρ (Rayleigh)',        min: 1, max: 50, step: 0.5, val: 28 },
+      { id: 'beta',  label: 'β',                   min: 0.1, max: 5, step: 0.1, val: 8/3 },
+    ],
+    dt: 0.005,
+    scale: 0.5,
+    trailLen: 5000,
+    init() {
+      return new Float64Array([1, 1, 1]);
+    },
+    derivs(t, y, p) {
+      return new Float64Array([
+        p.sigma * (y[1] - y[0]),
+        y[0] * (p.rho - y[2]) - y[1],
+        y[0] * y[1] - p.beta * y[2]
+      ]);
+    },
+    bodies(state) {
+      return [{ pos: [state[0], state[2] - 25, state[1]], color: 0xb8552e, size: 0.6 }];
+    }
+  },
+
+  /* ─── DOBBEL PENDEL (3D rendering, 2D fysikk) ─── */
+  doublePendulum: {
+    name: 'Dobbel pendel',
+    tag: 'kaos',
+    description: `
+      To pendler hengt opp i hverandre. Det enkleste mekaniske systemet som
+      viser kaotisk oppførsel — bittesmå endringer i startposisjon gir helt
+      forskjellig bevegelse etter kort tid. Tilstanden er
+      <code>(θ₁, θ₂, ω₁, ω₂)</code>.
+      <br><br>
+      Bevegelseslikningene er Lagrange-formulert med <code>L = T - V</code>.
+    `,
+    params: [
+      { id: 'm1', label: 'Masse 1',  min: 0.1, max: 5, step: 0.1, val: 1 },
+      { id: 'm2', label: 'Masse 2',  min: 0.1, max: 5, step: 0.1, val: 1 },
+      { id: 'l1', label: 'Lengde 1', min: 0.5, max: 3, step: 0.1, val: 1.5 },
+      { id: 'l2', label: 'Lengde 2', min: 0.5, max: 3, step: 0.1, val: 1.5 },
+      { id: 'g',  label: 'Gravitasjon', min: 1, max: 20, step: 0.5, val: 9.81 },
+    ],
+    dt: 0.005,
+    scale: 1,
+    trailLen: 800,
+    init() {
+      return new Float64Array([Math.PI * 0.85, Math.PI * 0.6, 0, 0]);
+    },
+    derivs(t, y, p) {
+      const [t1, t2, w1, w2] = y;
+      const m1 = p.m1, m2 = p.m2, l1 = p.l1, l2 = p.l2, g = p.g;
+      const d = t1 - t2;
+      const den1 = (m1 + m2) * l1 - m2 * l1 * Math.cos(d) * Math.cos(d);
+      const den2 = (l2 / l1) * den1;
+
+      const a1 = (m2 * l1 * w1 * w1 * Math.sin(d) * Math.cos(d)
+                  + m2 * g * Math.sin(t2) * Math.cos(d)
+                  + m2 * l2 * w2 * w2 * Math.sin(d)
+                  - (m1 + m2) * g * Math.sin(t1)) / den1;
+
+      const a2 = (-m2 * l2 * w2 * w2 * Math.sin(d) * Math.cos(d)
+                  + (m1 + m2) * g * Math.sin(t1) * Math.cos(d)
+                  - (m1 + m2) * l1 * w1 * w1 * Math.sin(d)
+                  - (m1 + m2) * g * Math.sin(t2)) / den2;
+
+      return new Float64Array([w1, w2, a1, a2]);
+    },
+    bodies(state, p) {
+      const [t1, t2] = state;
+      const x1 = p.l1 * Math.sin(t1);
+      const y1 = -p.l1 * Math.cos(t1);
+      const x2 = x1 + p.l2 * Math.sin(t2);
+      const y2 = y1 - p.l2 * Math.cos(t2);
+      return [
+        { pos: [0, 0, 0], color: 0x6b645b, size: 0.1 },
+        { pos: [x1, y1, 0], color: 0x4a6b7a, size: 0.2 + 0.05 * Math.sqrt(p.m1) },
+        { pos: [x2, y2, 0], color: 0xb8552e, size: 0.2 + 0.05 * Math.sqrt(p.m2) },
+      ];
+    },
+    rods(state, p) {
+      const [t1, t2] = state;
+      const x1 = p.l1 * Math.sin(t1);
+      const y1 = -p.l1 * Math.cos(t1);
+      const x2 = x1 + p.l2 * Math.sin(t2);
+      const y2 = y1 - p.l2 * Math.cos(t2);
+      return [
+        { from: [0, 0, 0], to: [x1, y1, 0] },
+        { from: [x1, y1, 0], to: [x2, y2, 0] },
+      ];
+    },
+    trailIdx: 2  // Trail kun siste masse
+  },
+
+  /* ─── TRE-LEGEME (FIGUR-8) ─── */
+  threeBody: {
+    name: 'Tre-legeme: figur 8',
+    tag: 'gravitasjon',
+    description: `
+      Tre likt tunge legemer som følger samme bane formet som et 8-tall.
+      Oppdaget av Chenciner og Montgomery i 2000 — en av de få kjente
+      stabile periodiske løsningene på det generelle tre-legeme-problemet.
+      <br><br>
+      Hver kropp følger Newtons lov: <code>F = -Gm₁m₂(r₁-r₂)/|r₁-r₂|³</code>.
+    `,
+    params: [
+      { id: 'G', label: 'Grav. konst.', min: 0.1, max: 5, step: 0.05, val: 1 },
+      { id: 'mass', label: 'Masse', min: 0.1, max: 3, step: 0.05, val: 1 },
+    ],
+    dt: 0.002,
+    scale: 1.5,
+    trailLen: 3000,
+    init() {
+      // Klassiske startbetingelser for figur-8
+      // Posisjoner og hastigheter fra Chenciner-Montgomery
+      const r1 = [0.97000436, -0.24308753, 0];
+      const r2 = [-0.97000436, 0.24308753, 0];
+      const r3 = [0, 0, 0];
+      const v3 = [-0.93240737, -0.86473146, 0];
+      const v1 = [-v3[0]/2, -v3[1]/2, 0];
+      const v2 = [-v3[0]/2, -v3[1]/2, 0];
+      return new Float64Array([
+        ...r1, ...r2, ...r3,  // 9 stk
+        ...v1, ...v2, ...v3   // 9 stk
+      ]);
+    },
+    derivs(t, y, p) {
+      const G = p.G, m = p.mass;
+      // y[0..2] = r1, y[3..5] = r2, y[6..8] = r3
+      // y[9..11] = v1, y[12..14] = v2, y[15..17] = v3
+      const r = [
+        [y[0], y[1], y[2]],
+        [y[3], y[4], y[5]],
+        [y[6], y[7], y[8]]
+      ];
+      const a = [[0,0,0],[0,0,0],[0,0,0]];
+      for (let i = 0; i < 3; i++) {
+        for (let j = 0; j < 3; j++) {
+          if (i === j) continue;
+          const dx = r[j][0] - r[i][0];
+          const dy = r[j][1] - r[i][1];
+          const dz = r[j][2] - r[i][2];
+          const d2 = dx*dx + dy*dy + dz*dz + 1e-9;
+          const d3 = Math.pow(d2, 1.5);
+          const f = G * m / d3;
+          a[i][0] += f * dx;
+          a[i][1] += f * dy;
+          a[i][2] += f * dz;
+        }
+      }
+      return new Float64Array([
+        y[9],  y[10], y[11],
+        y[12], y[13], y[14],
+        y[15], y[16], y[17],
+        a[0][0], a[0][1], a[0][2],
+        a[1][0], a[1][1], a[1][2],
+        a[2][0], a[2][1], a[2][2]
+      ]);
+    },
+    bodies(state) {
+      return [
+        { pos: [state[0], state[1], state[2]], color: 0xb8552e, size: 0.08, trailIdx: 0 },
+        { pos: [state[3], state[4], state[5]], color: 0x4a6b7a, size: 0.08, trailIdx: 1 },
+        { pos: [state[6], state[7], state[8]], color: 0x5a6b3e, size: 0.08, trailIdx: 2 },
+      ];
+    },
+    multiTrail: true
+  },
+
+  /* ─── TRE-LEGEME (TILFELDIG) ─── */
+  threeBodyChaos: {
+    name: 'Tre-legeme: kaos',
+    tag: 'gravitasjon',
+    description: `
+      Samme fysikk som figur-8, men med tilfeldige startbetingelser. Den generelle
+      løsningen er ikke periodisk — vanligvis ender systemet med at to legemer
+      danner et tett par mens den tredje slynges ut. Trykk Reset for nye
+      startbetingelser.
+    `,
+    params: [
+      { id: 'G', label: 'Grav. konst.', min: 0.1, max: 5, step: 0.05, val: 1 },
+      { id: 'mass', label: 'Masse', min: 0.1, max: 3, step: 0.05, val: 1 },
+    ],
+    dt: 0.003,
+    scale: 1,
+    trailLen: 2000,
+    init() {
+      // Tilfeldige startbetingelser, men i samme størrelsesorden
+      const rand = () => (Math.random() - 0.5) * 2;
+      return new Float64Array([
+        rand(), rand(), rand() * 0.3,
+        rand(), rand(), rand() * 0.3,
+        rand(), rand(), rand() * 0.3,
+        rand() * 0.3, rand() * 0.3, 0,
+        rand() * 0.3, rand() * 0.3, 0,
+        rand() * 0.3, rand() * 0.3, 0,
+      ]);
+    },
+    derivs: SYSTEMS_derivs_threebody, // referer fram - vi setter etter
+    bodies(state) {
+      return [
+        { pos: [state[0], state[1], state[2]], color: 0xb8552e, size: 0.1, trailIdx: 0 },
+        { pos: [state[3], state[4], state[5]], color: 0x4a6b7a, size: 0.1, trailIdx: 1 },
+        { pos: [state[6], state[7], state[8]], color: 0x5a6b3e, size: 0.1, trailIdx: 2 },
+      ];
+    },
+    multiTrail: true
+  },
+
+  /* ─── KJEDET PENDEL (N pendler) ─── */
+  chainPendulum: {
+    name: 'Kjedet pendel',
+    tag: 'kompleks',
+    description: `
+      N pendler koblet i serie. Med 5 ledd er systemet svært kaotisk.
+      Visuelt er det kanskje det mest fascinerende av alle de klassiske
+      systemene — minner om en levende slange.
+      <br><br>
+      Fysikken implementeres som et system av koblede ODE-er via Lagrange-metoden,
+      forenklet med diagonal masse-matrise (alle ledd har lik masse og lengde).
+    `,
+    params: [
+      { id: 'n', label: 'Antall ledd', min: 2, max: 7, step: 1, val: 5, integer: true, requiresReset: true },
+      { id: 'l',  label: 'Lengde per ledd', min: 0.3, max: 1.5, step: 0.05, val: 0.6 },
+      { id: 'g',  label: 'Gravitasjon', min: 1, max: 20, step: 0.5, val: 9.81 },
+      { id: 'd',  label: 'Demping', min: 0, max: 0.5, step: 0.005, val: 0.02 },
+    ],
+    dt: 0.002,
+    scale: 1,
+    trailLen: 600,
+    init(p) {
+      const n = p ? Math.floor(p.n) : 5;
+      const y = new Float64Array(n * 2);
+      // Liten forstyrrelse fra vertikal
+      for (let i = 0; i < n; i++) y[i] = Math.PI - 0.05 * (i + 1);
+      return y;
+    },
+    derivs(t, y, p) {
+      // Forenklet kjedet pendel: hver ledd reagerer på gravitasjon og kobling
+      // Bruker en approksimativ modell (ikke full Lagrangian for n>2):
+      // Ledd i kjenner gravitasjon + kobling til naboer.
+      const n = Math.floor(p.n);
+      const out = new Float64Array(n * 2);
+      const k = 50; // koblingsstivhet
+      for (let i = 0; i < n; i++) {
+        out[i] = y[n + i]; // dθ/dt = ω
+        let acc = -p.g / p.l * Math.sin(y[i]);
+        // Kobling til forrige
+        if (i > 0) acc += k * (y[i-1] - y[i]);
+        // Kobling til neste
+        if (i < n - 1) acc += k * (y[i+1] - y[i]);
+        // Demping
+        acc -= p.d * y[n + i];
+        out[n + i] = acc;
+      }
+      return out;
+    },
+    bodies(state, p) {
+      const n = Math.floor(p.n);
+      const bodies = [{ pos: [0, 0, 0], color: 0x6b645b, size: 0.08 }];
+      let x = 0, y = 0;
+      for (let i = 0; i < n; i++) {
+        x += p.l * Math.sin(state[i]);
+        y -= p.l * Math.cos(state[i]);
+        const isLast = i === n - 1;
+        bodies.push({
+          pos: [x, y, 0],
+          color: isLast ? 0xb8552e : 0x4a6b7a,
+          size: 0.12,
+          trailIdx: isLast ? bodies.length : null
+        });
+      }
+      return bodies;
+    },
+    rods(state, p) {
+      const n = Math.floor(p.n);
+      const rods = [];
+      let px = 0, py = 0;
+      for (let i = 0; i < n; i++) {
+        const x = px + p.l * Math.sin(state[i]);
+        const y = py - p.l * Math.cos(state[i]);
+        rods.push({ from: [px, py, 0], to: [x, y, 0] });
+        px = x; py = y;
+      }
+      return rods;
+    },
+    trailIdx: -1  // beregnes dynamisk
+  },
+
+  /* ─── ROSSLER ─── */
+  rossler: {
+    name: 'Rössler-attraktor',
+    tag: 'kaos',
+    description: `
+      Otto Rösslers kaotiske system fra 1976. Enklere enn Lorenz (én
+      ikke-linearitet) men gir også fraktale attraktorer.
+      <br><br>
+      <code>dx/dt = -y - z</code><br>
+      <code>dy/dt = x + ay</code><br>
+      <code>dz/dt = b + z(x - c)</code>
+    `,
+    params: [
+      { id: 'a', label: 'a', min: 0.05, max: 0.4, step: 0.01, val: 0.2 },
+      { id: 'b', label: 'b', min: 0.05, max: 0.4, step: 0.01, val: 0.2 },
+      { id: 'c', label: 'c', min: 1, max: 10, step: 0.1, val: 5.7 },
+    ],
+    dt: 0.01,
+    scale: 1.2,
+    trailLen: 5000,
+    init() {
+      return new Float64Array([1, 1, 1]);
+    },
+    derivs(t, y, p) {
+      return new Float64Array([
+        -y[1] - y[2],
+        y[0] + p.a * y[1],
+        p.b + y[2] * (y[0] - p.c)
+      ]);
+    },
+    bodies(state) {
+      return [{ pos: [state[0], state[2] - 5, state[1]], color: 0xb8552e, size: 0.3 }];
+    }
+  }
+};
+
+// Patch threeBodyChaos.derivs til å peke på threeBody.derivs
+SYSTEMS.threeBodyChaos.derivs = SYSTEMS.threeBody.derivs;
+
+// Dummy fix for hoisting
+function SYSTEMS_derivs_threebody() {}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   THREE.JS-OPPSETT
+   ═══════════════════════════════════════════════════════════════════════ */
+
+const canvas = document.getElementById('sim-canvas');
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x0e0c09);
+scene.fog = new THREE.Fog(0x0e0c09, 8, 25);
+
+const camera = new THREE.PerspectiveCamera(45, 16/10, 0.1, 200);
+camera.position.set(5, 3, 8);
+
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setPixelRatio(window.devicePixelRatio);
+canvas.appendChild(renderer.domElement);
+
+function resize() {
+  const r = canvas.getBoundingClientRect();
+  renderer.setSize(r.width, r.height, false);
+  camera.aspect = r.width / r.height;
+  camera.updateProjectionMatrix();
+}
+new ResizeObserver(resize).observe(canvas);
+resize();
+
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true;
+controls.dampingFactor = 0.06;
+
+// Lys
+const ambient = new THREE.AmbientLight(0xffeec0, 0.4);
+scene.add(ambient);
+const dir = new THREE.DirectionalLight(0xffeec0, 0.8);
+dir.position.set(5, 10, 7);
+scene.add(dir);
+
+// Akser (subtilt)
+const axesHelper = new THREE.AxesHelper(2);
+axesHelper.material.opacity = 0.15;
+axesHelper.material.transparent = true;
+scene.add(axesHelper);
+
+// Grid
+const grid = new THREE.GridHelper(20, 20, 0x3d3833, 0x3d3833);
+grid.material.opacity = 0.2;
+grid.material.transparent = true;
+grid.position.y = -2;
+scene.add(grid);
+
+/* ═══════════════════════════════════════════════════════════════════════
+   SIMULATION STATE
+   ═══════════════════════════════════════════════════════════════════════ */
+
+let currentSystem = null;
+let state = null;
+let simT = 0;
+let playing = true;
+let timeScale = 1;
+let showTrail = true;
+
+const sceneObjects = {
+  bodies: [],
+  rods: [],
+  trails: [],  // array av {points: Float32Array, idx: number, line: THREE.Line}
+};
+
+function clearScene() {
+  for (const o of [...sceneObjects.bodies, ...sceneObjects.rods]) {
+    scene.remove(o);
+    o.geometry.dispose();
+    o.material.dispose();
+  }
+  for (const t of sceneObjects.trails) {
+    scene.remove(t.line);
+    t.line.geometry.dispose();
+    t.line.material.dispose();
+  }
+  sceneObjects.bodies = [];
+  sceneObjects.rods = [];
+  sceneObjects.trails = [];
+}
+
+function getParams() {
+  const p = {};
+  for (const param of currentSystem.params) {
+    const slider = document.getElementById(`p-${param.id}`);
+    p[param.id] = +slider.value;
+  }
+  return p;
+}
+
+function setupSystem(key) {
+  currentSystem = SYSTEMS[key];
+  document.getElementById('about-text').innerHTML = currentSystem.description;
+  document.getElementById('about-tag').textContent = currentSystem.tag || '';
+  document.getElementById('system-title').textContent = `Parametre — ${currentSystem.name}`;
+
+  // Bygg parameter-slidere
+  const ctrl = document.getElementById('system-params');
+  ctrl.innerHTML = `<div class="controls-grid">
+    ${currentSystem.params.map(p => `
+      <div class="control-group">
+        <label>${p.label}</label>
+        <input type="range" id="p-${p.id}" min="${p.min}" max="${p.max}" step="${p.step}" value="${p.val}">
+        <span class="val" id="v-${p.id}">${p.integer ? p.val : p.val.toFixed(2)}</span>
+      </div>
+    `).join('')}
+  </div>`;
+
+  for (const p of currentSystem.params) {
+    const slider = document.getElementById(`p-${p.id}`);
+    const val = document.getElementById(`v-${p.id}`);
+    slider.addEventListener('input', () => {
+      val.textContent = p.integer ? slider.value : (+slider.value).toFixed(2);
+      if (p.requiresReset) reset();
+    });
+  }
+
+  // Aktiv knapp
+  document.querySelectorAll('.sys-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.sys === key);
+  });
+
+  reset();
+}
+
+function reset() {
+  clearScene();
+  const p = getParams();
+  state = currentSystem.init(p);
+  simT = 0;
+
+  // Bygg kropper
+  const bodies = currentSystem.bodies(state, p);
+  for (const b of bodies) {
+    const geom = new THREE.SphereGeometry(b.size, 18, 14);
+    const mat = new THREE.MeshLambertMaterial({ color: b.color });
+    const mesh = new THREE.Mesh(geom, mat);
+    mesh.position.set(b.pos[0] * currentSystem.scale, b.pos[1] * currentSystem.scale, b.pos[2] * currentSystem.scale);
+    scene.add(mesh);
+    sceneObjects.bodies.push(mesh);
+  }
+
+  // Bygg trail(s)
+  if (currentSystem.multiTrail) {
+    const colors = [0xb8552e, 0x4a6b7a, 0x5a6b3e];
+    for (let i = 0; i < bodies.length; i++) {
+      if (bodies[i].trailIdx == null) continue;
+      const lineGeom = new THREE.BufferGeometry();
+      const positions = new Float32Array(currentSystem.trailLen * 3);
+      lineGeom.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+      lineGeom.setDrawRange(0, 0);
+      const mat = new THREE.LineBasicMaterial({ color: colors[i] || 0xb8552e, transparent: true, opacity: 0.5 });
+      const line = new THREE.Line(lineGeom, mat);
+      scene.add(line);
+      sceneObjects.trails.push({ positions, idx: 0, count: 0, line, bodyIdx: i });
+    }
+  } else {
+    // Enkelt trail på siste / spesifisert body
+    const trailIdx = currentSystem.trailIdx != null ? currentSystem.trailIdx :
+                     (bodies.length === 1 ? 0 : bodies.length - 1);
+    const lineGeom = new THREE.BufferGeometry();
+    const positions = new Float32Array(currentSystem.trailLen * 3);
+    lineGeom.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+    lineGeom.setDrawRange(0, 0);
+    const mat = new THREE.LineBasicMaterial({ color: 0xb8552e, transparent: true, opacity: 0.55 });
+    const line = new THREE.Line(lineGeom, mat);
+    scene.add(line);
+    sceneObjects.trails.push({ positions, idx: 0, count: 0, line, bodyIdx: trailIdx === -1 ? bodies.length - 1 : trailIdx });
+  }
+
+  // Stenger?
+  if (currentSystem.rods) {
+    const rods = currentSystem.rods(state, p);
+    for (const r of rods) {
+      const g = new THREE.BufferGeometry();
+      g.setAttribute('position', new THREE.BufferAttribute(new Float32Array(6), 3));
+      const m = new THREE.LineBasicMaterial({ color: 0xa39787, transparent: true, opacity: 0.7 });
+      const line = new THREE.Line(g, m);
+      scene.add(line);
+      sceneObjects.rods.push(line);
+    }
+  }
+}
+
+function step(dt_real) {
+  const p = getParams();
+  const dt_sim = currentSystem.dt;
+  // Ta så mange steg som trengs for å holde tritt med real time × scale
+  const targetSteps = Math.max(1, Math.min(50, Math.floor(dt_real * 60 * timeScale)));
+  for (let s = 0; s < targetSteps; s++) {
+    state = rk4Step((t, y) => currentSystem.derivs(t, y, p), simT, state, dt_sim);
+    simT += dt_sim;
+  }
+
+  // Oppdater kropper
+  const bodies = currentSystem.bodies(state, p);
+  for (let i = 0; i < bodies.length && i < sceneObjects.bodies.length; i++) {
+    const b = bodies[i];
+    sceneObjects.bodies[i].position.set(
+      b.pos[0] * currentSystem.scale,
+      b.pos[1] * currentSystem.scale,
+      b.pos[2] * currentSystem.scale
+    );
+  }
+
+  // Oppdater stenger
+  if (currentSystem.rods) {
+    const rods = currentSystem.rods(state, p);
+    for (let i = 0; i < rods.length && i < sceneObjects.rods.length; i++) {
+      const r = rods[i];
+      const arr = sceneObjects.rods[i].geometry.attributes.position.array;
+      arr[0] = r.from[0] * currentSystem.scale; arr[1] = r.from[1] * currentSystem.scale; arr[2] = r.from[2] * currentSystem.scale;
+      arr[3] = r.to[0] * currentSystem.scale;   arr[4] = r.to[1] * currentSystem.scale;   arr[5] = r.to[2] * currentSystem.scale;
+      sceneObjects.rods[i].geometry.attributes.position.needsUpdate = true;
+    }
+  }
+
+  // Oppdater trails
+  if (showTrail) {
+    for (const trail of sceneObjects.trails) {
+      const b = bodies[trail.bodyIdx];
+      if (!b) continue;
+      const arr = trail.positions;
+      const i = trail.idx * 3;
+      arr[i] = b.pos[0] * currentSystem.scale;
+      arr[i + 1] = b.pos[1] * currentSystem.scale;
+      arr[i + 2] = b.pos[2] * currentSystem.scale;
+      trail.idx = (trail.idx + 1) % currentSystem.trailLen;
+      trail.count = Math.min(trail.count + 1, currentSystem.trailLen);
+
+      // For å vise trail riktig (sirkulær buffer), reorder:
+      const reordered = new Float32Array(trail.count * 3);
+      const start = trail.count < currentSystem.trailLen ? 0 : trail.idx;
+      for (let j = 0; j < trail.count; j++) {
+        const src = ((start + j) % currentSystem.trailLen) * 3;
+        reordered[j * 3] = arr[src];
+        reordered[j * 3 + 1] = arr[src + 1];
+        reordered[j * 3 + 2] = arr[src + 2];
+      }
+      trail.line.geometry.setAttribute('position', new THREE.BufferAttribute(reordered, 3));
+      trail.line.geometry.attributes.position.needsUpdate = true;
+      trail.line.geometry.setDrawRange(0, trail.count);
+      trail.line.geometry.computeBoundingSphere();
+    }
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   ANIMASJONS-LOOP
+   ═══════════════════════════════════════════════════════════════════════ */
+
+let lastT = performance.now();
+function animate() {
+  requestAnimationFrame(animate);
+  const now = performance.now();
+  const dt = Math.min((now - lastT) / 1000, 0.1);
+  lastT = now;
+
+  if (playing && currentSystem) step(dt);
+
+  controls.update();
+  renderer.render(scene, camera);
+
+  // Stats
+  const stats = document.getElementById('sim-stats');
+  if (currentSystem) {
+    stats.textContent = `t = ${simT.toFixed(2)}    dt = ${currentSystem.dt}`;
+  }
+}
+animate();
+
+/* ═══════════════════════════════════════════════════════════════════════
+   UI
+   ═══════════════════════════════════════════════════════════════════════ */
+
+const sysBtns = document.getElementById('system-buttons');
+sysBtns.innerHTML = Object.entries(SYSTEMS).map(([key, sys]) => `
+  <button class="sys-btn" data-sys="${key}">${sys.name}</button>
+`).join('');
+
+sysBtns.addEventListener('click', e => {
+  const btn = e.target.closest('.sys-btn');
+  if (btn) setupSystem(btn.dataset.sys);
+});
+
+document.getElementById('btn-play').addEventListener('click', e => {
+  playing = !playing;
+  e.target.textContent = playing ? 'Pause' : 'Spill';
+});
+
+document.getElementById('btn-reset').addEventListener('click', () => reset());
+
+document.getElementById('btn-trail').addEventListener('click', e => {
+  showTrail = !showTrail;
+  e.target.textContent = showTrail ? 'Skjul spor' : 'Vis spor';
+  for (const t of sceneObjects.trails) {
+    t.line.visible = showTrail;
+  }
+});
+
+document.getElementById('time-scale').addEventListener('input', e => {
+  timeScale = +e.target.value;
+  document.getElementById('time-scale-val').textContent = timeScale.toFixed(2) + '×';
+});
+
+// Velg første
+setupSystem('lorenz');
+
+// Sim info
+document.getElementById('sim-info').innerHTML = 'Dra for å rotere · skroll for zoom';
+</script>
+</body>
+</html>

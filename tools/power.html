@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Strømpriser NO3 — Heming Westad</title>
+<meta name="description" content="Live strømpriser for Midt-Norge (NO3). Døgnkurve, billigste timer, 7-dagers oversikt.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..700;1,9..144,400&family=Inter+Tight:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/style.css">
+</head>
+<body>
+<header>
+  <div class="logo"><a href="/">Heming Westad<span class="dot">.</span></a></div>
+  <nav>
+    <ul>
+      <li><a href="/">heim</a></li>
+      <li><a href="/tools.html" class="current">verktøy</a></li>
+      <li><a href="/projects.html">prosjekter</a></li>
+      <li><a href="/now.html">nå</a></li>
+      <li><a href="/about.html">om</a></li>
+    </ul>
+  </nav>
+</header>
+
+<main>
+  <div class="page-meta fade-up">
+    <span><span class="dot live"></span>Strømpriser</span>
+    <span>Område: NO3 (Midt-Norge)</span>
+    <span>Kilde: hvakosterstrommen.no</span>
+  </div>
+
+  <h1 class="fade-up">Strømpriser <em>NO3</em>.</h1>
+  <p class="lede fade-up">
+    Spotpris fra Nord Pool, time for time. Priser for i morgen blir tilgjengelig
+    rundt kl. 13. Tallene er i øre/kWh inkl. mva (25 %).
+  </p>
+
+  <div class="stat-grid fade-up" id="stats">
+    <div class="stat"><div class="stat-label">Akkurat nå</div><div class="stat-value" id="now-price">—</div></div>
+    <div class="stat"><div class="stat-label">Snitt i dag</div><div class="stat-value" id="avg-today">—</div></div>
+    <div class="stat blue"><div class="stat-label">Billigste time</div><div class="stat-value" id="min-today">—</div></div>
+    <div class="stat accent"><div class="stat-label">Dyreste time</div><div class="stat-value" id="max-today">—</div></div>
+  </div>
+
+  <h2 class="section-header">Timer i dag</h2>
+  <div class="chart">
+    <div class="chart-title" id="chart-title-today">Spotpris time for time — i dag</div>
+    <svg id="chart-today" viewBox="0 0 800 280" preserveAspectRatio="none"></svg>
+  </div>
+
+  <h2 class="section-header" id="tomorrow-header" style="display:none;">Timer i morgen</h2>
+  <div class="chart" id="tomorrow-chart-wrap" style="display:none;">
+    <div class="chart-title">Spotpris time for time — i morgen</div>
+    <svg id="chart-tomorrow" viewBox="0 0 800 280" preserveAspectRatio="none"></svg>
+  </div>
+
+  <h2 class="section-header">Billigste timer i dag</h2>
+  <div class="event-list" id="cheapest-today"></div>
+
+  <div id="cheapest-tomorrow-wrap" style="display:none;">
+    <h2 class="section-header">Billigste timer i morgen</h2>
+    <div class="event-list" id="cheapest-tomorrow"></div>
+  </div>
+
+  <h2 class="section-header">Siste 7 dager <span class="count">døgnsnitt</span></h2>
+  <div class="chart">
+    <svg id="chart-week" viewBox="0 0 800 200" preserveAspectRatio="none"></svg>
+  </div>
+  <div id="week-summary" class="muted small"></div>
+
+  <hr>
+  <p class="muted small">
+    Data hentes fra <a href="https://www.hvakosterstrommen.no/strompris-api" target="_blank" rel="noopener">hvakosterstrommen.no</a>
+    sitt åpne API. Prisene er spotpris fra Nord Pool eksklusive nettleie og
+    avgifter (mva er inkludert). Faktisk strømregning vil være høyere.
+  </p>
+</main>
+
+<footer>
+  <div class="footer-content">
+    <div>© 2026 — Heming Westad</div>
+    <div>Trondheim · <a href="https://github.com/hemingwestad-glitch/Nettside-public">kildekode</a></div>
+  </div>
+</footer>
+
+<script src="/common.js"></script>
+<script>
+/* ─── Strømpriser NO3 ─────────────────────────────────────────────────── */
+
+const ZONE = 'NO3';
+const VAT = 1.25;
+
+function pad(n) { return String(n).padStart(2, '0'); }
+
+async function fetchPricesForDay(date) {
+  // hvakosterstrommen.no: /api/v1/prices/YYYY/MM-DD_NOX.json
+  const y = date.getFullYear();
+  const m = pad(date.getMonth() + 1);
+  const d = pad(date.getDate());
+  const url = `https://www.hvakosterstrommen.no/api/v1/prices/${y}/${m}-${d}_${ZONE}.json`;
+  try {
+    const r = await fetch(url);
+    if (!r.ok) return null;
+    const data = await r.json();
+    // Konverter til øre/kWh inkl. mva, ta vare på timestamp
+    return data.map(h => ({
+      start: new Date(h.time_start),
+      end: new Date(h.time_end),
+      hour: new Date(h.time_start).getHours(),
+      pris_kr: h.NOK_per_kWh,                       // kr/kWh ekskl. mva
+      pris_ore: h.NOK_per_kWh * 100 * VAT,          // øre/kWh inkl. mva
+      eur: h.EUR_per_kWh
+    }));
+  } catch (e) {
+    console.warn('Klarte ikke hente strømpriser', e);
+    return null;
+  }
+}
+
+function fmtOre(p) {
+  if (p == null || isNaN(p)) return '—';
+  return p.toFixed(1).replace('.', ',') + ' øre';
+}
+
+function colorForPrice(p, scale) {
+  // Skala: under 50 øre billig, over 200 dyrt
+  if (p < scale.low) return 'var(--green)';
+  if (p > scale.high) return 'var(--accent)';
+  return 'var(--blue)';
+}
+
+function renderHourChart(svg, hours, currentHour = -1) {
+  if (!hours || hours.length === 0) {
+    svg.innerHTML = '<text x="400" y="140" text-anchor="middle" fill="#9a9087" font-family="JetBrains Mono" font-size="14">Ingen data</text>';
+    return;
+  }
+
+  const W = 800, H = 280;
+  const m = { l: 50, r: 16, t: 20, b: 36 };
+  const w = W - m.l - m.r;
+  const h = H - m.t - m.b;
+
+  const prices = hours.map(d => d.pris_ore);
+  const max = Math.max(...prices, 50);
+  const min = Math.min(...prices, 0);
+  const range = max - min || 1;
+  const yScale = v => m.t + h - ((v - min) / range) * h;
+
+  const barW = w / hours.length;
+
+  let s = '';
+
+  // Y-aksen rutenett (i 50 øre-trinn)
+  const step = max > 300 ? 100 : (max > 100 ? 50 : 25);
+  for (let v = Math.ceil(min / step) * step; v <= max; v += step) {
+    const y = yScale(v);
+    s += `<line x1="${m.l}" y1="${y}" x2="${W - m.r}" y2="${y}" stroke="#e6e0d2" stroke-width="1"/>`;
+    s += `<text x="${m.l - 6}" y="${y + 4}" text-anchor="end" fill="#9a9087" font-family="JetBrains Mono" font-size="10">${v}</text>`;
+  }
+
+  // Linje for 0
+  if (min < 0 && max > 0) {
+    const y0 = yScale(0);
+    s += `<line x1="${m.l}" y1="${y0}" x2="${W - m.r}" y2="${y0}" stroke="#9a9087" stroke-width="1" stroke-dasharray="3,3"/>`;
+  }
+
+  const scale = {
+    low: Math.max(50, min + range * 0.25),
+    high: Math.min(200, min + range * 0.75)
+  };
+
+  // Søyler
+  hours.forEach((d, i) => {
+    const x = m.l + i * barW + 1;
+    const y = yScale(Math.max(d.pris_ore, 0));
+    const yZero = yScale(0);
+    const barH = Math.abs(yZero - y);
+    const color = colorForPrice(d.pris_ore, scale);
+    const isCurrent = d.hour === currentHour;
+    const opacity = isCurrent ? 1 : 0.85;
+    s += `<rect x="${x}" y="${d.pris_ore >= 0 ? y : yZero}" width="${barW - 2}" height="${barH}" fill="${color}" opacity="${opacity}"/>`;
+
+    if (isCurrent) {
+      s += `<rect x="${x - 1}" y="${m.t}" width="${barW}" height="${h}" fill="none" stroke="var(--ink)" stroke-width="1.5"/>`;
+    }
+
+    // Time-label hver 3. time
+    if (i % 3 === 0) {
+      s += `<text x="${x + barW / 2}" y="${H - m.b + 14}" text-anchor="middle" fill="#6b645b" font-family="JetBrains Mono" font-size="10">${String(d.hour).padStart(2,'0')}</text>`;
+    }
+  });
+
+  svg.innerHTML = s;
+}
+
+function renderWeekChart(svg, days) {
+  if (!days || days.length === 0) {
+    svg.innerHTML = '<text x="400" y="100" text-anchor="middle" fill="#9a9087" font-family="JetBrains Mono" font-size="14">Ingen data</text>';
+    return;
+  }
+
+  const W = 800, H = 200;
+  const m = { l: 50, r: 16, t: 16, b: 36 };
+  const w = W - m.l - m.r;
+  const h = H - m.t - m.b;
+
+  const prices = days.map(d => d.avg);
+  const max = Math.max(...prices, 50);
+  const min = Math.min(...prices, 0);
+  const range = max - min || 1;
+  const yScale = v => m.t + h - ((v - min) / range) * h;
+  const barW = w / days.length;
+
+  let s = '';
+  const step = max > 300 ? 100 : (max > 100 ? 50 : 25);
+  for (let v = Math.ceil(min / step) * step; v <= max; v += step) {
+    const y = yScale(v);
+    s += `<line x1="${m.l}" y1="${y}" x2="${W - m.r}" y2="${y}" stroke="#e6e0d2"/>`;
+    s += `<text x="${m.l - 6}" y="${y + 4}" text-anchor="end" fill="#9a9087" font-family="JetBrains Mono" font-size="10">${v}</text>`;
+  }
+
+  days.forEach((d, i) => {
+    const x = m.l + i * barW + 4;
+    const y = yScale(Math.max(d.avg, 0));
+    const yZero = yScale(0);
+    s += `<rect x="${x}" y="${d.avg >= 0 ? y : yZero}" width="${barW - 8}" height="${Math.abs(yZero - y)}" fill="var(--blue)" opacity="0.85"/>`;
+
+    const date = d.date;
+    const dayLabel = date.toLocaleDateString('nb-NO', { weekday: 'short', day: 'numeric', month: 'numeric' });
+    s += `<text x="${x + barW / 2 - 4}" y="${H - m.b + 14}" text-anchor="middle" fill="#6b645b" font-family="JetBrains Mono" font-size="10">${dayLabel}</text>`;
+    s += `<text x="${x + barW / 2 - 4}" y="${y - 4}" text-anchor="middle" fill="#3d3833" font-family="JetBrains Mono" font-size="10">${d.avg.toFixed(0)}</text>`;
+  });
+
+  svg.innerHTML = s;
+}
+
+function renderCheapestList(container, hours, count = 5) {
+  if (!hours || hours.length === 0) {
+    container.innerHTML = '<div class="muted small" style="padding: 0.5rem;">Ingen data tilgjengelig.</div>';
+    return;
+  }
+  const sorted = [...hours].sort((a, b) => a.pris_ore - b.pris_ore).slice(0, count);
+  // Sorter etter klokkeslett igjen for visning
+  sorted.sort((a, b) => a.start - b.start);
+
+  container.innerHTML = sorted.map(h => `
+    <div class="event">
+      <div class="event-time">${pad(h.hour)}:00 – ${pad((h.hour + 1) % 24)}:00</div>
+      <div class="event-name">${fmtOre(h.pris_ore)}</div>
+      <div class="event-meta">${h.start.toLocaleDateString('nb-NO', { weekday: 'short' })}</div>
+    </div>
+  `).join('');
+}
+
+async function init() {
+  const today = new Date();
+  const tomorrow = new Date(today);
+  tomorrow.setDate(tomorrow.getDate() + 1);
+
+  const [todayData, tomorrowData] = await Promise.all([
+    fetchPricesForDay(today),
+    fetchPricesForDay(tomorrow)
+  ]);
+
+  if (!todayData) {
+    document.getElementById('chart-today').innerHTML =
+      '<text x="400" y="140" text-anchor="middle" fill="#9a9087" font-family="JetBrains Mono" font-size="14">Klarte ikke hente prisdata. Prøv igjen senere.</text>';
+    return;
+  }
+
+  // Stats for i dag
+  const currentHour = today.getHours();
+  const currentPrice = todayData.find(h => h.hour === currentHour);
+  document.getElementById('now-price').innerHTML = currentPrice ? fmtOre(currentPrice.pris_ore) : '—';
+
+  const avg = todayData.reduce((s, h) => s + h.pris_ore, 0) / todayData.length;
+  document.getElementById('avg-today').innerHTML = fmtOre(avg);
+
+  const minH = todayData.reduce((m, h) => h.pris_ore < m.pris_ore ? h : m);
+  const maxH = todayData.reduce((m, h) => h.pris_ore > m.pris_ore ? h : m);
+  document.getElementById('min-today').innerHTML = `${fmtOre(minH.pris_ore)}<br><span class="stat-unit">kl ${pad(minH.hour)}</span>`;
+  document.getElementById('max-today').innerHTML = `${fmtOre(maxH.pris_ore)}<br><span class="stat-unit">kl ${pad(maxH.hour)}</span>`;
+
+  // Diagram for i dag
+  renderHourChart(document.getElementById('chart-today'), todayData, currentHour);
+  renderCheapestList(document.getElementById('cheapest-today'), todayData, 5);
+
+  // I morgen?
+  if (tomorrowData) {
+    document.getElementById('tomorrow-header').style.display = '';
+    document.getElementById('tomorrow-chart-wrap').style.display = '';
+    document.getElementById('cheapest-tomorrow-wrap').style.display = '';
+    renderHourChart(document.getElementById('chart-tomorrow'), tomorrowData);
+    renderCheapestList(document.getElementById('cheapest-tomorrow'), tomorrowData, 5);
+  }
+
+  // Siste 7 dager
+  const weekDays = [];
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date();
+    d.setDate(d.getDate() - i);
+    const data = await fetchPricesForDay(d);
+    if (data && data.length > 0) {
+      const avgD = data.reduce((s, h) => s + h.pris_ore, 0) / data.length;
+      weekDays.push({ date: d, avg: avgD, hours: data.length });
+    }
+  }
+  renderWeekChart(document.getElementById('chart-week'), weekDays);
+
+  if (weekDays.length > 0) {
+    const weekAvg = weekDays.reduce((s, d) => s + d.avg, 0) / weekDays.length;
+    document.getElementById('week-summary').innerHTML =
+      `Snitt siste ${weekDays.length} dager: <strong>${fmtOre(weekAvg)}</strong>.`;
+  }
+}
+
+init();
+</script>
+</body>
+</html>

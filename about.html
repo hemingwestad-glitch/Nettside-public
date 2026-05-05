@@ -4,15 +4,15 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Om — Heming Westad</title>
+<meta name="description" content="Om Heming Westad. Flyingeniørstudent ved NTNU, friluftsmenneske, romfartsentusiast.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..800;1,9..144,300..800&family=JetBrains+Mono:wght@400;500;700&family=Caveat:wght@400;700&family=Spectral:wght@400;500&family=VT323&family=Archivo+Black&family=Inter:wght@400;500;700;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..700;1,9..144,400&family=Inter+Tight:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/style.css">
 </head>
 <body>
-
 <header>
-  <div class="logo"><a href="/">HW<span class="dot">.</span></a></div>
+  <div class="logo"><a href="/">Heming Westad<span class="dot">.</span></a></div>
   <nav>
     <ul>
       <li><a href="/">heim</a></li>
@@ -21,93 +21,87 @@
       <li><a href="/now.html">nå</a></li>
       <li><a href="/about.html" class="current">om</a></li>
     </ul>
-    <div class="theme-picker" title="Bytt utseende">
-      <button class="theme-btn" data-bg="terminal" title="Terminal"></button>
-      <button class="theme-btn" data-bg="lab" title="Lab notebook"></button>
-      <button class="theme-btn" data-bg="cyber" title="Cyber"></button>
-      <button class="theme-btn" data-bg="brutalist" title="Brutalist"></button>
-    </div>
   </nav>
 </header>
 
 <main>
-
-  <div class="page-meta mono fade-up">
-    <span>OM</span>
-    <span>HEMING WESTAD</span>
+  <div class="page-meta fade-up">
+    <span>Om</span>
+    <span>Heming Westad</span>
   </div>
 
-  <h1 class="fade-up"><em>Om</em> meg.</h1>
+  <h1 class="fade-up">Litt <em>om meg</em>.</h1>
 
   <p class="lede fade-up">
-    Flyingeniørstudent ved NTNU og programdirektør i Orbit NTNU. Liker å
-    bygge ting som faktisk gjør noe nyttig.
+    Jeg studerer flyingeniør på NTNU og bruker fritiden i fjellet, på elgpost
+    eller med loddebolten i hånda. Tror på små, robuste løsninger som virker
+    uten internett.
   </p>
 
-  <h2 class="section-header">Faglig</h2>
-
+  <h2 class="section-header">Bakgrunn</h2>
   <p>
-    Jeg studerer flyingeniør ved NTNU &mdash; en kombinasjon av kybernetikk og
-    maskin rettet mot flysystemer. Det innebærer ganske mye matte, en del
-    Python og MATLAB, og forhåpentligvis senere en god del praktisk arbeid med
-    avionics og styresystemer.
+    Oppvokst på Notodden, bor i Trondheim. Studerer luft- og romfartsteknikk
+    ved NTNU. I Orbit NTNU har jeg jobbet med småsatellitt-prosjekter, blant annet
+    bakkestasjonsoppsett og link budgets for UHF-/S-bånd-kommunikasjon. Som
+    programdirektør prøver jeg å holde langtidsstrategien sammenhengende
+    mens medlemmene bytter ut hver høst.
   </p>
 
+  <h2 class="section-header">Hva jeg holder på med</h2>
+  <div class="uses-table">
+    <div class="row">
+      <div class="label">Studie</div>
+      <div class="value">Flyingeniør, NTNU. Hovedsakelig dynamikk, kontrollteori, romfart.</div>
+    </div>
+    <div class="row">
+      <div class="label">Verv</div>
+      <div class="value">Programdirektør, Orbit NTNU.</div>
+    </div>
+    <div class="row">
+      <div class="label">Friluft</div>
+      <div class="value">Elgjakt, fjellørret, ski. Kjenner traktene rundt Notodden best.</div>
+    </div>
+    <div class="row">
+      <div class="label">Verktøy</div>
+      <div class="value">Python for analyse, JS for nettsiden, KiCad for elektronikk, Onshape for CAD.</div>
+    </div>
+    <div class="row">
+      <div class="label">Radio</div>
+      <div class="value">Bygger opp amatørradio-kunnskap rundt sat-kommunikasjon.</div>
+    </div>
+  </div>
+
+  <h2 class="section-header">Om denne siden</h2>
   <p>
-    I Orbit NTNU har jeg en rolle i PMO som programdirektør &mdash;
-    ressursfordeling, sponsor-arbeid og langsiktig planlegging av missions mhp lifecycle.
-    Det er mer prosjekt-koordinering enn ren teknikk, men jeg lærer mye om
-    hvordan komplekse hardware-prosjekter faktisk leveres i praksis , og hvordan ting henger sammen på et høyere nivå.
+    Bygd uten frontend-rammeverk. Bare HTML, CSS og JS, kjørt fra
+    Cloudflare Workers. Alt skal kunne lastes på dårlig 4G og kjøre
+    uten å spørre om cookies.
   </p>
-
-  <h2 class="section-header">På fritiden</h2>
-
   <p>
-    <strong>Elgjakt</strong>, <strong>fluefiske etter fjellørret</strong> og
-    småtinkring med radio. RTL-SDR-pinne kommer i posten. 3D-printer kjører
-    innimellom. Liker å skrive små verktøy som løser konkrete problemer
-    &mdash; dette nettstedet er forsåvidt en samling av sånne.
-  </p>
-
-  <h2 class="section-header">Filosofien</h2>
-
-  <p>
-    Jeg liker å bruke programmering som verktøy &mdash; ikke for å lære for
-    læringens skyld, men for å løse problemer som faktisk dukker opp. Hvis du
-    har et konkret problem, så blir koden bedre enn om du sitter og leser
-    teori uten kontekst.
+    Verktøysidene er primært til meg selv &mdash; jeg sitter på fjellhytta og
+    sjekker fiskeforhold eller regner vindavdrift før skytetrening. Hvis
+    noen andre har glede av dem også, så er det fint.
   </p>
 
   <h2 class="section-header">Kontakt</h2>
-
   <div class="uses-table">
     <div class="row">
       <div class="label">e-post</div>
-      <div class="value"><a href="mailto:heming.westad@gmail.com">heming.westad@gmail.com</a></div>
+      <div class="value"><a href="mailto:heming@hemingwestad.no">heming@hemingwestad.no</a></div>
     </div>
     <div class="row">
       <div class="label">github</div>
-      <div class="value"><a href="https://github.com/hemingwestad-glitch" target="_blank">hemingwestad-glitch</a></div>
-    </div>
-    <div class="row">
-      <div class="label">orbit ntnu</div>
-      <div class="value"><a href="https://www.orbitntnu.com" target="_blank">orbitntnu.com</a></div>
-    </div>
-    <div class="row">
-      <div class="label">lokasjon</div>
-      <div class="value">Trondheim, Norge</div>
+      <div class="value"><a href="https://github.com/hemingwestad-glitch" target="_blank" rel="noopener">hemingwestad-glitch</a></div>
     </div>
   </div>
-
 </main>
 
 <footer>
   <div class="footer-content">
-    <div>© 2026 — HEMING WESTAD</div>
-    <div>BUILT IN TRONDHEIM · <a href="https://github.com/hemingwestad-glitch/Nettside-public">SOURCE</a></div>
+    <div>© 2026 — Heming Westad</div>
+    <div>Trondheim · <a href="https://github.com/hemingwestad-glitch/Nettside-public">kildekode</a></div>
   </div>
 </footer>
-
 <script src="/common.js"></script>
 </body>
 </html>

@@ -16,48 +16,49 @@ Ren statisk HTML/CSS/JS. Ingen build-step, ingen backend.
 ├── now.html                Hva som skjer nå
 ├── about.html              Om meg
 ├── 404.html                404-side
-├── style.css               Designsystem (4 temaer)
-├── common.js               Tema-bytte + SVG verdenskart
-├── astro.js                Sol/måne-beregninger
-├── orbit.js                Orbital mekanikk
+├── style.css               Designsystem (ett tema)
+├── common.js               Felles JS (faner, hjelpefunksjoner)
 └── tools/
+    ├── space.html          Konsolidert satellitt-arbeidsbord (7 faner)
+    ├── dynamics.html       3D dynamikk-sandkasse (Three.js + RK4)
+    ├── tides.html          Tidevann i Trondheim + Fourier-sandkasse
+    ├── power.html          NO3 strømpriser
     ├── fishing.html        Fiskeforhold (MET Norway)
     ├── hunting.html        Jaktkalender (klauvdyr)
-    ├── orbit.html          Orbit ground track + passes
-    ├── satellites.html     Live satellittracker (TLE/SGP4)
-    ├── tle.html            TLE-leser/dekoder
-    ├── linkbudget.html     Radio link budget
-    ├── antenna.html        Antenne-beregner (dipol/yagi/helix)
-    ├── wind.html           Avansert ballistikk (G1/G7, miljø)
-    ├── converter.html      Konverterer (frekvens, dB, enheter)
-    ├── pressure.html       Trykk-omregner (vakuum/atmosfære)
-    ├── time.html           Tidskonverterer (UTC/JD/GMST/TLE)
-    └── sun.html            Sol & måne-kalender
+    ├── wind.html           Ballistikk (G1/G7 drag)
+    ├── sun.html            Sol- og månekalender
+    ├── converter.html      Enheter, frekvens, dB
+    ├── pressure.html       Trykk-omregner (vakuum)
+    ├── time.html           Tidskonverterer (UTC/JD/GMST)
+    ├── orbit.html          → space.html (redirect)
+    ├── satellites.html     → space.html (redirect)
+    ├── tle.html            → space.html (redirect)
+    ├── linkbudget.html     → space.html (redirect)
+    └── antenna.html        → space.html (redirect)
 ```
 
-## Temaer
+## Designvalg
 
-Fire valgbare utseender, byttes via knapper øverst. Lagres i nettleseren.
-
-- **terminal** – mørkt, JetBrains Mono + Fraunces, varm orange
-- **lab** – lyst papirnotat, Caveat + Spectral, rødbrunt blekk
-- **cyber** – neon-grønt på dyp blå, VT323-font, CRT-aktig
-- **brutalist** – hvit + svart + neon-orange, Archivo Black, harde skygger
+Ett tidløst tema, inspirert av tekniske manualer og kartblader.
+Varm off-white bakgrunn, terrakotta-aksenter, JetBrains Mono for tall
+og Fraunces som display-font.
 
 ## Eksterne avhengigheter
 
-- **Google Fonts** – Fraunces, JetBrains Mono, Caveat, Spectral, VT323, Archivo Black, Inter
-- **Open-Meteo** (MET Norway proxy) – værdata for fiskeforhold
-- **CelesTrak** – TLE-data for satellittracker
-- **satellite.js** – SGP4-implementasjon
+Alle hentes fra CDN, ingen build-step.
 
-Kart er bygget som SVG i common.js – ingen eksterne tile-servere lenger.
+- **Google Fonts** – Fraunces, Inter Tight, JetBrains Mono
+- **MET Norway** – Vær for fishing.html, tidevann for tides.html
+- **hvakosterstrommen.no** – Strømpriser
+- **CelesTrak** – TLE-data for satellitter
+- **satellite.js** – SGP4-implementasjon
+- **Three.js** (r0.160) – 3D-rendering for dynamics og space
 
 ## Deploy
 
 Cloudflare Workers, auto-deploy fra `main`-branch på GitHub.
 
-```bash
+```sh
 git add -A
 git commit -m "..."
 git push

@@ -6,13 +6,12 @@
 <title>Prosjekter — Heming Westad</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..800;1,9..144,300..800&family=JetBrains+Mono:wght@400;500;700&family=Caveat:wght@400;700&family=Spectral:wght@400;500&family=VT323&family=Archivo+Black&family=Inter:wght@400;500;700;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..700;1,9..144,400&family=Inter+Tight:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/style.css">
 </head>
 <body>
-
 <header>
-  <div class="logo"><a href="/">HW<span class="dot">.</span></a></div>
+  <div class="logo"><a href="/">Heming Westad<span class="dot">.</span></a></div>
   <nav>
     <ul>
       <li><a href="/">heim</a></li>
@@ -21,101 +20,79 @@
       <li><a href="/now.html">nå</a></li>
       <li><a href="/about.html">om</a></li>
     </ul>
-    <div class="theme-picker" title="Bytt utseende">
-      <button class="theme-btn" data-bg="terminal" title="Terminal"></button>
-      <button class="theme-btn" data-bg="lab" title="Lab notebook"></button>
-      <button class="theme-btn" data-bg="cyber" title="Cyber"></button>
-      <button class="theme-btn" data-bg="brutalist" title="Brutalist"></button>
-    </div>
   </nav>
 </header>
 
 <main>
-
-  <div class="page-meta mono fade-up">
-    <span>PERSONLIGE PROSJEKTER</span>
-    <span>STATUS: VARIERER</span>
+  <div class="page-meta fade-up">
+    <span>Prosjekter</span>
+    <span>Pågående og avsluttet</span>
   </div>
 
-  <h1 class="fade-up">Pågående <em>prosjekter</em>.</h1>
-
+  <h1 class="fade-up">Det jeg <em>jobber med</em>.</h1>
   <p class="lede fade-up">
-    Ting jeg holder på med ved siden av studiet og vervet i Orbit. Noen er
-    ferdige, noen er pågående, noen er <em>kommer i posten</em>.
+    Mest småprosjekter mellom skole og verv. Skrives ned her så jeg husker hva
+    jeg har gjort.
   </p>
 
-  <h2 class="section-header">Aktivt <span class="count mono">[ pågår ]</span></h2>
+  <h2 class="section-header">Pågående</h2>
 
-  <div class="card">
-    <div class="card-header">
-      <h3>Orbit ground track-verktøy</h3>
-      <span class="badge accent">PÅGÅR</span>
+  <div class="uses-table">
+    <div class="row">
+      <div class="label">Orbit NTNU</div>
+      <div class="value">
+        Programdirektør. Jobber med langtidsplan for studentsatellitt-foreningen
+        og overgang mellom prosjektgenerasjoner.
+      </div>
     </div>
-    <p>
-      Python-program for å plotte ground tracks og finne passes for
-      satellitter. Bruker klassiske orbital elements (eller cartesian state)
-      og propagerer banen med to-legeme-mekanikk. Kan integreres med
-      bakkestasjon-data og brukes for å forutsi når satellitten er over
-      bakkestasjonen vår.
-    </p>
-    <p style="margin: 0;">
-      <a href="/tools/orbit.html">Web-versjon her</a> &middot; Python på <a href="https://github.com/hemingwestad-glitch/Nettside-public" target="_blank">GitHub</a>.
-    </p>
+    <div class="row">
+      <div class="label">Orbital propagator</div>
+      <div class="value">
+        Python-verktøy med SGP4, numerisk integrasjon (RK4 / DOP853), J2-J6
+        perturbasjoner, atmosfærisk drag, sol- og månegravitasjon, SRP og
+        pass-prediksjoner. Web-versjonen ligger som <a href="/tools/space.html">satellitt-arbeidsbordet</a>.
+      </div>
+    </div>
+    <div class="row">
+      <div class="label">Hemingwestad.no</div>
+      <div class="value">
+        Denne nettsiden. Statisk HTML, ingen build, kjører på Cloudflare
+        Workers. Daglig vedlikeholdt med nye verktøy.
+      </div>
+    </div>
+    <div class="row">
+      <div class="label">Bakkestasjon</div>
+      <div class="value">
+        UHF / VHF mottak hjemme. Sammen med antenne-design og link budget på
+        nettsiden. Mål: Motta bilder fra NOAA-satellitter og APRS-pakker.
+      </div>
+    </div>
   </div>
 
-  <div class="card">
-    <div class="card-header">
-      <h3>RTL-SDR ADS-B mottaker</h3>
-      <span class="badge">VENTER</span>
+  <h2 class="section-header">Avsluttet</h2>
+  <div class="uses-table">
+    <div class="row">
+      <div class="label">Ballistikk-tool</div>
+      <div class="value">
+        Python-skript med G1/G7-modell og atmosfæriske korreksjoner. Portet til
+        nettleseren som <a href="/tools/wind.html">vindavdrift</a>.
+      </div>
     </div>
-    <p>
-      Bygge en passiv flymottaker basert på RTL-SDR-pinne (kommer i posten)
-      og Raspberry Pi. Skal lytte på 1090 MHz, dekode ADS-B-meldinger fra
-      fly i luftrommet over Trondheim, og sende posisjonsdata til
-      flightradar24/adsbexchange.
-    </p>
-    <p style="margin: 0; color: var(--fg-dim);">
-      Status: SDR-pinne er bestilt. Trenger Raspberry Pi.
-    </p>
-  </div>
-
-  <h2 class="section-header">Verv <span class="count mono">[ orbit ntnu ]</span></h2>
-
-  <div class="card">
-    <div class="card-header">
-      <h3>Orbit NTNU — programdirektør</h3>
-      <span class="badge good">AKTIV</span>
+    <div class="row">
+      <div class="label">Diverse småting</div>
+      <div class="value">
+        Mikrokontroller-prosjekter, KiCad-design, Onshape-CAD. Ligger på GitHub.
+      </div>
     </div>
-    <p>
-      Studentdrevet organisasjon ved NTNU som designer og bygger CubeSats.
-      Som programdirektør har jeg PMO-rolle: ressursfordeling mellom team,
-      sponsor-arbeid, langsiktig planlegging av hvilke missions vi skal kjøre.
-      Får ikke direkte sittet med kabling og kode, men jobben er å sørge for
-      at de som faktisk gjør det har det de trenger.
-    </p>
-    <p style="margin: 0;">
-      <a href="https://www.orbitntnu.com" target="_blank">orbitntnu.com</a>
-    </p>
   </div>
-
-  <h2 class="section-header">Idéer <span class="count mono">[ kommer kanskje ]</span></h2>
-
-  <ul style="color: var(--fg-dim);">
-    <li>Fluefiske-logg som kobler fangst til vær- og månedata (selv-eksperimenter for å validere fiskeindeksen)</li>
-    <li>Værstasjon på hytta med Pi + Cloudflare Workers</li>
-    <li>Print-i-3D-CAD-bibliotek for vanlige jakt/fiske-tilbehør (rifle-ammunisjonsholdere, fluespoler, osv.)</li>
-    <li>Bedre feltball for vindavdrift &mdash; G7 i stedet for G1, atmosfære-input</li>
-  </ul>
-
 </main>
 
 <footer>
   <div class="footer-content">
-    <div>© 2026 — HEMING WESTAD</div>
-    <div>BUILT IN TRONDHEIM · <a href="https://github.com/hemingwestad-glitch/Nettside-public">SOURCE</a></div>
+    <div>© 2026 — Heming Westad</div>
+    <div>Trondheim · <a href="https://github.com/hemingwestad-glitch/Nettside-public">kildekode</a></div>
   </div>
 </footer>
-
 <script src="/common.js"></script>
 </body>
 </html>

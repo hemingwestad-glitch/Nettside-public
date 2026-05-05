@@ -6,13 +6,12 @@
 <title>Nå — Heming Westad</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..800;1,9..144,300..800&family=JetBrains+Mono:wght@400;500;700&family=Caveat:wght@400;700&family=Spectral:wght@400;500&family=VT323&family=Archivo+Black&family=Inter:wght@400;500;700;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..700;1,9..144,400&family=Inter+Tight:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/style.css">
 </head>
 <body>
-
 <header>
-  <div class="logo"><a href="/">HW<span class="dot">.</span></a></div>
+  <div class="logo"><a href="/">Heming Westad<span class="dot">.</span></a></div>
   <nav>
     <ul>
       <li><a href="/">heim</a></li>
@@ -21,69 +20,58 @@
       <li><a href="/now.html" class="current">nå</a></li>
       <li><a href="/about.html">om</a></li>
     </ul>
-    <div class="theme-picker" title="Bytt utseende">
-      <button class="theme-btn" data-bg="terminal" title="Terminal"></button>
-      <button class="theme-btn" data-bg="lab" title="Lab notebook"></button>
-      <button class="theme-btn" data-bg="cyber" title="Cyber"></button>
-      <button class="theme-btn" data-bg="brutalist" title="Brutalist"></button>
-    </div>
   </nav>
 </header>
 
 <main>
-
-  <div class="page-meta mono fade-up">
-    <span>SIST OPPDATERT 2026-05-01</span>
-    <span>FRA TRONDHEIM</span>
+  <div class="page-meta fade-up">
+    <span>Nå</span>
+    <span>Sist oppdatert <span data-today></span></span>
   </div>
 
-  <h1 class="fade-up">Hva som skjer <em>nå</em>.</h1>
-
+  <h1 class="fade-up">Hva jeg <em>holder på med</em>.</h1>
   <p class="lede fade-up">
-    En slags &laquo;now-page&raquo; &mdash; oppsummering av hva jeg holder på
-    med akkurat denne måneden. Skiftes ut etter hvert.
+    Inspirert av <a href="https://nownownow.com/about" target="_blank" rel="noopener">nownownow</a>.
+    En enkel snapshot av hva som opptar meg akkurat nå.
   </p>
 
-  <h2 class="section-header">Studie</h2>
-
-  <p>
-    Straks ferding med andreåret på flyingeniør ved NTNU. Aktuelle fag inkluderer kybernetikk og
-    differensialligninger. Eksamenstid ER NÅ.
-  </p>
+  <h2 class="section-header">Skole</h2>
+  <p>Pågående semester på flyingeniør. Mye dynamikk og kontrollteori om
+    dagen. Prøver å henge med på alt.</p>
 
   <h2 class="section-header">Orbit NTNU</h2>
-
-  <p>
-    Programdirektør-rollen tar mye tid &mdash; god del møter, planlegging av
-    neste mission og dialog med sponsorer. Orbit jobber for tida med flere
-    parallelle CubeSat-prosjekter.
-  </p>
+  <p>Følger opp prosjektgruppene og strategiarbeid for kommende sesong.
+    Forbereder også teknisk dokumentasjon for ny generasjon medlemmer.</p>
 
   <h2 class="section-header">Hjemme</h2>
-
-  <ul>
-    <li>Bygde nylig denne nettsiden &mdash; pushet alt fra null til fungerende på Cloudflare Workers</li>
-    <li>Venter på RTL-SDR-pinnen som kommer i posten</li>
-    <li>Forbereder elgjakt til høsten (trening pågår, prøven er snart for tur)</li>
-    <li>Tenker på en hyttetur for fluefiske om noen uker</li>
-  </ul>
-
-  <hr>
-
-  <p style="color: var(--fg-dim); font-style: italic;">
-    Inspirert av <a href="https://nownownow.com/about" target="_blank">nownownow</a>-bevegelsen.
-    Ikke en blogg, ikke et CV &mdash; bare hva som faktisk skjer akkurat nå.
+  <p>
+    Holder på å bygge en enkel UHF-bakkestasjon hjemme for å motta
+    NOAA-bilder og evt. amatør-sat. Antennen står klar, link budget er sjekket
+    med <a href="/tools/space.html">verktøyet</a>, men SDR-en venter ennå på SMA-til-BNC.
+  </p>
+  <p>
+    Også blitt mer interessert i tidevann etter en tur ut i Trondheimsfjorden.
+    Bygde <a href="/tools/tides.html">tidevannsverktøyet</a> for å forstå hvorfor M2-komponenten dominerer her.
   </p>
 
+  <h2 class="section-header">Friluft</h2>
+  <p>Litt rolig periode. Venter på elgjakt til høsten. Tar noen kortere
+    fisketurer på Bymarka i mellomtiden.</p>
+
+  <h2 class="section-header">Leser</h2>
+  <p>
+    <em>Fundamentals of Spacecraft Attitude Determination and Control</em>
+    (Markley &amp; Crassidis). Er stadig imponert over hvor god den boken er
+    pedagogisk.
+  </p>
 </main>
 
 <footer>
   <div class="footer-content">
-    <div>© 2026 — HEMING WESTAD</div>
-    <div>BUILT IN TRONDHEIM · <a href="https://github.com/hemingwestad-glitch/Nettside-public">SOURCE</a></div>
+    <div>© 2026 — Heming Westad</div>
+    <div>Trondheim · <a href="https://github.com/hemingwestad-glitch/Nettside-public">kildekode</a></div>
   </div>
 </footer>
-
 <script src="/common.js"></script>
 </body>
 </html>

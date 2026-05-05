@@ -6,13 +6,12 @@
 <title>Trykk-omregner — Heming Westad</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..800;1,9..144,300..800&family=JetBrains+Mono:wght@400;500;700&family=Caveat:wght@400;700&family=Spectral:wght@400;500&family=VT323&family=Archivo+Black&family=Inter:wght@400;500;700;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..700;1,9..144,400&family=Inter+Tight:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/style.css">
 </head>
 <body>
-
 <header>
-  <div class="logo"><a href="/">HW<span class="dot">.</span></a></div>
+  <div class="logo"><a href="/">Heming Westad<span class="dot">.</span></a></div>
   <nav>
     <ul>
       <li><a href="/">heim</a></li>
@@ -21,213 +20,85 @@
       <li><a href="/now.html">nå</a></li>
       <li><a href="/about.html">om</a></li>
     </ul>
-    <div class="theme-picker" title="Bytt utseende">
-      <button class="theme-btn" data-bg="terminal" title="Terminal"></button>
-      <button class="theme-btn" data-bg="lab" title="Lab notebook"></button>
-      <button class="theme-btn" data-bg="cyber" title="Cyber"></button>
-      <button class="theme-btn" data-bg="brutalist" title="Brutalist"></button>
-    </div>
   </nav>
 </header>
 
 <main>
-  <div class="page-meta mono fade-up">
-    <span>VERKTØY / FYSIKK</span>
-    <span>VAKUUM &amp; ATMOSFÆRE</span>
-  </div>
+  <div class="page-meta fade-up"><span>Trykk-omregner</span><span>Pa · mbar · Torr · psi</span></div>
 
-  <h1 class="fade-up">Trykk-omregner.</h1>
+  <h1 class="fade-up">Trykk i <em>alle enheter</em>.</h1>
+  <p class="lede fade-up">Praktisk for vakuum-arbeid og atmosfæriske forhold. Klassifiserer regimet automatisk.</p>
 
-  <p class="lede fade-up">
-    Trykk i mange enheter samtidig &mdash; nyttig under dyne-testing av cubesats,
-    der du leser av i Pa, og spec-en kanskje sier mbar eller Torr.
-    Inkluderer atmosfære-modell for å estimere høyde over havet.
-  </p>
-
-  <div class="card fade-up">
-    <div class="card-header">
-      <h3>Skriv inn trykk</h3>
-    </div>
-
+  <div class="panel">
+    <div class="panel-title">Skriv inn verdi i én av enhetene</div>
     <div class="field-row">
-      <div class="field">
-        <label>Verdi</label>
-        <input type="number" id="value" value="101325" step="any">
-      </div>
-      <div class="field">
-        <label>Enhet</label>
-        <select id="unit">
-          <option value="Pa">Pa (pascal)</option>
-          <option value="hPa">hPa (hectopascal)</option>
-          <option value="kPa">kPa (kilopascal)</option>
-          <option value="MPa">MPa (megapascal)</option>
-          <option value="mbar">mbar (millibar)</option>
-          <option value="bar">bar</option>
-          <option value="atm">atm (atmosfære)</option>
-          <option value="Torr">Torr (mmHg)</option>
-          <option value="psi">psi</option>
-          <option value="mH2O">mH₂O</option>
-          <option value="inHg">inHg</option>
-        </select>
-      </div>
+      <div class="field"><label>Pa</label><input type="number" id="pa" step="any" value="101325"></div>
+      <div class="field"><label>kPa</label><input type="number" id="kpa" step="any"></div>
+      <div class="field"><label>mbar</label><input type="number" id="mbar" step="any"></div>
+      <div class="field"><label>bar</label><input type="number" id="bar" step="any"></div>
+      <div class="field"><label>atm</label><input type="number" id="atm" step="any"></div>
+      <div class="field"><label>Torr (mmHg)</label><input type="number" id="torr" step="any"></div>
+      <div class="field"><label>psi</label><input type="number" id="psi" step="any"></div>
+      <div class="field"><label>mH₂O</label><input type="number" id="mh2o" step="any"></div>
     </div>
   </div>
 
-  <h2 class="section-header">Konvertert verdi</h2>
+  <h2 class="section-header">Klassifisering</h2>
+  <div id="classification"></div>
 
-  <div class="stat-grid" id="results">
-    <!-- fylles dynamisk -->
-  </div>
-
-  <h2 class="section-header">Tolkning</h2>
-
-  <div class="card">
-    <div class="card-header">
-      <h3>Hvilket regime er du i?</h3>
-    </div>
-    <div id="regime"></div>
-  </div>
-
-  <div class="card">
-    <div class="card-header">
-      <h3>Estimert høyde</h3>
-      <span class="meta">ISA standard atmosfære</span>
-    </div>
-    <p>For trykket du har skrevet inn tilsvarer det omtrent:</p>
-    <div class="output" id="altitude"></div>
-    <p style="font-size: 0.85rem; color: var(--fg-dim); margin: 0;">
-      ISA-modell, troposfære (0&ndash;11 km) eller stratosfære (11&ndash;20 km).
-      Antar standard temperaturlinje. Gir bare omtrent &mdash; faktisk høyde
-      avhenger av værsystemer og temperatur.
-    </p>
-  </div>
-
-  <h2 class="section-header">Referansepunkter</h2>
-
-  <table class="data">
-    <thead>
-      <tr><th>Sted/situasjon</th><th class="num">Trykk (Pa)</th><th class="num">≈ mbar</th><th class="num">≈ Torr</th></tr>
-    </thead>
+  <h2 class="section-header">Vakuum-regimer (referanse)</h2>
+  <table class="data-table">
+    <thead><tr><th>Regime</th><th>Pa</th><th>Beskrivelse</th></tr></thead>
     <tbody>
-      <tr><td>Havnivå (standard)</td><td class="num">101 325</td><td class="num">1013</td><td class="num">760</td></tr>
-      <tr><td>Toppen av Mt. Everest</td><td class="num">~33 700</td><td class="num">337</td><td class="num">253</td></tr>
-      <tr><td>Cruisehøyde fly (12 km)</td><td class="num">~19 400</td><td class="num">194</td><td class="num">146</td></tr>
-      <tr><td>50 km høyde</td><td class="num">~80</td><td class="num">0.80</td><td class="num">0.6</td></tr>
-      <tr><td>100 km (Karman-linjen)</td><td class="num">~0.032</td><td class="num">3.2e-4</td><td class="num">2.4e-4</td></tr>
-      <tr><td>ISS (400 km)</td><td class="num">~3e-9</td><td class="num">3e-11</td><td class="num">2e-11</td></tr>
-      <tr><td>Typisk «vakuum» (rotasjonspumpe)</td><td class="num">~0.1</td><td class="num">0.001</td><td class="num">0.00075</td></tr>
-      <tr><td>Høyvakuum (turbo)</td><td class="num">~1e-5</td><td class="num">1e-7</td><td class="num">1e-7</td></tr>
+      <tr><td>Atmosfærisk</td><td class="mono">101 325</td><td>Standard 1 atm ved havnivå</td></tr>
+      <tr><td>Lavt vakuum</td><td class="mono">100 000–3 000</td><td>Hverdagslige sugepumper</td></tr>
+      <tr><td>Medium vakuum</td><td class="mono">3 000–0,1</td><td>Rotasjonspumper, frysetørking</td></tr>
+      <tr><td>Høyvakuum</td><td class="mono">0,1–10⁻⁷</td><td>Diffusjonspumper, masseflukt</td></tr>
+      <tr><td>Ultrahøyvakuum (UHV)</td><td class="mono">&lt;10⁻⁷</td><td>Forskningsutstyr, halvlederproduksjon</td></tr>
+      <tr><td>Romvakuum (LEO)</td><td class="mono">~10⁻⁷ til 10⁻⁹</td><td>I bane rundt jorda</td></tr>
+      <tr><td>Intergalaktisk</td><td class="mono">~10⁻¹⁵</td><td>Tomrom mellom galakser</td></tr>
     </tbody>
   </table>
-
 </main>
 
 <footer>
   <div class="footer-content">
-    <div>© 2026 — HEMING WESTAD</div>
-    <div>BUILT IN TRONDHEIM · <a href="https://github.com/hemingwestad-glitch/Nettside-public">SOURCE</a></div>
+    <div>© 2026 — Heming Westad</div>
+    <div>Trondheim · <a href="https://github.com/hemingwestad-glitch/Nettside-public">kildekode</a></div>
   </div>
 </footer>
 
 <script src="/common.js"></script>
 <script>
-const $ = (id) => document.getElementById(id);
-
-// Konvertering til Pa
-const TO_PA = {
-  Pa: 1, hPa: 100, kPa: 1000, MPa: 1e6,
-  mbar: 100, bar: 1e5,
-  atm: 101325, Torr: 133.322,
-  psi: 6894.76, mH2O: 9806.65, inHg: 3386.39
+const $ = id => document.getElementById(id);
+const FACT = {
+  pa: 1, kpa: 1000, mbar: 100, bar: 100000,
+  atm: 101325, torr: 133.322, psi: 6894.76, mh2o: 9806.65
 };
 
-const DISPLAY_UNITS = [
-  ['Pa', 'pascal', 0],
-  ['hPa', 'hectopascal', 2],
-  ['kPa', 'kilopascal', 4],
-  ['mbar', 'millibar', 2],
-  ['bar', 'bar', 6],
-  ['atm', 'atmosfære', 6],
-  ['Torr', 'mmHg', 3],
-  ['psi', 'psi', 4],
-  ['inHg', 'inHg', 4],
-];
-
-function formatNum(n, decimals) {
-  if (Math.abs(n) > 0 && (Math.abs(n) < 0.001 || Math.abs(n) > 1e6)) {
-    return n.toExponential(3);
+function update(src) {
+  const pa = +$(src).value * FACT[src];
+  for (const k in FACT) {
+    if (k === src) continue;
+    const v = pa / FACT[k];
+    if (Math.abs(v) > 1e6 || (Math.abs(v) < 1e-3 && v !== 0)) $(k).value = v.toExponential(3);
+    else $(k).value = +v.toFixed(6);
   }
-  return n.toLocaleString('no-NO', { maximumFractionDigits: decimals });
+  classify(pa);
 }
 
-function getRegime(pa) {
-  if (pa > 110000) return ['Trykksatt', 'good', 'Over 1 atm &mdash; trykksatt eller dypvann.'];
-  if (pa > 90000) return ['Atmosfærisk', 'good', 'Normalt jordtrykk &mdash; havnivå-til-fjelltopp.'];
-  if (pa > 10000) return ['Lavtrykk', 'warn', 'Tynn luft &mdash; tilsvarer høyt over havet.'];
-  if (pa > 1) return ['Grovvakuum', 'warn', 'Forvakuum-regime, rotasjons- og scroll-pumper.'];
-  if (pa > 1e-3) return ['Mediumvakuum', 'accent', 'Området der typiske industrielle vakuum-prosesser foregår.'];
-  if (pa > 1e-6) return ['Høyvakuum', 'accent', 'Trenger turbomolekylærpumpe. Rom-relevant for testing.'];
-  if (pa > 1e-9) return ['Ultravakuum', 'accent', 'UHV. Krever bake-out og spesielle tetninger.'];
-  return ['Ekstremt vakuum', 'accent', 'Lavere enn LEO-eksosfæren.'];
+function classify(pa) {
+  let regime, color;
+  if (pa > 90000) { regime = 'Atmosfærisk trykk'; color = 'green'; }
+  else if (pa > 3000) { regime = 'Lavt vakuum'; color = 'blue'; }
+  else if (pa > 0.1) { regime = 'Medium vakuum'; color = 'warn'; }
+  else if (pa > 1e-7) { regime = 'Høyvakuum'; color = 'accent'; }
+  else { regime = 'Ultrahøyvakuum (UHV) eller bedre'; color = 'accent'; }
+  $('classification').innerHTML = `<span class="tag ${color}" style="font-size: 0.85rem; padding: 0.25rem 0.6rem;">${regime}</span>`;
 }
 
-function altitudeFromPressure(pa) {
-  // Inverse ISA, troposfære + stratosfære
-  const P0 = 101325, T0 = 288.15, L = 0.0065, g = 9.80665, R = 287.053, M = 0.0289644;
-  if (pa > 22632) {
-    // troposfære
-    const h = (T0 / L) * (1 - Math.pow(pa / P0, R * L / g));
-    return h;
-  } else if (pa > 5474) {
-    // tropopause til 20 km
-    const T = 216.65;
-    const h = 11000 + (R * T / g) * Math.log(22632 / pa);
-    return h;
-  } else {
-    // grovt videre opp - for lave trykk gir vi bare ESTIMAT
-    return null; // for vakuum-trykk er denne meningsløs
-  }
-}
-
-function update() {
-  const v = parseFloat($('value').value);
-  if (!isFinite(v)) return;
-  const pa = v * TO_PA[$('unit').value];
-
-  // Vis konverteringer
-  const html = DISPLAY_UNITS.map(([u, name, dec]) => {
-    const val = pa / TO_PA[u];
-    return `<div class="stat">
-      <div class="label">${name}</div>
-      <div class="value">${formatNum(val, dec)}<span class="unit">${u}</span></div>
-    </div>`;
-  }).join('');
-  $('results').innerHTML = html;
-
-  // Regime
-  const [name, color, desc] = getRegime(pa);
-  $('regime').innerHTML = `
-    <div class="stat" style="padding:0; background:transparent;">
-      <div class="label">Trykk-regime</div>
-      <div class="value ${color}">${name}</div>
-      <div class="sub">${desc}</div>
-    </div>
-  `;
-
-  // Høyde
-  const h = altitudeFromPressure(pa);
-  if (h === null) {
-    $('altitude').textContent = 'Trykk er for lavt for atmosfære-modellen — du er over 20 km, eller i vakuum.';
-  } else if (h < 0) {
-    $('altitude').textContent = `≈ ${(-h).toFixed(0)} m UNDER havnivå (under en atmosfære i havvann ville svare til ca. ${(pa/9806.65).toFixed(1)} m vannkolonne)`;
-  } else {
-    $('altitude').textContent = `≈ ${h.toFixed(0)} m (${(h/1000).toFixed(2)} km) over havet`;
-  }
-}
-
-$('value').addEventListener('input', update);
-$('unit').addEventListener('change', update);
-update();
+Object.keys(FACT).forEach(k => $(k).addEventListener('input', () => update(k)));
+update('pa');
 </script>
 </body>
 </html>

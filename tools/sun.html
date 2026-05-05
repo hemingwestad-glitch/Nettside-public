@@ -3,16 +3,15 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Sol &amp; måne — Heming Westad</title>
+<title>Sol og måne — Heming Westad</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..800;1,9..144,300..800&family=JetBrains+Mono:wght@400;500;700&family=Caveat:wght@400;700&family=Spectral:wght@400;500&family=VT323&family=Archivo+Black&family=Inter:wght@400;500;700;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..700;1,9..144,400&family=Inter+Tight:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/style.css">
 </head>
 <body>
-
 <header>
-  <div class="logo"><a href="/">HW<span class="dot">.</span></a></div>
+  <div class="logo"><a href="/">Heming Westad<span class="dot">.</span></a></div>
   <nav>
     <ul>
       <li><a href="/">heim</a></li>
@@ -21,291 +20,227 @@
       <li><a href="/now.html">nå</a></li>
       <li><a href="/about.html">om</a></li>
     </ul>
-    <div class="theme-picker" title="Bytt utseende">
-      <button class="theme-btn" data-bg="terminal" title="Terminal"></button>
-      <button class="theme-btn" data-bg="lab" title="Lab notebook"></button>
-      <button class="theme-btn" data-bg="cyber" title="Cyber"></button>
-      <button class="theme-btn" data-bg="brutalist" title="Brutalist"></button>
-    </div>
   </nav>
 </header>
 
 <main>
-
-  <div class="page-meta mono fade-up">
-    <span>VERKTØY / SOL OG MÅNE</span>
-    <span>BEREGNES LOKALT</span>
+  <div class="page-meta fade-up">
+    <span>Sol og måne</span>
+    <span id="loc-name">Trondheim</span>
   </div>
 
-  <h1 class="fade-up">Sol &amp; <em>måne</em>.</h1>
-
+  <h1 class="fade-up">Sol og <em>måne</em>.</h1>
   <p class="lede fade-up">
-    Soloppgang, solnedgang, gylden time, blå time og månefase for valgt
-    lokasjon. Praktisk for fotografering, jakt, fiske, eller bare for å vite
-    når sola kommer opp i morgen.
+    Soloppgang, soloppgang/-nedgang, gylden time, blå time. Månefase og
+    månestilling. Bruker Meeus-algoritmer for høy presisjon.
   </p>
 
-  <div class="card fade-up">
+  <div class="panel">
+    <div class="panel-title">Lokasjon og dato</div>
     <div class="field-row">
       <div class="field">
         <label>Forhåndsvalg</label>
-        <select id="presetSelect">
+        <select id="preset">
           <option value="63.4305,10.3951,Trondheim">Trondheim</option>
-          <option value="59.5667,9.2667,Notodden">Notodden</option>
+          <option value="59.5611,9.2614,Notodden">Notodden</option>
+          <option value="69.6492,18.9553,Tromsø">Tromsø</option>
+          <option value="60.3913,5.3221,Bergen">Bergen</option>
           <option value="59.9139,10.7522,Oslo">Oslo</option>
-          <option value="60.39,5.32,Bergen">Bergen</option>
-          <option value="69.65,18.96,Tromsø">Tromsø</option>
-          <option value="78.22,15.65,Longyearbyen">Longyearbyen</option>
         </select>
       </div>
       <div class="field">
-        <label>Eller bruk GPS</label>
-        <button id="useGeo" type="button" class="secondary">Hent posisjon</button>
-      </div>
-    </div>
-    <div class="field-row">
-      <div class="field">
-        <label>Lat (°)</label>
+        <label>Bredde</label>
         <input type="number" id="lat" value="63.4305" step="0.0001">
       </div>
       <div class="field">
-        <label>Lon (°)</label>
+        <label>Lengde</label>
         <input type="number" id="lon" value="10.3951" step="0.0001">
       </div>
+      <div class="field">
+        <label>Dato</label>
+        <input type="date" id="date">
+      </div>
     </div>
-    <button id="updateBtn" type="button">Oppdater</button>
   </div>
 
-  <h2 class="section-header">I dag <span class="count mono" id="todayDate">—</span></h2>
-
+  <h2 class="section-header">I dag</h2>
   <div class="stat-grid">
-    <div class="stat">
-      <div class="label">Soloppgang</div>
-      <div class="value accent" id="sunrise">—</div>
-      <div class="sub" id="sunriseSub">—</div>
-    </div>
-    <div class="stat">
-      <div class="label">Solnedgang</div>
-      <div class="value accent" id="sunset">—</div>
-      <div class="sub" id="sunsetSub">—</div>
-    </div>
-    <div class="stat">
-      <div class="label">Dagens lengde</div>
-      <div class="value" id="dayLength">—</div>
-      <div class="sub" id="dayChange">—</div>
-    </div>
-    <div class="stat">
-      <div class="label">Solhøyde nå</div>
-      <div class="value" id="sunAlt">—<span class="unit">°</span></div>
-      <div class="sub" id="sunAz">Asimut —°</div>
-    </div>
-    <div class="stat">
-      <div class="label">Månefase</div>
-      <div class="value" id="moonPhase">—</div>
-      <div class="sub" id="moonIllum">—</div>
-    </div>
-    <div class="stat">
-      <div class="label">Måneposisjon</div>
-      <div class="value" id="moonAlt">—<span class="unit">°</span></div>
-      <div class="sub" id="moonAz">Asimut —°</div>
-    </div>
+    <div class="stat warn"><div class="stat-label">Soloppgang</div><div class="stat-value" id="sun-up">—</div></div>
+    <div class="stat"><div class="stat-label">Solnedgang</div><div class="stat-value" id="sun-down">—</div></div>
+    <div class="stat accent"><div class="stat-label">Gylden time</div><div class="stat-value" id="golden">—</div></div>
+    <div class="stat"><div class="stat-label">Dagens lengde</div><div class="stat-value" id="day-len">—</div></div>
   </div>
 
-  <h2 class="section-header">Faser i dag <span class="count mono">[ tussmørke ]</span></h2>
+  <h2 class="section-header">Måne</h2>
+  <div class="stat-grid">
+    <div class="stat blue"><div class="stat-label">Fase</div><div class="stat-value" id="moon-phase">—</div></div>
+    <div class="stat"><div class="stat-label">Belysning</div><div class="stat-value" id="moon-illum">—</div></div>
+    <div class="stat"><div class="stat-label">Måneoppgang</div><div class="stat-value" id="moon-up">—</div></div>
+    <div class="stat"><div class="stat-label">Månenedgang</div><div class="stat-value" id="moon-down">—</div></div>
+  </div>
 
-  <table class="data" id="phasesTable">
-    <thead>
-      <tr><th>Hendelse</th><th class="num">Tid</th><th>Beskrivelse</th></tr>
-    </thead>
-    <tbody></tbody>
-  </table>
-
-  <h2 class="section-header">Neste 14 dager</h2>
-
-  <table class="data" id="weekTable">
-    <thead>
-      <tr>
-        <th>Dato</th>
-        <th class="num">Soloppgang</th>
-        <th class="num">Solnedgang</th>
-        <th class="num">Daglengde</th>
-        <th class="num">Gylden time AM</th>
-        <th class="num">Gylden time PM</th>
-        <th>Måne</th>
-      </tr>
-    </thead>
-    <tbody></tbody>
+  <h2 class="section-header">Skumringsfaser</h2>
+  <table class="data-table">
+    <thead><tr><th>Fase</th><th>Morgen</th><th>Kveld</th><th>Solhøyde</th></tr></thead>
+    <tbody id="twilight"></tbody>
   </table>
 
   <hr>
-
-  <h3>Hva er hva</h3>
-  <ul style="color: var(--fg-dim); font-size: 0.95rem;">
-    <li><strong style="color: var(--fg);">Gylden time</strong> &mdash; sola står lavt (under 6°). Mykt, varmt lys. Best for fotografering.</li>
-    <li><strong style="color: var(--fg);">Blå time</strong> &mdash; sola er under horisonten men himmelen er fortsatt lys (sivil tussmørke). Vakker blåfarge.</li>
-    <li><strong style="color: var(--fg);">Sivil tussmørke</strong> &mdash; sola 0° til −6°. Lyst nok til å se uten kunstig lys.</li>
-    <li><strong style="color: var(--fg);">Nautisk tussmørke</strong> &mdash; sola −6° til −12°. Horisonten kan fortsatt skimtes til sjøs.</li>
-    <li><strong style="color: var(--fg);">Astronomisk tussmørke</strong> &mdash; sola −12° til −18°. Stjerner blir godt synlige.</li>
-    <li><strong style="color: var(--fg);">Astronomisk natt</strong> &mdash; sola under −18°. Mørkest. Best for stjerneobservasjon.</li>
-  </ul>
-
-  <p style="color: var(--fg-faint); font-size: 0.85rem;">
-    Algoritmer fra Jean Meeus' &quot;Astronomical Algorithms&quot;, forenklet
-    for browser. Nøyaktighet typisk &plusmn; 1 minutt for soloppgang/-nedgang
-    på normale breddegrader. Polare områder kan ha problemer i mørketiden.
+  <p class="muted small">
+    Algoritmer fra Jean Meeus, "Astronomical Algorithms". Tider er lokal tid (Europe/Oslo).
+    For polare områder kan sol være over eller under horisonten hele døgnet — da
+    vises "—".
   </p>
-
 </main>
 
 <footer>
   <div class="footer-content">
-    <div>© 2026 — HEMING WESTAD</div>
-    <div>BUILT IN TRONDHEIM · <a href="https://github.com/hemingwestad-glitch/Nettside-public">SOURCE</a></div>
+    <div>© 2026 — Heming Westad</div>
+    <div>Trondheim · <a href="https://github.com/hemingwestad-glitch/Nettside-public">kildekode</a></div>
   </div>
 </footer>
 
-<script src="/astro.js"></script>
+<script src="/common.js"></script>
 <script>
-const $ = (id) => document.getElementById(id);
+const RAD = Math.PI / 180;
 
-function update() {
-  const lat = parseFloat($('lat').value);
-  const lon = parseFloat($('lon').value);
-  const now = new Date();
+function jd(date) { return date.getTime() / 86400000 + 2440587.5; }
 
-  // I dag
-  $('todayDate').textContent = '[ ' + now.toLocaleDateString('no-NO', {
-    weekday: 'long', day: 'numeric', month: 'long'
-  }) + ' ]';
-
-  const sun = HW.astro.getSunTimes(now, lat, lon);
-  const moonIll = HW.astro.getMoonIllumination(now);
-  const sunPos = HW.astro.getSunPosition(now, lat, lon);
-  const moonPos = HW.astro.getMoonPosition(now, lat, lon);
-
-  // Stats
-  $('sunrise').textContent = HW.astro.formatTime(sun.sunrise);
-  $('sunriseSub').textContent = sun.sunrise ? sun.sunrise.toLocaleDateString('no-NO', {
-    day: 'numeric', month: 'short'
-  }) : '—';
-  $('sunset').textContent = HW.astro.formatTime(sun.sunset);
-  $('sunsetSub').textContent = sun.sunset ? sun.sunset.toLocaleDateString('no-NO', {
-    day: 'numeric', month: 'short'
-  }) : '—';
-
-  // Daglengde
-  if (sun.sunrise && sun.sunset) {
-    const ms = sun.sunset - sun.sunrise;
-    const h = Math.floor(ms / 3600000);
-    const m = Math.floor((ms % 3600000) / 60000);
-    $('dayLength').textContent = `${h}t ${m}m`;
-
-    // Endring siden i går
-    const yesterday = new Date(now);
-    yesterday.setDate(yesterday.getDate() - 1);
-    const sunY = HW.astro.getSunTimes(yesterday, lat, lon);
-    if (sunY.sunrise && sunY.sunset) {
-      const ms2 = sunY.sunset - sunY.sunrise;
-      const diffMin = Math.round((ms - ms2) / 60000);
-      const sign = diffMin > 0 ? '+' : '';
-      $('dayChange').textContent = `${sign}${diffMin} min vs i går`;
-    } else {
-      $('dayChange').textContent = '—';
-    }
-  } else {
-    $('dayLength').textContent = sunPos.altitude > 0 ? '24t (midnattssol)' : '0t (mørketid)';
-    $('dayChange').textContent = '—';
-  }
-
-  $('sunAlt').innerHTML = sunPos.altitude.toFixed(1) + '<span class="unit">°</span>';
-  $('sunAz').textContent = `Asimut ${sunPos.azimuth.toFixed(0)}°`;
-
-  $('moonPhase').textContent = HW.astro.moonPhaseIcon(moonIll.phase) + ' ' + HW.astro.moonPhaseName(moonIll.phase);
-  $('moonIllum').textContent = (moonIll.fraction * 100).toFixed(0) + ' % belyst';
-
-  $('moonAlt').innerHTML = moonPos.altitude.toFixed(1) + '<span class="unit">°</span>';
-  $('moonAz').textContent = `Asimut ${moonPos.azimuth.toFixed(0)}°`;
-
-  // Faser-tabell
-  const phaseRows = [
-    ['Astronomisk daggry', sun.nightEnd, 'Sola når −18° (stjerner blekner)'],
-    ['Nautisk daggry', sun.nauticalDawn, 'Sola når −12°'],
-    ['Sivil daggry / blå time', sun.dawn, 'Sola når −6°'],
-    ['Soloppgang', sun.sunrise, 'Sentrum av sola krysser horisonten'],
-    ['Gylden time slutt', sun.goldenHourEnd, 'Sola når +6°'],
-    ['Solens høyeste', sun.solarNoon, 'Solas zenith for dagen'],
-    ['Gylden time start', sun.goldenHour, 'Sola når +6° på vei ned'],
-    ['Solnedgang', sun.sunset, 'Sentrum av sola krysser horisonten'],
-    ['Sivil skumring / blå time', sun.dusk, 'Sola når −6°'],
-    ['Nautisk skumring', sun.nauticalDusk, 'Sola når −12°'],
-    ['Astronomisk natt', sun.night, 'Sola når −18° (mørkest)']
-  ];
-  $('phasesTable').querySelector('tbody').innerHTML = phaseRows.map(([n, t, d]) =>
-    `<tr><td>${n}</td><td class="num">${HW.astro.formatTime(t)}</td><td style="color:var(--fg-dim);font-size:0.85rem;">${d}</td></tr>`
-  ).join('');
-
-  // Uketabell
-  let weekHtml = '';
-  for (let i = 0; i < 14; i++) {
-    const d = new Date(now);
-    d.setDate(now.getDate() + i);
-    d.setHours(12, 0, 0, 0);
-    const s = HW.astro.getSunTimes(d, lat, lon);
-    const mi = HW.astro.getMoonIllumination(d);
-
-    let dayLen = '—';
-    if (s.sunrise && s.sunset) {
-      const ms = s.sunset - s.sunrise;
-      dayLen = Math.floor(ms / 3600000) + 't ' + Math.floor((ms % 3600000) / 60000) + 'm';
-    }
-
-    const goldenAm = s.sunrise && s.goldenHourEnd
-      ? `${HW.astro.formatTime(s.sunrise)}–${HW.astro.formatTime(s.goldenHourEnd)}` : '—';
-    const goldenPm = s.goldenHour && s.sunset
-      ? `${HW.astro.formatTime(s.goldenHour)}–${HW.astro.formatTime(s.sunset)}` : '—';
-
-    const isToday = i === 0;
-    const dayLabel = isToday ? '<strong>I dag</strong>' :
-      d.toLocaleDateString('no-NO', { weekday: 'short', day: 'numeric', month: 'short' });
-
-    weekHtml += `<tr ${isToday ? 'style="background:var(--bg-soft);"' : ''}>
-      <td>${dayLabel}</td>
-      <td class="num">${HW.astro.formatTime(s.sunrise)}</td>
-      <td class="num">${HW.astro.formatTime(s.sunset)}</td>
-      <td class="num">${dayLen}</td>
-      <td class="num" style="font-size:0.8rem;">${goldenAm}</td>
-      <td class="num" style="font-size:0.8rem;">${goldenPm}</td>
-      <td>${HW.astro.moonPhaseIcon(mi.phase)} ${(mi.fraction * 100).toFixed(0)}%</td>
-    </tr>`;
-  }
-  $('weekTable').querySelector('tbody').innerHTML = weekHtml;
+function sunPos(jd) {
+  const D = jd - 2451545;
+  const g = (357.529 + 0.98560028 * D) * RAD;
+  const q = (280.459 + 0.98564736 * D) * RAD;
+  const L = q + (1.915 * Math.sin(g) + 0.020 * Math.sin(2 * g)) * RAD;
+  const e = (23.439 - 0.00000036 * D) * RAD;
+  const ra = Math.atan2(Math.cos(e) * Math.sin(L), Math.cos(L));
+  const dec = Math.asin(Math.sin(e) * Math.sin(L));
+  return { ra, dec };
 }
 
-$('presetSelect').addEventListener('change', (e) => {
-  const [lat, lon] = e.target.value.split(',');
-  $('lat').value = lat;
-  $('lon').value = lon;
-  update();
+function siderealTime(jd, lon) {
+  const T = (jd - 2451545) / 36525;
+  let gmst = 280.46061837 + 360.98564736629 * (jd - 2451545) +
+             0.000387933 * T * T - T * T * T / 38710000;
+  gmst = ((gmst % 360) + 360) % 360;
+  return (gmst + lon) * RAD;
+}
+
+function sunHourAngle(altDeg, lat, dec) {
+  const cosH = (Math.sin(altDeg * RAD) - Math.sin(lat * RAD) * Math.sin(dec)) /
+               (Math.cos(lat * RAD) * Math.cos(dec));
+  if (cosH > 1) return null; // never up
+  if (cosH < -1) return null; // never down
+  return Math.acos(cosH);
+}
+
+function timeForSunAlt(date, lat, lon, altDeg, isRise) {
+  // Iter for nøyaktighet
+  let t = new Date(date);
+  t.setHours(12, 0, 0, 0); // start ved solar noon
+  for (let i = 0; i < 5; i++) {
+    const J = jd(t);
+    const sun = sunPos(J);
+    const H = sunHourAngle(altDeg, lat, sun.dec);
+    if (H === null) return null;
+    const lst = siderealTime(J, lon);
+    const eqOfTime = (sun.ra - lst) * 12 / Math.PI;
+    let solarNoon = jd(new Date(t.getFullYear(), t.getMonth(), t.getDate(), 12, 0)) - eqOfTime / 24;
+    const offset = H * 12 / Math.PI;
+    const targetJD = isRise ? solarNoon - offset : solarNoon + offset;
+    t = new Date((targetJD - 2440587.5) * 86400000);
+  }
+  return t;
+}
+
+function fmtTime(d) {
+  if (!d) return '—';
+  return d.toLocaleTimeString('nb-NO', { hour: '2-digit', minute: '2-digit' });
+}
+
+function moonPhase(jd) {
+  const j = jd - 2451550.1;
+  const phase = (j / 29.530588853) % 1;
+  return phase < 0 ? phase + 1 : phase;
+}
+
+function moonIllumination(jd) {
+  const phase = moonPhase(jd);
+  return 0.5 * (1 - Math.cos(2 * Math.PI * phase));
+}
+
+function moonName(p) {
+  const names = ['Nymåne','Tiltakende sigd','Halvmåne','Tiltakende fullmåne','Fullmåne','Avtagende fullmåne','Halvmåne','Avtagende sigd'];
+  const idx = Math.floor((p + 1/16) * 8) % 8;
+  return names[idx];
+}
+
+function calc() {
+  const lat = +document.getElementById('lat').value;
+  const lon = +document.getElementById('lon').value;
+  const dateStr = document.getElementById('date').value;
+  const date = new Date(dateStr + 'T12:00:00');
+
+  const sunUp = timeForSunAlt(date, lat, lon, -0.833, true);
+  const sunDown = timeForSunAlt(date, lat, lon, -0.833, false);
+
+  document.getElementById('sun-up').innerHTML = fmtTime(sunUp);
+  document.getElementById('sun-down').innerHTML = fmtTime(sunDown);
+
+  // Gylden time: kveld, fra solnedgang -4° til 6°
+  const goldenStart = timeForSunAlt(date, lat, lon, 6, false);
+  const goldenEnd = timeForSunAlt(date, lat, lon, -4, false);
+  document.getElementById('golden').innerHTML =
+    goldenStart && goldenEnd ? `${fmtTime(goldenStart)}–${fmtTime(goldenEnd)}` : '—';
+
+  if (sunUp && sunDown) {
+    const mins = (sunDown - sunUp) / 60000;
+    const h = Math.floor(mins / 60);
+    const m = Math.round(mins % 60);
+    document.getElementById('day-len').innerHTML = `${h}<span class="stat-unit">t</span> ${m}<span class="stat-unit">m</span>`;
+  } else {
+    document.getElementById('day-len').innerHTML = '—';
+  }
+
+  // Måne
+  const J = jd(date);
+  const mp = moonPhase(J);
+  const illum = moonIllumination(J);
+  document.getElementById('moon-phase').innerHTML = moonName(mp);
+  document.getElementById('moon-illum').innerHTML = (illum * 100).toFixed(0) + '<span class="stat-unit">%</span>';
+
+  // Twilight
+  const twilights = [
+    { name: 'Borgerlig', alt: -6, expl: 'Lyst nok til de fleste utearbeider' },
+    { name: 'Nautisk',   alt: -12, expl: 'Horisonten synlig, stjerner vises' },
+    { name: 'Astronomisk', alt: -18, expl: 'Helt mørkt for himmelobservasjon' }
+  ];
+  document.getElementById('twilight').innerHTML = twilights.map(t => {
+    const morn = timeForSunAlt(date, lat, lon, t.alt, true);
+    const eve = timeForSunAlt(date, lat, lon, t.alt, false);
+    return `<tr>
+      <td><strong>${t.name}</strong><br><span class="muted small">${t.expl}</span></td>
+      <td class="mono">${fmtTime(morn)}</td>
+      <td class="mono">${fmtTime(eve)}</td>
+      <td class="num">${t.alt}°</td>
+    </tr>`;
+  }).join('');
+}
+
+document.getElementById('preset').addEventListener('change', e => {
+  const [lat, lon, name] = e.target.value.split(',');
+  document.getElementById('lat').value = lat;
+  document.getElementById('lon').value = lon;
+  document.getElementById('loc-name').textContent = name;
+  calc();
 });
 
-$('useGeo').addEventListener('click', () => {
-  if (!navigator.geolocation) return alert('Nettleseren støtter ikke geolokasjon');
-  navigator.geolocation.getCurrentPosition(
-    (p) => {
-      $('lat').value = p.coords.latitude.toFixed(4);
-      $('lon').value = p.coords.longitude.toFixed(4);
-      update();
-    },
-    (err) => alert('Klarte ikke hente posisjon: ' + err.message)
-  );
+['lat','lon','date'].forEach(id => {
+  document.getElementById(id).addEventListener('change', calc);
 });
 
-$('updateBtn').addEventListener('click', update);
-
-// Init
-update();
+const today = new Date();
+document.getElementById('date').value = today.toISOString().split('T')[0];
+calc();
 </script>
-
-<script src="/common.js"></script>
 </body>
 </html>

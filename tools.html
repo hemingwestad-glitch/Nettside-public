@@ -4,16 +4,15 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Verktøy — Heming Westad</title>
-<meta name="description" content="Samling av praktiske verktøy: jaktinfo, ballistikk, orbital mekanikk, satellittsporing og mer.">
+<meta name="description" content="Samling av praktiske verktøy: jakt, fiske, romfart, radio, tidevann, strømpriser.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..800;1,9..144,300..800&family=JetBrains+Mono:wght@400;500;700&family=Caveat:wght@400;700&family=Spectral:wght@400;500&family=VT323&family=Archivo+Black&family=Inter:wght@400;500;700;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..700;1,9..144,400&family=Inter+Tight:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/style.css">
 </head>
 <body>
-
 <header>
-  <div class="logo"><a href="/">HW<span class="dot">.</span></a></div>
+  <div class="logo"><a href="/">Heming Westad<span class="dot">.</span></a></div>
   <nav>
     <ul>
       <li><a href="/">heim</a></li>
@@ -22,188 +21,123 @@
       <li><a href="/now.html">nå</a></li>
       <li><a href="/about.html">om</a></li>
     </ul>
-    <div class="theme-picker" title="Bytt utseende">
-      <button class="theme-btn" data-bg="terminal" title="Terminal"></button>
-      <button class="theme-btn" data-bg="lab" title="Lab notebook"></button>
-      <button class="theme-btn" data-bg="cyber" title="Cyber"></button>
-      <button class="theme-btn" data-bg="brutalist" title="Brutalist"></button>
-    </div>
   </nav>
 </header>
 
 <main>
-
-  <div class="page-meta mono fade-up">
-    <span>VERKTØY</span>
-    <span id="toolCount">— STK</span>
+  <div class="page-meta fade-up">
+    <span>Verktøy</span>
+    <span id="toolCount">— stk</span>
   </div>
 
   <h1 class="fade-up">Verktøy <em>som virker</em>.</h1>
-
   <p class="lede fade-up">
-    Praktiske kalkulatorer for romfart, jakt, fiske og radio. Alle kjører
-    lokalt i nettleseren &mdash; ingen tracking, ingen innlogging, ingen ventetid.
-    Bytt mellom fire ulike utseender med knappene oppe til høyre.
+    Praktiske kalkulatorer for romfart, jakt, fiske, radio og hverdag. Alle
+    kjører lokalt i nettleseren &mdash; ingen tracking, ingen innlogging,
+    ingen ventetid.
   </p>
 
-  <h2 class="section-header">Romfart <span class="count mono">[ orbital mekanikk · TLE · live ]</span></h2>
-
+  <h2 class="section-header">Romfart og radio <span class="count">satellitter, baner, RF</span></h2>
   <div class="tool-grid">
-
-    <a href="/tools/orbit.html" class="tool fade-up">
-      <div class="tool-header">
-        <span class="tool-icon">◐</span>
-        <span class="tool-tag">KEPLER</span>
-      </div>
-      <h3>Orbit ground track</h3>
-      <p>Lim inn orbital elements eller velg en eksempel-bane. Plotter ground track og finner passes over bakkestasjoner. Web-versjon av Python-verktøyet ditt.</p>
-      <div class="tool-action">åpne →</div>
+    <a href="/tools/space.html" class="tool">
+      <div class="tool-header"><span class="tool-icon">◐</span><span class="tool-tag">Hub</span></div>
+      <h3>Satellitt-arbeidsbord</h3>
+      <p>Live tracker (3D), ground track, TLE-leser, link budget, antenne, Doppler og pass-prediksjoner samlet i ett verktøy med faner.</p>
+      <span class="tool-action">Åpne →</span>
     </a>
-
-    <a href="/tools/satellites.html" class="tool fade-up">
-      <div class="tool-header">
-        <span class="tool-icon">●●●</span>
-        <span class="tool-tag">LIVE</span>
-      </div>
-      <h3>Live satellitt-tracker</h3>
-      <p>Henter ferske TLE fra CelesTrak og propagerer med SGP4. Se ISS, Starlink, GPS, Galileo og flere konstellasjoner i sanntid. Oppdaterer hvert 5. sekund.</p>
-      <div class="tool-action">åpne →</div>
+    <a href="/tools/dynamics.html" class="tool">
+      <div class="tool-header"><span class="tool-icon">∮</span><span class="tool-tag">Fysikk</span></div>
+      <h3>Dynamikk-sandkasse</h3>
+      <p>Numerisk integrasjon i 3D. Tre-legeme, dobbel pendel, Lorenz, kjedede pendler. Velg system og se det utfolde seg.</p>
+      <span class="tool-action">Åpne →</span>
     </a>
-
-    <a href="/tools/tle.html" class="tool fade-up">
-      <div class="tool-header">
-        <span class="tool-icon">≡</span>
-        <span class="tool-tag">PARSER</span>
-      </div>
-      <h3>TLE-leser</h3>
-      <p>Lim inn et NORAD TLE og få det dekodet til menneskelesbare orbitalparametere &mdash; periode, høyde, drag, alder, og alle de kryptiske feltene forklart.</p>
-      <div class="tool-action">åpne →</div>
-    </a>
-
-    <a href="/tools/linkbudget.html" class="tool fade-up">
-      <div class="tool-header">
-        <span class="tool-icon">⇆</span>
-        <span class="tool-tag">RF</span>
-      </div>
-      <h3>Link budget</h3>
-      <p>Free-space path loss, antenna gains, system noise temperature, link margin. Forhåndsverdier for typiske CubeSat-frekvenser (UHF 437, S-band, X-band).</p>
-      <div class="tool-action">åpne →</div>
-    </a>
-
-    <a href="/tools/antenna.html" class="tool fade-up">
-      <div class="tool-header">
-        <span class="tool-icon">Y</span>
-        <span class="tool-tag">DIPOL · YAGI</span>
-      </div>
-      <h3>Antenne-beregner</h3>
-      <p>Halv-bølge dipol, kvart-bølge ground plane, 3-element yagi, helix og quad. Forhåndsvalg for amatørbånd og typiske sat-frekvenser. Inkluderer FSPL-tabell.</p>
-      <div class="tool-action">åpne →</div>
-    </a>
-
-    <a href="/tools/time.html" class="tool fade-up">
-      <div class="tool-header">
-        <span class="tool-icon">⏱</span>
-        <span class="tool-tag">UTC · JD · GMST</span>
-      </div>
-      <h3>Tidskonverterer</h3>
-      <p>UTC, lokal norsk tid, Julian Date, MJD, Unix timestamp, GMST og day-of-year. Kan kjøre live for å vise alt i sanntid.</p>
-      <div class="tool-action">åpne →</div>
-    </a>
-
   </div>
 
-  <h2 class="section-header">Jakt og friluftsliv <span class="count mono">[ ballistikk · jakttider · vær ]</span></h2>
-
+  <h2 class="section-header">Jakt og friluft <span class="count">ballistikk, tider, vær</span></h2>
   <div class="tool-grid">
-
-    <a href="/tools/wind.html" class="tool fade-up">
-      <div class="tool-header">
-        <span class="tool-icon">⊹</span>
-        <span class="tool-tag">G1 · G7</span>
-      </div>
-      <h3>Ballistikk-kalkulator</h3>
-      <p>Numerisk integrasjon (RK4) med G1/G7 drag-modell. Sidevind, lufttetthet, høyde og temperatur. Ferdige norske jaktladninger fra Norma og Hornady. Sjekker norske avlivningskrav.</p>
-      <div class="tool-action">åpne →</div>
+    <a href="/tools/wind.html" class="tool">
+      <div class="tool-header"><span class="tool-icon">↗</span><span class="tool-tag">G1 · G7</span></div>
+      <h3>Ballistikk</h3>
+      <p>RK4 med drag-modell. Vind, lufttetthet, høyde. Norske jaktladninger og avlivningskrav.</p>
+      <span class="tool-action">Åpne →</span>
     </a>
-
-    <a href="/tools/fishing.html" class="tool fade-up">
-      <div class="tool-header">
-        <span class="tool-icon">≈</span>
-        <span class="tool-tag">MET API</span>
-      </div>
+    <a href="/tools/fishing.html" class="tool">
+      <div class="tool-header"><span class="tool-icon">~</span><span class="tool-tag">MET</span></div>
       <h3>Fiskeforhold</h3>
-      <p>Henter vær fra MET Norway og regner ut en fiskeindeks (0-100). Ser på trykkutvikling, vind, nedbør og lystime-effekt. Skreddersydd for fjellørret-fiske.</p>
-      <div class="tool-action">åpne →</div>
+      <p>Vær fra MET Norway, fiskeindeks 0-100. Trykktrend, vind, nedbør. Skreddersydd for fjellørret.</p>
+      <span class="tool-action">Åpne →</span>
     </a>
-
-    <a href="/tools/hunting.html" class="tool fade-up">
-      <div class="tool-header">
-        <span class="tool-icon">▲</span>
-        <span class="tool-tag">2025/26</span>
-      </div>
+    <a href="/tools/hunting.html" class="tool">
+      <div class="tool-header"><span class="tool-icon">↟</span><span class="tool-tag">2025/26</span></div>
       <h3>Jaktkalender</h3>
-      <p>Norske jakttider for klauvdyr (elg, hjort, rådyr, villrein, dåhjort) og sesongstatus. Bygd på offisielle data fra Miljødirektoratet.</p>
-      <div class="tool-action">åpne →</div>
+      <p>Norske jakttider for klauvdyr. Bygd på offisielle data fra Miljødirektoratet.</p>
+      <span class="tool-action">Åpne →</span>
     </a>
-
-    <a href="/tools/sun.html" class="tool fade-up">
-      <div class="tool-header">
-        <span class="tool-icon">☉</span>
-        <span class="tool-tag">SOL/MÅNE</span>
-      </div>
+    <a href="/tools/sun.html" class="tool">
+      <div class="tool-header"><span class="tool-icon">☉</span><span class="tool-tag">Sol/måne</span></div>
       <h3>Sol og måne</h3>
-      <p>Soloppgang, solnedgang, gylden time, blå time, månefase og månens opp/nedgang. Lokal tid, valgfri lokasjon. Bruker Meeus-algoritmer.</p>
-      <div class="tool-action">åpne →</div>
+      <p>Soloppgang, gylden time, månefase. Bruker Meeus-algoritmer.</p>
+      <span class="tool-action">Åpne →</span>
     </a>
-
   </div>
 
-  <h2 class="section-header">Generelt <span class="count mono">[ omregning · konvertering ]</span></h2>
-
+  <h2 class="section-header">Hav og vær <span class="count">tidevann, strøm</span></h2>
   <div class="tool-grid">
+    <a href="/tools/tides.html" class="tool">
+      <div class="tool-header"><span class="tool-icon">≈</span><span class="tool-tag">Kartverket</span></div>
+      <h3>Tidevann i Trondheim</h3>
+      <p>Live tidevannsdata fra Trondheim havn. Fourier-sandkasse for de harmoniske komponentene (M2, S2, K1, O1).</p>
+      <span class="tool-action">Åpne →</span>
+    </a>
+    <a href="/tools/power.html" class="tool">
+      <div class="tool-header"><span class="tool-icon">⚡</span><span class="tool-tag">NO3</span></div>
+      <h3>Strømpriser</h3>
+      <p>Spotpris for Midt-Norge. Døgnkurve, billigste timer, 7-dagers oversikt.</p>
+      <span class="tool-action">Åpne →</span>
+    </a>
+  </div>
 
-    <a href="/tools/converter.html" class="tool fade-up">
-      <div class="tool-header">
-        <span class="tool-icon">⇌</span>
-        <span class="tool-tag">RF · SKYTE</span>
-      </div>
+  <h2 class="section-header">Generelt <span class="count">omregning</span></h2>
+  <div class="tool-grid">
+    <a href="/tools/converter.html" class="tool">
+      <div class="tool-header"><span class="tool-icon">⇌</span><span class="tool-tag">Enheter</span></div>
       <h3>Konverter</h3>
-      <p>Frekvens og bølgelengde, dB-omregning, lengde/vinkel/skytefakta (m/yard, MOA/MIL, joule/ft-lb). For når du ikke vil regne i hodet.</p>
-      <div class="tool-action">åpne →</div>
+      <p>Frekvens og bølgelengde, dB-omregning, lengde, vinkel, energi.</p>
+      <span class="tool-action">Åpne →</span>
     </a>
-
-    <a href="/tools/pressure.html" class="tool fade-up">
-      <div class="tool-header">
-        <span class="tool-icon">⏚</span>
-        <span class="tool-tag">VAKUUM</span>
-      </div>
+    <a href="/tools/pressure.html" class="tool">
+      <div class="tool-header"><span class="tool-icon">⏚</span><span class="tool-tag">Vakuum</span></div>
       <h3>Trykk-omregner</h3>
-      <p>Pa, mbar, atm, Torr, psi, mH₂O og inHg samtidig. Estimerer høyde over havet via ISA-modell. Klassifiserer vakuum-regimer (forvakuum, høyvakuum, UHV).</p>
-      <div class="tool-action">åpne →</div>
+      <p>Pa, mbar, atm, Torr, psi, mH₂O. Klassifiserer vakuum-regimer.</p>
+      <span class="tool-action">Åpne →</span>
     </a>
-
+    <a href="/tools/time.html" class="tool">
+      <div class="tool-header"><span class="tool-icon">⏱</span><span class="tool-tag">UTC · JD</span></div>
+      <h3>Tidskonverterer</h3>
+      <p>UTC, lokal tid, Julian Date, MJD, Unix, GMST og day-of-year.</p>
+      <span class="tool-action">Åpne →</span>
+    </a>
   </div>
 
   <hr>
-
-  <p style="color: var(--fg-faint); font-size: 0.85rem;">
+  <p class="muted small">
     Alt er bygd lokalt i nettleseren. Ingen data sendes noe sted.
-    Kildekoden ligger på <a href="https://github.com/hemingwestad-glitch/Nettside-public" target="_blank">GitHub</a>.
+    Kildekoden ligger på <a href="https://github.com/hemingwestad-glitch/Nettside-public" target="_blank" rel="noopener">GitHub</a>.
     Forslag til nye verktøy? Send meg en e-post.
   </p>
-
 </main>
 
 <footer>
   <div class="footer-content">
-    <div>© 2026 — HEMING WESTAD</div>
-    <div>BUILT IN TRONDHEIM · <a href="https://github.com/hemingwestad-glitch/Nettside-public">SOURCE</a></div>
+    <div>© 2026 — Heming Westad</div>
+    <div>Trondheim · <a href="https://github.com/hemingwestad-glitch/Nettside-public">kildekode</a></div>
   </div>
 </footer>
 
 <script src="/common.js"></script>
 <script>
-document.getElementById('toolCount').textContent = document.querySelectorAll('.tool').length + ' STK';
+  document.getElementById('toolCount').textContent =
+    document.querySelectorAll('.tool').length + ' stk';
 </script>
 </body>
 </html>

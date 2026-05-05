@@ -4,15 +4,15 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Jaktkalender — Heming Westad</title>
+<meta name="description" content="Norske jakttider for klauvdyr. Sesongstatus, daggry og skumring per dag.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..800;1,9..144,300..800&family=JetBrains+Mono:wght@400;500;700&family=Caveat:wght@400;700&family=Spectral:wght@400;500&family=VT323&family=Archivo+Black&family=Inter:wght@400;500;700;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..700;1,9..144,400&family=Inter+Tight:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/style.css">
 </head>
 <body>
-
 <header>
-  <div class="logo"><a href="/">HW<span class="dot">.</span></a></div>
+  <div class="logo"><a href="/">Heming Westad<span class="dot">.</span></a></div>
   <nav>
     <ul>
       <li><a href="/">heim</a></li>
@@ -21,312 +21,116 @@
       <li><a href="/now.html">nå</a></li>
       <li><a href="/about.html">om</a></li>
     </ul>
-    <div class="theme-picker" title="Bytt utseende">
-      <button class="theme-btn" data-bg="terminal" title="Terminal"></button>
-      <button class="theme-btn" data-bg="lab" title="Lab notebook"></button>
-      <button class="theme-btn" data-bg="cyber" title="Cyber"></button>
-      <button class="theme-btn" data-bg="brutalist" title="Brutalist"></button>
-    </div>
   </nav>
 </header>
 
 <main>
-
-  <div class="page-meta mono fade-up">
-    <span>VERKTØY / JAKT</span>
-    <span>NOTODDEN KOMMUNE</span>
-    <span>59.57° N, 9.27° E</span>
+  <div class="page-meta fade-up">
+    <span>Jaktkalender</span>
+    <span>2025/2026 sesong</span>
+    <span>Miljødirektoratet</span>
   </div>
 
   <h1 class="fade-up">Jakt<em>kalender</em>.</h1>
-
   <p class="lede fade-up">
-    Jakttider for klauvdyr i Notodden kommune basert på nasjonal forskrift fra
-    Miljødirektoratet. Daggry og skumring beregnes for Notodden sentrum.
+    Norske jakttider for klauvdyr og storfugl. Bygd på Miljødirektoratets
+    forskrift. Sjekk lokale forskrifter for spesielle bestemmelser i ditt jaktfelt.
   </p>
 
-  <div class="card fade-up" id="todayCard">
-    <div class="card-header">
-      <h3>I dag</h3>
-      <span class="meta" id="todayDate">—</span>
-    </div>
-    <div class="stat-grid" style="margin: 0;">
-      <div class="stat">
-        <div class="label">Lovlig jakttid (klauvdyr)</div>
-        <div class="value" id="legalTime">—</div>
-        <div class="sub" id="legalTimeNote">—</div>
-      </div>
-      <div class="stat">
-        <div class="label">Soloppgang</div>
-        <div class="value" id="sunrise">—</div>
-        <div class="sub">Lokal tid</div>
-      </div>
-      <div class="stat">
-        <div class="label">Solnedgang</div>
-        <div class="value" id="sunset">—</div>
-        <div class="sub">Lokal tid</div>
-      </div>
-      <div class="stat">
-        <div class="label">Sivil skumring slutt</div>
-        <div class="value" id="duskEnd">—</div>
-        <div class="sub">Sola når −6°</div>
-      </div>
-    </div>
-  </div>
+  <h2 class="section-header">Pågående og kommende sesonger</h2>
+  <div class="event-list" id="seasons"></div>
 
-  <h2 class="section-header">Jakttider <span class="count mono">[ klauvdyr ]</span></h2>
-
-  <p style="color: var(--fg-dim);">
-    Notodden følger nasjonal forskrift om jakttider. Lokale grunneiere kan ha
-    innskrenket tidene innenfor disse rammene &mdash; sjekk alltid med
-    rettighetshaver. Notodden er <em>ikke</em> innenfor det utvidede
-    jakttids-området rundt Hardangervidda/Nordfjella.
-  </p>
-
-  <div id="speciesContainer"></div>
-
-  <h2 class="section-header">Lovlig jakttid på døgnet <span class="count mono">[ regelverk ]</span></h2>
-
-  <div class="card">
-    <p style="margin-bottom: 0.6rem;">
-      <strong>Hovedregel:</strong> All jakt på storvilt skal foregå i tiden
-      mellom én time før soloppgang og én time etter solnedgang.
-    </p>
-    <p style="color: var(--fg-dim); font-size: 0.95rem; margin: 0;">
-      Dette er den klassiske «utvidede jakttiden på døgnet». Sjekk lokal
-      forvaltningsplan for spesifikke regler.
-    </p>
-  </div>
-
-  <h2 class="section-header">Neste 14 dager <span class="count mono">[ daggry / skumring ]</span></h2>
-
-  <table class="data" id="weekTable">
+  <h2 class="section-header">Alle klauvdyr</h2>
+  <table class="data-table">
     <thead>
-      <tr>
-        <th>Dato</th>
-        <th class="num">Soloppgang</th>
-        <th class="num">Lovlig start</th>
-        <th class="num">Lovlig slutt</th>
-        <th class="num">Solnedgang</th>
-        <th class="num">Lovlig tid</th>
-        <th>Aktive arter</th>
-      </tr>
+      <tr><th>Art</th><th>Sesong</th><th>Status</th><th class="num">Dager igjen</th></tr>
     </thead>
-    <tbody></tbody>
+    <tbody id="all-tbody"></tbody>
   </table>
 
   <hr>
-
-  <p style="color: var(--fg-faint); font-size: 0.85rem;">
-    Kilde: <a href="https://www.miljodirektoratet.no/ansvarsomrader/jakt-felling-og-fangst/jakttidsveileder/" target="_blank">Miljødirektoratets jakttidsveileder</a>
-    (gyldig 1. april 2022 &ndash; 31. mars 2028). Datoer kan endres &mdash; verifiser alltid før jakt.
-    Astronomiske tider beregnes lokalt.
+  <p class="muted small">
+    Datoer er for ordinær jakt på statlig grunn. Lokale forskrifter, kvotebegrensninger
+    og spesielle vilkår (f.eks. kalv-først-prinsipp for elg) kan gjelde i ditt jaktfelt.
+    Sjekk med fjellstyret eller grunneier.
   </p>
-
 </main>
 
 <footer>
   <div class="footer-content">
-    <div>© 2026 — HEMING WESTAD</div>
-    <div>BUILT IN TRONDHEIM · <a href="https://github.com/hemingwestad-glitch/Nettside-public">SOURCE</a></div>
+    <div>© 2026 — Heming Westad</div>
+    <div>Trondheim · <a href="https://github.com/hemingwestad-glitch/Nettside-public">kildekode</a></div>
   </div>
 </footer>
 
-<script src="/astro.js"></script>
+<script src="/common.js"></script>
 <script>
-const $ = (id) => document.getElementById(id);
-
-// Notodden sentrum
-const NOTODDEN_LAT = 59.5667;
-const NOTODDEN_LON = 9.2667;
-
-// Jakttider basert på Miljødirektoratets nasjonale forskrift
-// (gjeldende 2022-2028). Notodden har IKKE utvidet jakttid.
-// Datoer er måned-dag (måned 1-indeksert)
-const SPECIES = [
-  {
-    name: 'Elg',
-    icon: '◉',
-    seasons: [
-      { from: [9, 25], to: [10, 31], note: 'Hovedperiode' }
-    ],
-    info: 'Krever godkjent elgjegerkurs og fellingstillatelse. ' +
-          'Lokal forskrift kan innskrenke til 5.10 eller forlenge.'
-  },
-  {
-    name: 'Hjort',
-    icon: '◔',
-    seasons: [
-      { from: [9, 1], to: [12, 23], note: 'Lang sesong' }
-    ],
-    info: 'Mest hjort i Vestlandet, men forekommer i Notodden.'
-  },
-  {
-    name: 'Rådyr',
-    icon: '◕',
-    seasons: [
-      { from: [8, 10], to: [9, 24], note: 'Bukk (kun hannrådyr)' },
-      { from: [9, 25], to: [12, 23], note: 'Begge kjønn' }
-    ],
-    info: 'Bukkejakt fra 10. august, ordinær jakt fra 25. september. ' +
-          'Ingen særskilt lisens utover jegeravgift.'
-  },
-  {
-    name: 'Bever',
-    icon: '◐',
-    seasons: [
-      { from: [10, 1], to: [4, 30], note: 'Lang sesong over årsskiftet' }
-    ],
-    info: 'Lokal forskrift må åpne for beverjakt. Sjekk Notodden kommune.'
-  }
+// Norske jakttider 2025/26 (fra Miljødirektoratet)
+const SEASONS = [
+  { art: 'Elg',           start: '2025-09-25', end: '2025-12-23' },
+  { art: 'Hjort',         start: '2025-09-01', end: '2025-12-23' },
+  { art: 'Rådyr (bukk)',  start: '2025-08-10', end: '2025-09-25' },
+  { art: 'Rådyr',         start: '2025-09-25', end: '2025-12-23' },
+  { art: 'Villrein',      start: '2025-08-20', end: '2025-09-30' },
+  { art: 'Bjørn',         start: '2025-08-21', end: '2025-10-15' },
+  { art: 'Storfugl',      start: '2025-09-10', end: '2025-12-23' },
+  { art: 'Orrfugl',       start: '2025-09-10', end: '2025-12-23' },
+  { art: 'Lirype',        start: '2025-09-10', end: '2026-02-28' },
+  { art: 'Ringdue',       start: '2025-08-21', end: '2025-12-23' },
+  { art: 'Skogshare',     start: '2025-09-10', end: '2026-02-28' },
+  { art: 'Bever',         start: '2025-10-01', end: '2026-04-30' },
+  { art: 'Mårhund',       start: '2025-04-01', end: '2026-03-31' },
 ];
 
-function dateToJaktday(date) {
-  return [date.getMonth() + 1, date.getDate()];
-}
-function compareDate(a, b) {
-  // returnerer -1, 0, +1 for [m,d] vs [m,d]
-  if (a[0] !== b[0]) return a[0] < b[0] ? -1 : 1;
-  if (a[1] !== b[1]) return a[1] < b[1] ? -1 : 1;
-  return 0;
-}
-function isInSeason(date, season) {
-  const md = dateToJaktday(date);
-  // Hvis sesongen krysser nyttår (from > to)
-  if (compareDate(season.from, season.to) > 0) {
-    return compareDate(md, season.from) >= 0 || compareDate(md, season.to) <= 0;
-  }
-  return compareDate(md, season.from) >= 0 && compareDate(md, season.to) <= 0;
-}
-function activeSpecies(date) {
-  const active = [];
-  for (const sp of SPECIES) {
-    for (const s of sp.seasons) {
-      if (isInSeason(date, s)) {
-        active.push({ ...sp, currentSeason: s });
-        break;
-      }
-    }
-  }
-  return active;
-}
-
-function nextSeasonStart(species, fromDate) {
-  // Finn neste seasong-start for arten relativ til dato
-  const fromYear = fromDate.getFullYear();
-  let best = null;
-  for (const yearOffset of [0, 1]) {
-    const year = fromYear + yearOffset;
-    for (const s of species.seasons) {
-      const start = new Date(year, s.from[0] - 1, s.from[1]);
-      if (start > fromDate) {
-        if (!best || start < best.date) best = { date: start, season: s };
-      }
-    }
-  }
-  return best;
-}
-
-function renderToday() {
-  const now = new Date();
-  $('todayDate').textContent = now.toLocaleDateString('no-NO', {
-    weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'
-  });
-
-  const sun = HW.astro.getSunTimes(now, NOTODDEN_LAT, NOTODDEN_LON);
-  $('sunrise').textContent = HW.astro.formatTime(sun.sunrise);
-  $('sunset').textContent = HW.astro.formatTime(sun.sunset);
-  $('duskEnd').textContent = HW.astro.formatTime(sun.dusk);
-
-  // Lovlig jakttid: 1 time før sol opp til 1 time etter sol ned
-  if (sun.sunrise && sun.sunset) {
-    const start = new Date(sun.sunrise.getTime() - 3600 * 1000);
-    const end = new Date(sun.sunset.getTime() + 3600 * 1000);
-    $('legalTime').innerHTML =
-      `<span style="font-size: 1.2rem;">${HW.astro.formatTime(start)}</span>` +
-      `<span style="color:var(--fg-dim);"> &ndash; </span>` +
-      `<span style="font-size: 1.2rem;">${HW.astro.formatTime(end)}</span>`;
-    const totalMin = Math.round((end - start) / 60000);
-    const h = Math.floor(totalMin / 60);
-    const m = totalMin % 60;
-    $('legalTimeNote').textContent = `${h} t ${m} min lovlig jakttid`;
-  } else {
-    $('legalTime').textContent = 'Polare forhold';
-    $('legalTimeNote').textContent = 'Sola står ikke opp/ned';
-  }
-}
-
-function renderSpecies() {
-  const now = new Date();
-  const container = $('speciesContainer');
-  let html = '<div class="tool-grid">';
-  for (const sp of SPECIES) {
-    const active = sp.seasons.some(s => isInSeason(now, s));
-    const next = nextSeasonStart(sp, now);
-    const days = next ? HW.astro.daysBetween(new Date(now), next.date) : null;
-
-    html += `<div class="tool" style="cursor: default;">
-      <div class="tool-header">
-        <span class="tool-icon">${sp.icon}</span>
-        <span class="badge ${active ? 'good' : ''}">${active ? 'JAKTBAR' : 'STENGT'}</span>
-      </div>
-      <h3>${sp.name}</h3>
-      <p style="margin-bottom: 0.6rem;">
-        ${sp.seasons.map(s => {
-          const f = `${String(s.from[1]).padStart(2,'0')}.${String(s.from[0]).padStart(2,'0')}`;
-          const t = `${String(s.to[1]).padStart(2,'0')}.${String(s.to[0]).padStart(2,'0')}`;
-          const inThis = isInSeason(now, s);
-          return `<span style="color:${inThis ? 'var(--accent)' : 'var(--fg-dim)'};">${f} – ${t}</span> <span style="color:var(--fg-faint);font-size:0.85em;">${s.note}</span>`;
-        }).join('<br>')}
-      </p>
-      <p style="font-size:0.85rem;color:var(--fg-faint);">${sp.info}</p>
-      ${active
-        ? '<span class="tool-action" style="color:var(--good);">● JAKT PÅGÅR</span>'
-        : `<span class="tool-action">${days !== null ? `Starter om ${days} dager (${next.date.toLocaleDateString('no-NO', {day:'numeric', month:'short'})})` : 'Sjekk forskrift'}</span>`
-      }
-    </div>`;
-  }
-  html += '</div>';
-  container.innerHTML = html;
-}
-
-function renderWeek() {
-  const tbody = $('weekTable').querySelector('tbody');
-  let html = '';
+function status(s, e) {
   const today = new Date();
-  for (let i = 0; i < 14; i++) {
-    const d = new Date(today);
-    d.setDate(today.getDate() + i);
-    const sun = HW.astro.getSunTimes(d, NOTODDEN_LAT, NOTODDEN_LON);
-    const start = sun.sunrise ? new Date(sun.sunrise.getTime() - 3600*1000) : null;
-    const end = sun.sunset ? new Date(sun.sunset.getTime() + 3600*1000) : null;
-    const totalMin = (start && end) ? Math.round((end - start) / 60000) : null;
-    const active = activeSpecies(d);
-
-    const isToday = i === 0;
-    const dayLabel = d.toLocaleDateString('no-NO', { weekday: 'short', day: 'numeric', month: 'short' });
-
-    html += `<tr ${isToday ? 'style="background:var(--bg-soft);"' : ''}>
-      <td>${isToday ? '<strong>' + dayLabel + '</strong>' : dayLabel}</td>
-      <td class="num">${HW.astro.formatTime(sun.sunrise)}</td>
-      <td class="num" style="color:var(--accent);">${HW.astro.formatTime(start)}</td>
-      <td class="num" style="color:var(--accent);">${HW.astro.formatTime(end)}</td>
-      <td class="num">${HW.astro.formatTime(sun.sunset)}</td>
-      <td class="num">${totalMin ? Math.floor(totalMin/60) + 'h ' + (totalMin%60) + 'm' : '—'}</td>
-      <td style="color:var(--fg-dim);font-size:0.85rem;">${
-        active.length === 0 ? '—' :
-        active.map(a => a.name).join(', ')
-      }</td>
-    </tr>`;
-  }
-  tbody.innerHTML = html;
+  const start = new Date(s);
+  const end = new Date(e);
+  if (today >= start && today <= end) return { label: 'Åpen', cls: 'green', daysLeft: Math.ceil((end - today) / 86400000) };
+  if (today < start) return { label: 'Kommer', cls: 'warn', daysLeft: -Math.ceil((start - today) / 86400000) };
+  return { label: 'Stengt', cls: '', daysLeft: 0 };
 }
 
-renderToday();
-renderSpecies();
-renderWeek();
-</script>
+const allBody = document.getElementById('all-tbody');
+allBody.innerHTML = SEASONS.map(s => {
+  const st = status(s.start, s.end);
+  const dStart = new Date(s.start).toLocaleDateString('nb-NO', { day: '2-digit', month: 'short' });
+  const dEnd = new Date(s.end).toLocaleDateString('nb-NO', { day: '2-digit', month: 'short' });
+  let txt;
+  if (st.daysLeft > 0 && st.label === 'Åpen') txt = `${st.daysLeft} dager`;
+  else if (st.label === 'Kommer') txt = `om ${-st.daysLeft} dager`;
+  else txt = '—';
+  return `<tr>
+    <td><strong>${s.art}</strong></td>
+    <td class="mono small">${dStart} – ${dEnd}</td>
+    <td><span class="tag ${st.cls}">${st.label}</span></td>
+    <td class="num">${txt}</td>
+  </tr>`;
+}).join('');
 
-<script src="/common.js"></script>
+// Kommende sesonger (åpne eller starter innen 60 dager)
+const today = new Date();
+const upcoming = SEASONS.map(s => {
+  const st = status(s.start, s.end);
+  return { ...s, st };
+}).filter(s => s.st.label === 'Åpen' || (s.st.label === 'Kommer' && Math.abs(s.st.daysLeft) < 60))
+  .sort((a, b) => Math.abs(a.st.daysLeft) - Math.abs(b.st.daysLeft));
+
+document.getElementById('seasons').innerHTML = upcoming.map(s => `
+  <div class="event">
+    <div class="event-time">
+      ${s.st.label === 'Åpen' ? `Til ${new Date(s.end).toLocaleDateString('nb-NO', { day: '2-digit', month: 'short' })}` :
+        `Fra ${new Date(s.start).toLocaleDateString('nb-NO', { day: '2-digit', month: 'short' })}`}
+    </div>
+    <div class="event-name">
+      ${s.art}
+      <span class="tag ${s.st.cls}" style="margin-left: 0.5rem; font-size: 0.65rem;">${s.st.label}</span>
+    </div>
+    <div class="event-meta">
+      ${s.st.label === 'Åpen' ? s.st.daysLeft + ' dager igjen' : 'om ' + Math.abs(s.st.daysLeft) + ' dager'}
+    </div>
+  </div>
+`).join('') || '<div class="muted small" style="padding:0.5rem;">Ingen aktive eller umiddelbart kommende sesonger.</div>';
+</script>
 </body>
 </html>

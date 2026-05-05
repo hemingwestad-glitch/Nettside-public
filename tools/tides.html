@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tidevann i Trondheim — Heming Westad</title>
+<meta name="description" content="Live tidevannsdata for Trondheim havn fra MET Norway. Fourier-sandkasse med harmoniske komponenter (M2, S2, K1, O1).">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..700;1,9..144,400&family=Inter+Tight:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/style.css">
+</head>
+<body>
+<header>
+  <div class="logo"><a href="/">Heming Westad<span class="dot">.</span></a></div>
+  <nav>
+    <ul>
+      <li><a href="/">heim</a></li>
+      <li><a href="/tools.html" class="current">verktøy</a></li>
+      <li><a href="/projects.html">prosjekter</a></li>
+      <li><a href="/now.html">nå</a></li>
+      <li><a href="/about.html">om</a></li>
+    </ul>
+  </nav>
+</header>
+
+<main>
+  <div class="page-meta fade-up">
+    <span><span class="dot live"></span>Tidevann</span>
+    <span>Trondheim havn</span>
+    <span>Kilde: MET Norway</span>
+  </div>
+
+  <h1 class="fade-up">Tidevann i <em>Trondheim</em>.</h1>
+  <p class="lede fade-up">
+    Trondheimsfjorden har en av de mest markante tidevannsforskjellene på
+    norskekysten — opp mot 3 meter mellom flo og fjære. Variasjonen er
+    nesten utelukkende drevet av månens M2-komponent (12,42 timers periode),
+    med små bidrag fra solen og månens elliptiske bane.
+  </p>
+
+  <div class="tabs">
+    <button class="tab active" data-tab="live">Live</button>
+    <button class="tab" data-tab="harmonic">Fourier-sandkasse</button>
+    <button class="tab" data-tab="theory">Om komponentene</button>
+  </div>
+
+  <!-- LIVE-FANE -->
+  <div class="tab-panel active" data-panel="live">
+    <div class="stat-grid" id="live-stats">
+      <div class="stat"><div class="stat-label">Vannstand nå</div><div class="stat-value" id="now-level">—</div></div>
+      <div class="stat blue"><div class="stat-label">Neste flo</div><div class="stat-value" id="next-high">—</div></div>
+      <div class="stat accent"><div class="stat-label">Neste fjære</div><div class="stat-value" id="next-low">—</div></div>
+      <div class="stat"><div class="stat-label">Tidevannsdiff</div><div class="stat-value" id="tide-range">—</div></div>
+    </div>
+
+    <h2 class="section-header">Vannstand neste 72 timer</h2>
+    <div class="chart">
+      <div class="chart-title">Total vannstand (TIDE + SURGE) ved Trondheim havn — m over middelvannstand</div>
+      <svg id="chart-live" viewBox="0 0 800 320" preserveAspectRatio="none"></svg>
+    </div>
+
+    <p class="muted small">
+      <strong>TIDE</strong> er astronomisk tidevann (måne + sol).
+      <strong>SURGE</strong> er værkorreksjonen — vind og lufttrykk skyver
+      vannmasser inn eller ut av fjorden. <strong>TOTAL</strong> er det du
+      faktisk ser ved kaia. Verdier i meter relativt til middelvannstand.
+    </p>
+
+    <h2 class="section-header">Kommende flo og fjære</h2>
+    <div class="event-list" id="extremes-list"></div>
+  </div>
+
+  <!-- FOURIER-FANE -->
+  <div class="tab-panel" data-panel="harmonic">
+    <p>
+      Tidevannet kan dekomponeres i en sum av sinusbølger med ulike
+      perioder, amplituder og faser. Skru av og på de viktigste komponentene
+      for Trondheim og se hvordan de bygges sammen.
+    </p>
+
+    <div class="panel">
+      <div class="panel-title">Komponenter — slå av/på og juster amplitude</div>
+      <div id="harmonic-controls"></div>
+    </div>
+
+    <div class="chart">
+      <div class="chart-title" id="harmonic-title">Sammensatt tidevannskurve over 7 døgn</div>
+      <svg id="chart-harmonic" viewBox="0 0 800 320" preserveAspectRatio="none"></svg>
+    </div>
+
+    <div class="chart">
+      <div class="chart-title">Hver komponent isolert</div>
+      <svg id="chart-components" viewBox="0 0 800 360" preserveAspectRatio="none"></svg>
+    </div>
+
+    <p class="muted small">
+      Amplituder er <em>nominelle for Trondheim</em> (basert på Kartverket).
+      I virkeligheten finnes det dusinvis av tidevannskomponenter — dette er
+      de fire dominerende. Resultatet er omtrentlig, ikke en presis prognose.
+    </p>
+  </div>
+
+  <!-- TEORI-FANE -->
+  <div class="tab-panel" data-panel="theory">
+    <h2 class="section-header">De fire viktigste komponentene</h2>
+
+    <div class="uses-table">
+      <div class="row">
+        <div class="label">M2</div>
+        <div class="value">
+          <strong>Hovedmånekomponenten.</strong> Periode 12 t 25 min.
+          Kommer av at månen drar i havet på den siden som vender mot den,
+          mens jordrotasjonen lager en motsvarende "bule" på motsatt side.
+          Derfor får vi to flo og to fjære per 24 timer 50 minutter — tidevannet
+          forskyver seg ca. 50 minutter senere hver dag. Amplitude i Trondheim:
+          ca. 100 cm.
+        </div>
+      </div>
+      <div class="row">
+        <div class="label">S2</div>
+        <div class="value">
+          <strong>Hovedsolkomponenten.</strong> Periode nøyaktig 12 timer.
+          Solens tidevannskraft er 46 % av månens. Når M2 og S2 er i fase
+          (nymåne/fullmåne) får vi <em>springflo</em>, når de er i motfase
+          (halvmåne) får vi <em>nippflo</em>. Amplitude i Trondheim: ca. 35 cm.
+        </div>
+      </div>
+      <div class="row">
+        <div class="label">K1</div>
+        <div class="value">
+          <strong>Diurnal komponent.</strong> Periode 23 t 56 min.
+          Bidrag fra både måne og sol pga. helning på baneplanet. Amplitude
+          i Trondheim: ca. 8 cm — relativt liten her, mer markant lenger nord.
+        </div>
+      </div>
+      <div class="row">
+        <div class="label">O1</div>
+        <div class="value">
+          <strong>Månens diurnale komponent.</strong> Periode 25 t 49 min.
+          Kommer av månens deklinasjon over og under ekvator. Amplitude
+          i Trondheim: ca. 5 cm.
+        </div>
+      </div>
+    </div>
+
+    <h2 class="section-header">Spring og nipp</h2>
+    <p>
+      Når M2 og S2 er i fase forsterker de hverandre og gir <em>springflo</em>
+      (cirka hver 14. dag, ved fullmåne og nymåne). Når de er i motfase
+      kansellerer de delvis hverandre og gir <em>nippflo</em>.
+      Forskjellen mellom flo og fjære varierer derfor fra ca. 130 cm
+      (nipp) til ca. 270 cm (spring) i Trondheim.
+    </p>
+
+    <h2 class="section-header">Hvorfor har Trondheim så stor tidevannsforskjell?</h2>
+    <p>
+      Tidevannsbølgen som setter inn i Atlanteren beveger seg nordover langs
+      Norskekysten og inn i fjordene. Geometrien til Trondheimsfjorden — lang,
+      smal og rimelig dyp — forsterker bølgen gjennom resonans. Lokale
+      variasjoner i bunntopografi og kystlinje gjør at amplituden kan endre
+      seg betydelig over korte avstander.
+    </p>
+  </div>
+
+  <hr>
+  <p class="muted small">
+    Live data fra <a href="https://api.met.no/weatherapi/tidalwater/1.1/documentation" target="_blank" rel="noopener">MET Norway tidalwater API</a>,
+    som bruker Kartverkets harmoniske analyse for Trondheim havn.
+    Verdiene er i meter over middelvannstand (NN2000 referanse).
+  </p>
+</main>
+
+<footer>
+  <div class="footer-content">
+    <div>© 2026 — Heming Westad</div>
+    <div>Trondheim · <a href="https://github.com/hemingwestad-glitch/Nettside-public">kildekode</a></div>
+  </div>
+</footer>
+
+<script src="/common.js"></script>
+<script>
+/* ─── Tidevann i Trondheim ────────────────────────────────────────────── */
+
+/* === LIVE DATA === */
+
+async function fetchTrondheimTide() {
+  // Vi går via en CORS-vennlig proxy hvis nødvendig.
+  // MET tillater stort sett requests fra nettleseren.
+  const url = 'https://api.met.no/weatherapi/tidalwater/1.1/?harbor=trondheim';
+  try {
+    const r = await fetch(url);
+    if (!r.ok) return null;
+    return await r.text();
+  } catch (e) {
+    console.warn('Tidalwater API:', e);
+    return null;
+  }
+}
+
+function parseTidalWater(text) {
+  if (!text) return null;
+  const lines = text.split('\n');
+  const data = [];
+  for (const line of lines) {
+    // Headers: AAR MND DAG TIM MIN SURGE TIDE TOTAL ...
+    const m = line.trim().match(/^(\d{4})\s+(\d{1,2})\s+(\d{1,2})\s+(\d{1,2})\s+(\d{1,2})\s+(-?\d+\.\d+)\s+(-?\d+\.\d+)\s+(-?\d+\.\d+)/);
+    if (m) {
+      const [_, y, mo, d, h, mi, surge, tide, total] = m;
+      data.push({
+        time: new Date(Date.UTC(+y, +mo - 1, +d, +h, +mi)),
+        surge: +surge,
+        tide: +tide,
+        total: +total
+      });
+    }
+  }
+  return data.length > 0 ? data : null;
+}
+
+function findExtremes(data) {
+  // Finn lokale maks og min på TIDE-komponenten
+  const ext = [];
+  for (let i = 1; i < data.length - 1; i++) {
+    const a = data[i - 1].tide, b = data[i].tide, c = data[i + 1].tide;
+    if (b > a && b > c) ext.push({ time: data[i].time, level: data[i].total, type: 'high' });
+    if (b < a && b < c) ext.push({ time: data[i].time, level: data[i].total, type: 'low' });
+  }
+  return ext;
+}
+
+function renderLiveChart(svg, data) {
+  if (!data || data.length === 0) {
+    svg.innerHTML = '<text x="400" y="160" text-anchor="middle" fill="#9a9087" font-family="JetBrains Mono" font-size="14">Klarte ikke hente tidevannsdata.</text>';
+    return;
+  }
+
+  const W = 800, H = 320;
+  const m = { l: 50, r: 16, t: 20, b: 36 };
+  const w = W - m.l - m.r;
+  const h = H - m.t - m.b;
+
+  const t0 = data[0].time.getTime();
+  const t1 = data[data.length - 1].time.getTime();
+  const tNow = Date.now();
+
+  const allVals = data.flatMap(d => [d.tide, d.total]);
+  const max = Math.max(...allVals) + 0.1;
+  const min = Math.min(...allVals) - 0.1;
+  const range = max - min;
+
+  const xScale = t => m.l + ((t - t0) / (t1 - t0)) * w;
+  const yScale = v => m.t + h - ((v - min) / range) * h;
+
+  let s = '';
+
+  // Y-rutenett (0.5m intervaller)
+  for (let v = Math.ceil(min * 2) / 2; v <= max; v += 0.5) {
+    const y = yScale(v);
+    s += `<line x1="${m.l}" y1="${y}" x2="${W - m.r}" y2="${y}" stroke="#e6e0d2"/>`;
+    s += `<text x="${m.l - 6}" y="${y + 4}" text-anchor="end" fill="#9a9087" font-family="JetBrains Mono" font-size="10">${v.toFixed(1)}</text>`;
+  }
+
+  // Null-linje
+  if (min < 0 && max > 0) {
+    const y0 = yScale(0);
+    s += `<line x1="${m.l}" y1="${y0}" x2="${W - m.r}" y2="${y0}" stroke="#6b645b" stroke-dasharray="3,3"/>`;
+  }
+
+  // Dato-tikker (hver 12. time)
+  let dt = new Date(t0);
+  dt.setUTCMinutes(0, 0, 0);
+  while (dt.getTime() < t1) {
+    if (dt.getUTCHours() % 12 === 0) {
+      const x = xScale(dt.getTime());
+      s += `<line x1="${x}" y1="${m.t}" x2="${x}" y2="${m.t + h}" stroke="#e6e0d2"/>`;
+      const local = new Date(dt);
+      const lab = dt.getUTCHours() === 0
+        ? local.toLocaleDateString('nb-NO', { day: '2-digit', month: '2-digit' })
+        : '12';
+      s += `<text x="${x}" y="${H - m.b + 14}" text-anchor="middle" fill="#6b645b" font-family="JetBrains Mono" font-size="10">${lab}</text>`;
+    }
+    dt = new Date(dt.getTime() + 60 * 60 * 1000);
+  }
+
+  // TIDE-kurve (lyseblå, bare astronomisk)
+  let tidePath = '';
+  data.forEach((d, i) => {
+    const x = xScale(d.time.getTime());
+    const y = yScale(d.tide);
+    tidePath += (i === 0 ? 'M' : 'L') + x.toFixed(1) + ',' + y.toFixed(1) + ' ';
+  });
+  s += `<path d="${tidePath}" fill="none" stroke="var(--blue)" stroke-width="1" stroke-dasharray="2,2" opacity="0.7"/>`;
+
+  // TOTAL-kurve (mørkere, hovedlinje)
+  let totalPath = '';
+  data.forEach((d, i) => {
+    const x = xScale(d.time.getTime());
+    const y = yScale(d.total);
+    totalPath += (i === 0 ? 'M' : 'L') + x.toFixed(1) + ',' + y.toFixed(1) + ' ';
+  });
+  s += `<path d="${totalPath}" fill="none" stroke="var(--accent)" stroke-width="2"/>`;
+
+  // "Nå"-markør
+  if (tNow >= t0 && tNow <= t1) {
+    const x = xScale(tNow);
+    s += `<line x1="${x}" y1="${m.t}" x2="${x}" y2="${m.t + h}" stroke="var(--ink)" stroke-width="1.5"/>`;
+    s += `<text x="${x + 4}" y="${m.t + 12}" fill="var(--ink)" font-family="JetBrains Mono" font-size="10">NÅ</text>`;
+  }
+
+  // Forklaring
+  s += `<g transform="translate(${m.l + 8}, ${m.t + 8})">
+    <line x1="0" y1="6" x2="20" y2="6" stroke="var(--accent)" stroke-width="2"/>
+    <text x="24" y="9" fill="#3d3833" font-family="JetBrains Mono" font-size="10">total</text>
+    <line x1="64" y1="6" x2="84" y2="6" stroke="var(--blue)" stroke-width="1" stroke-dasharray="2,2" opacity="0.7"/>
+    <text x="88" y="9" fill="#3d3833" font-family="JetBrains Mono" font-size="10">kun astronomisk</text>
+  </g>`;
+
+  svg.innerHTML = s;
+}
+
+/* === FOURIER-SANDKASSE === */
+
+const COMPONENTS = [
+  { id: 'M2', name: 'M2 — månen, halvdaglig', period: 12.4206, amp: 1.00, phase: 0,    color: 'var(--accent)', enabled: true },
+  { id: 'S2', name: 'S2 — solen, halvdaglig',   period: 12.0000, amp: 0.35, phase: 30,   color: 'var(--blue)',   enabled: true },
+  { id: 'K1', name: 'K1 — luni-solar daglig',   period: 23.9345, amp: 0.08, phase: 60,   color: 'var(--green)',  enabled: true },
+  { id: 'O1', name: 'O1 — månen, daglig',       period: 25.8193, amp: 0.05, phase: 90,   color: 'var(--warn)',   enabled: true },
+];
+
+function renderHarmonicControls() {
+  const c = document.getElementById('harmonic-controls');
+  c.innerHTML = COMPONENTS.map(comp => `
+    <div class="field-row" style="align-items: center; padding: 0.5rem 0; border-bottom: 1px solid var(--rule-soft);">
+      <div class="field" style="flex-direction: row; align-items: center; gap: 0.6rem;">
+        <input type="checkbox" id="en-${comp.id}" ${comp.enabled ? 'checked' : ''} style="width: auto;">
+        <label for="en-${comp.id}" style="margin: 0; cursor: pointer;">
+          <span style="display: inline-block; width: 0.7rem; height: 0.7rem; background: ${comp.color}; vertical-align: middle; margin-right: 0.4rem;"></span>
+          <strong style="color: var(--ink);">${comp.id}</strong>
+          <span class="muted small"> ${comp.name.split(' — ')[1]}</span>
+        </label>
+      </div>
+      <div class="field">
+        <label>Periode</label>
+        <span class="mono small">${comp.period.toFixed(4)} t</span>
+      </div>
+      <div class="field">
+        <label>Amplitude (m)</label>
+        <input type="range" id="amp-${comp.id}" min="0" max="2" step="0.05" value="${comp.amp}">
+        <span class="mono tiny" id="amp-val-${comp.id}">${comp.amp.toFixed(2)} m</span>
+      </div>
+    </div>
+  `).join('');
+
+  COMPONENTS.forEach(comp => {
+    document.getElementById(`en-${comp.id}`).addEventListener('change', e => {
+      comp.enabled = e.target.checked;
+      renderHarmonic();
+    });
+    document.getElementById(`amp-${comp.id}`).addEventListener('input', e => {
+      comp.amp = +e.target.value;
+      document.getElementById(`amp-val-${comp.id}`).textContent = comp.amp.toFixed(2) + ' m';
+      renderHarmonic();
+    });
+  });
+}
+
+function harmonicSum(t_hours) {
+  let sum = 0;
+  for (const c of COMPONENTS) {
+    if (!c.enabled) continue;
+    const omega = 2 * Math.PI / c.period;
+    sum += c.amp * Math.cos(omega * t_hours + c.phase * Math.PI / 180);
+  }
+  return sum;
+}
+
+function renderHarmonic() {
+  const svg = document.getElementById('chart-harmonic');
+  const W = 800, H = 320;
+  const m = { l: 50, r: 16, t: 20, b: 36 };
+  const w = W - m.l - m.r;
+  const h = H - m.t - m.b;
+
+  const days = 7;
+  const samples = 800;
+  const points = [];
+  for (let i = 0; i < samples; i++) {
+    const t = (i / (samples - 1)) * days * 24;  // timer
+    points.push({ t, v: harmonicSum(t) });
+  }
+
+  const max = Math.max(...points.map(p => p.v), 0.5);
+  const min = Math.min(...points.map(p => p.v), -0.5);
+  const range = max - min;
+  const xScale = t => m.l + (t / (days * 24)) * w;
+  const yScale = v => m.t + h - ((v - min) / range) * h;
+
+  let s = '';
+
+  // Rutenett (0.5m)
+  for (let v = Math.ceil(min * 2) / 2; v <= max; v += 0.5) {
+    const y = yScale(v);
+    s += `<line x1="${m.l}" y1="${y}" x2="${W - m.r}" y2="${y}" stroke="#e6e0d2"/>`;
+    s += `<text x="${m.l - 6}" y="${y + 4}" text-anchor="end" fill="#9a9087" font-family="JetBrains Mono" font-size="10">${v.toFixed(1)}</text>`;
+  }
+
+  // Døgnlinjer
+  for (let d = 0; d <= days; d++) {
+    const x = xScale(d * 24);
+    s += `<line x1="${x}" y1="${m.t}" x2="${x}" y2="${m.t + h}" stroke="#e6e0d2"/>`;
+    s += `<text x="${x}" y="${H - m.b + 14}" text-anchor="middle" fill="#6b645b" font-family="JetBrains Mono" font-size="10">d${d}</text>`;
+  }
+
+  // 0-linje
+  if (min < 0 && max > 0) {
+    s += `<line x1="${m.l}" y1="${yScale(0)}" x2="${W - m.r}" y2="${yScale(0)}" stroke="#6b645b" stroke-dasharray="3,3"/>`;
+  }
+
+  // Sammensatt kurve
+  let path = '';
+  points.forEach((p, i) => {
+    path += (i === 0 ? 'M' : 'L') + xScale(p.t).toFixed(1) + ',' + yScale(p.v).toFixed(1) + ' ';
+  });
+  s += `<path d="${path}" fill="none" stroke="var(--ink)" stroke-width="1.5"/>`;
+
+  // Topp-info
+  const ampPp = max - min;
+  s += `<g transform="translate(${W - m.r - 6}, ${m.t + 4})">
+    <text x="0" y="10" text-anchor="end" fill="#3d3833" font-family="JetBrains Mono" font-size="10">peak-to-peak: ${ampPp.toFixed(2)} m</text>
+  </g>`;
+
+  svg.innerHTML = s;
+  document.getElementById('harmonic-title').textContent =
+    `Sammensatt tidevannskurve over ${days} døgn — ${COMPONENTS.filter(c=>c.enabled).length} aktive komponenter`;
+
+  renderComponents();
+}
+
+function renderComponents() {
+  const svg = document.getElementById('chart-components');
+  const W = 800, H = 360;
+  const days = 7;
+  const samples = 600;
+  const enabled = COMPONENTS.filter(c => c.enabled);
+  if (enabled.length === 0) {
+    svg.innerHTML = '<text x="400" y="180" text-anchor="middle" fill="#9a9087" font-family="JetBrains Mono" font-size="14">Ingen komponenter aktive</text>';
+    return;
+  }
+
+  const rowH = (H - 40) / enabled.length;
+  let s = '';
+
+  enabled.forEach((c, idx) => {
+    const yTop = 20 + idx * rowH;
+    const yMid = yTop + rowH / 2;
+    const yPad = rowH * 0.1;
+    const yMax = yTop + yPad;
+    const yMin = yTop + rowH - yPad;
+
+    const omega = 2 * Math.PI / c.period;
+    const points = [];
+    for (let i = 0; i < samples; i++) {
+      const t = (i / (samples - 1)) * days * 24;
+      const v = c.amp * Math.cos(omega * t + c.phase * Math.PI / 180);
+      points.push({ t, v });
+    }
+    const ampMax = c.amp || 0.01;
+    const xScale = t => 50 + (t / (days * 24)) * (W - 70);
+    const yScale = v => yMid - (v / ampMax) * ((yMin - yMax) / 2);
+
+    s += `<line x1="50" y1="${yMid}" x2="${W-20}" y2="${yMid}" stroke="#e6e0d2"/>`;
+
+    let path = '';
+    points.forEach((p, i) => {
+      path += (i === 0 ? 'M' : 'L') + xScale(p.t).toFixed(1) + ',' + yScale(p.v).toFixed(1) + ' ';
+    });
+    s += `<path d="${path}" fill="none" stroke="${c.color}" stroke-width="1.5"/>`;
+
+    s += `<text x="50" y="${yTop + 12}" fill="${c.color}" font-family="JetBrains Mono" font-size="11" font-weight="600">${c.id}</text>`;
+    s += `<text x="${50 + 30}" y="${yTop + 12}" fill="#6b645b" font-family="JetBrains Mono" font-size="10">${c.amp.toFixed(2)} m × cos(2π·t/${c.period.toFixed(2)})</text>`;
+  });
+
+  svg.innerHTML = s;
+}
+
+/* === INIT === */
+
+async function init() {
+  renderHarmonicControls();
+  renderHarmonic();
+
+  // Live data
+  const text = await fetchTrondheimTide();
+  const data = parseTidalWater(text);
+
+  if (!data) {
+    document.getElementById('chart-live').innerHTML =
+      '<text x="400" y="160" text-anchor="middle" fill="#9a9087" font-family="JetBrains Mono" font-size="14">Klarte ikke hente data fra MET. Prøv igjen senere.</text>';
+    return;
+  }
+
+  // Begrenset til neste 72t
+  const now = Date.now();
+  const t72 = now + 72 * 3600 * 1000;
+  const limited = data.filter(d => d.time.getTime() >= now - 6 * 3600 * 1000 && d.time.getTime() <= t72);
+
+  renderLiveChart(document.getElementById('chart-live'), limited);
+
+  // Stats nå
+  const closest = data.reduce((best, d) =>
+    Math.abs(d.time.getTime() - now) < Math.abs(best.time.getTime() - now) ? d : best
+  );
+  document.getElementById('now-level').innerHTML =
+    `${closest.total >= 0 ? '+' : ''}${closest.total.toFixed(2)}<span class="stat-unit">m</span>`;
+
+  // Ekstremer
+  const extremes = findExtremes(limited);
+  const future = extremes.filter(e => e.time.getTime() > now);
+  const nextHigh = future.find(e => e.type === 'high');
+  const nextLow = future.find(e => e.type === 'low');
+
+  if (nextHigh) {
+    const hours = (nextHigh.time.getTime() - now) / 3600000;
+    document.getElementById('next-high').innerHTML =
+      `${HW.fmt.time(nextHigh.time)}<span class="stat-unit"> +${nextHigh.level.toFixed(2)}m</span>`;
+  }
+  if (nextLow) {
+    document.getElementById('next-low').innerHTML =
+      `${HW.fmt.time(nextLow.time)}<span class="stat-unit"> ${nextLow.level >= 0 ? '+' : ''}${nextLow.level.toFixed(2)}m</span>`;
+  }
+
+  // Tidevannsdiff (range mellom neste flo og fjære)
+  if (nextHigh && nextLow) {
+    const diff = Math.abs(nextHigh.level - nextLow.level);
+    document.getElementById('tide-range').innerHTML =
+      `${diff.toFixed(2)}<span class="stat-unit">m</span>`;
+  }
+
+  // Liste over kommende ekstremer (neste 5)
+  const list = document.getElementById('extremes-list');
+  list.innerHTML = future.slice(0, 8).map(e => `
+    <div class="event">
+      <div class="event-time">${HW.fmt.dt(e.time)}</div>
+      <div class="event-name">
+        ${e.type === 'high' ? '↑ Flo' : '↓ Fjære'}
+        <span class="mono small muted">${e.level >= 0 ? '+' : ''}${e.level.toFixed(2)} m</span>
+      </div>
+      <div class="event-meta">
+        om ${Math.round((e.time.getTime() - now) / 3600000)} t
+      </div>
+    </div>
+  `).join('');
+}
+
+init();
+</script>
+</body>
+</html>
