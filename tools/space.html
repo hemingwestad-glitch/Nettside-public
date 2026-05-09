@@ -10,29 +10,91 @@
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..700;1,9..144,400&family=Inter+Tight:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/style.css">
 <style>
-  .sat-canvas { aspect-ratio: 16/10; background: #0a0d14; }
+  /* Globe canvas: WebGL-canvas må ligge inne, men ikke blokkeres av overlays */
+  .sat-canvas {
+    position: relative;
+    aspect-ratio: 16/10;
+    background: #0a0d14;
+    overflow: hidden;
+  }
+  .sat-canvas canvas {
+    display: block;
+    width: 100% !important;
+    height: 100% !important;
+  }
+  .canvas-overlay {
+    position: absolute;
+    pointer-events: none;
+    background: rgba(10, 13, 20, 0.7);
+    color: #d6cfc1;
+    padding: 0.4rem 0.6rem;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.72rem;
+    line-height: 1.4;
+    border: 1px solid rgba(214, 207, 193, 0.15);
+    z-index: 2;
+  }
+  .canvas-overlay.top-left { top: 0.5rem; left: 0.5rem; }
+  .canvas-overlay.bottom-right { bottom: 0.5rem; right: 0.5rem; text-align: right; }
+
+  /* Satellitt-liste */
   .sat-list {
-    max-height: 22rem;
+    max-height: 24rem;
     overflow-y: auto;
     border: 1px solid var(--rule);
     background: var(--bg-card);
   }
   .sat-row {
     display: grid;
-    grid-template-columns: 1fr auto auto;
+    grid-template-columns: auto 1fr auto;
     gap: 0.6rem;
-    padding: 0.5rem 0.7rem;
+    padding: 0.45rem 0.7rem;
     border-bottom: 1px solid var(--rule-soft);
     cursor: pointer;
     align-items: center;
     transition: background 0.1s;
   }
   .sat-row:hover { background: var(--bg-soft); }
-  .sat-row.selected { background: var(--bg-soft); border-left: 3px solid var(--accent); padding-left: calc(0.7rem - 3px); }
+  .sat-row.primary {
+    background: var(--bg-soft);
+    border-left: 3px solid var(--accent);
+    padding-left: calc(0.7rem - 3px);
+  }
   .sat-row .sat-name { font-weight: 500; }
-  .sat-row .sat-meta { font-family: 'JetBrains Mono', monospace; font-size: 0.72rem; color: var(--ink-faint); }
-  .sat-row .sat-freq { font-family: 'JetBrains Mono', monospace; font-size: 0.72rem; color: var(--accent); }
+  .sat-row .sat-meta { font-family: 'JetBrains Mono', monospace; font-size: 0.7rem; color: var(--ink-faint); }
+  .sat-row .sat-freq { font-family: 'JetBrains Mono', monospace; font-size: 0.72rem; color: var(--accent); white-space: nowrap; }
+  .sat-row input[type="checkbox"] {
+    width: auto;
+    margin: 0;
+    cursor: pointer;
+    accent-color: var(--accent);
+  }
+  .sat-color-dot {
+    display: inline-block;
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    margin-right: 0.35rem;
+    vertical-align: middle;
+  }
 
+  /* NORAD-søk */
+  .norad-loader {
+    display: flex;
+    gap: 0.4rem;
+    margin: 0.5rem 0 0.3rem;
+  }
+  .norad-loader input { flex: 1; }
+  .norad-status {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    color: var(--ink-faint);
+    margin: 0 0 0.5rem;
+    min-height: 1rem;
+  }
+  .norad-status.error { color: var(--accent-deep); }
+  .norad-status.success { color: var(--green); }
+
+  /* Frekvensliste */
   .freq-list {
     list-style: none; padding: 0; margin: 0.5rem 0;
     border-top: 1px solid var(--rule-soft);
@@ -48,30 +110,166 @@
     align-items: center;
   }
   .freq-list .freq-mhz { color: var(--accent); font-weight: 500; }
-  .freq-list .freq-mode { color: var(--ink-soft); font-size: 0.78rem; }
+  .freq-list .freq-mode { color: var(--ink-soft); font-size: 0.78rem; font-family: var(--font-body); }
   .freq-list .freq-rx {
-    font-size: 0.7rem;
+    font-size: 0.65rem;
     text-transform: uppercase;
     letter-spacing: 0.05em;
     padding: 0.1rem 0.4rem;
     border-radius: 2px;
+    white-space: nowrap;
   }
   .freq-list .freq-rx.yes { background: var(--green); color: #fff; }
   .freq-list .freq-rx.no  { background: var(--rule); color: var(--ink-faint); }
 
+  /* Utstyrkrav */
+  .equipment-req {
+    margin: 0.6rem 0;
+    padding: 0.6rem 0.8rem;
+    background: var(--bg-soft);
+    border-left: 3px solid var(--blue);
+    font-size: 0.85rem;
+  }
+  .equipment-req strong { color: var(--blue-deep); }
+  .equipment-req ul { margin: 0.3rem 0 0; padding-left: 1.2rem; }
+  .equipment-req li { margin: 0.15rem 0; }
+
+  /* Valgte-bar */
   .selected-bar {
     display: flex;
     align-items: center;
-    gap: 0.75rem;
+    gap: 0.6rem;
     padding: 0.6rem 0.9rem;
     background: var(--bg-soft);
     border: 1px solid var(--rule);
     margin-bottom: 1rem;
     flex-wrap: wrap;
-    font-size: 0.9rem;
+    font-size: 0.88rem;
+    min-height: 3rem;
   }
-  .selected-bar strong { color: var(--ink); }
-  .selected-bar .mono { font-size: 0.78rem; color: var(--ink-soft); }
+  .sat-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.2rem 0.5rem 0.2rem 0.4rem;
+    background: var(--bg-card);
+    border: 1px solid var(--rule);
+    border-radius: 12px;
+    font-size: 0.78rem;
+    font-family: var(--font-mono);
+  }
+  .sat-chip.primary { border-color: var(--accent); background: #fff; }
+  .sat-chip .chip-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .sat-chip .chip-name { font-family: var(--font-body); font-weight: 500; }
+  .sat-chip .chip-x {
+    cursor: pointer;
+    color: var(--ink-faint);
+    font-size: 0.9rem;
+    line-height: 1;
+    padding: 0 0.1rem;
+  }
+  .sat-chip .chip-x:hover { color: var(--accent-deep); }
+  .sat-chip .chip-promote {
+    cursor: pointer;
+    color: var(--ink-faint);
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 0 0.2rem;
+  }
+  .sat-chip .chip-promote:hover { color: var(--accent); }
+
+  /* Pass-prediksjon: retning */
+  .pass-direction {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+  }
+  .pass-direction .arrow {
+    display: inline-block;
+    font-size: 1rem;
+    line-height: 1;
+  }
+  .pass-row-name {
+    font-weight: 500;
+    font-family: var(--font-body);
+  }
+
+  /* Pass-fane satellitt-velger */
+  .pass-sat-picker {
+    display: flex;
+    gap: 0.4rem;
+    flex-wrap: wrap;
+    align-items: center;
+    margin-bottom: 0.75rem;
+    padding: 0.5rem 0.6rem;
+    background: var(--bg-card);
+    border: 1px solid var(--rule-soft);
+  }
+  .pass-sat-picker .picker-label {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--ink-faint);
+    margin-right: 0.3rem;
+  }
+  .pass-sat-picker .sat-mini-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.25rem 0.55rem;
+    border: 1px solid var(--rule);
+    background: var(--bg);
+    cursor: pointer;
+    font-size: 0.78rem;
+    border-radius: 2px;
+    transition: all 0.1s;
+  }
+  .pass-sat-picker .sat-mini-chip:hover { border-color: var(--accent); }
+  .pass-sat-picker .sat-mini-chip.active {
+    background: var(--accent);
+    color: #fff;
+    border-color: var(--accent);
+  }
+  .pass-sat-picker .sat-mini-chip .chip-dot {
+    width: 7px; height: 7px;
+    border-radius: 50%;
+  }
+
+  /* Ground track */
+  #gt-svg {
+    width: 100%;
+    height: auto;
+    display: block;
+    background: #0d1822;
+  }
+  #gt-svg .land { fill: #1f3340; stroke: #2a4555; stroke-width: 0.5; }
+  #gt-svg .grid { stroke: #1a2a36; stroke-width: 0.5; }
+  #gt-svg .equator { stroke: #3a5060; stroke-width: 1; stroke-dasharray: 4,4; }
+
+  /* Kompakte kontroller */
+  .compact-controls {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+    align-items: end;
+    margin-bottom: 0.75rem;
+  }
+  .compact-controls .field { margin-bottom: 0; }
+
+  /* Polar-plot for pass */
+  .polar-plot {
+    width: 220px;
+    height: 220px;
+    flex-shrink: 0;
+  }
 </style>
 </head>
 <body>
@@ -98,14 +296,17 @@
   <h1 class="fade-up">Satellitt-<em>arbeidsbord</em>.</h1>
   <p class="lede fade-up">
     Live tracker i 3D, ground track, TLE-leser, link budget, antenne-beregner,
-    Doppler og pass-prediksjoner. Velg en satellitt fra listen, så følger den
-    med på tvers av fanene. Frekvenser merket <span class="tag green" style="font-size: 0.65rem;">RX</span>
-    kan mottas med vanlig amatørradio-utstyr.
+    Doppler og pass-prediksjoner. Velg én eller flere satellitter fra listen
+    eller hent dem direkte med NORAD-ID. Den primære (rød kant) brukes til
+    detaljer, alle valgte tegnes på globus og kart.
+  </p>
+  <p class="fade-up" style="margin-top: -0.5rem;">
+    <a href="/tools/meteor-guide.html">→ Guide: motta værbilder fra Meteor M2-3 og M2-4</a>
   </p>
 
   <div class="selected-bar" id="selected-bar">
-    <span>Valgt: <strong id="sel-name">— ingen satellitt valgt —</strong></span>
-    <span class="mono" id="sel-meta"></span>
+    <span class="muted small">Valgte:</span>
+    <span id="chip-list"><em class="muted">— ingen —</em></span>
   </div>
 
   <div class="tabs">
@@ -120,16 +321,17 @@
 
   <!-- ═══ LIVE TRACKER ═══ -->
   <div class="tab-panel active" data-panel="live">
-    <div style="display: grid; grid-template-columns: minmax(0,2fr) minmax(16rem,1fr); gap: 1.25rem;">
+    <div style="display: grid; grid-template-columns: minmax(0,2fr) minmax(18rem,1fr); gap: 1.25rem;">
       <div>
-        <div class="canvas-wrap sat-canvas" id="globe-canvas">
-          <div class="canvas-overlay top-left" id="globe-overlay">Klikker globusen for å rotere</div>
+        <div class="sat-canvas" id="globe-canvas">
+          <div class="canvas-overlay top-left" id="globe-overlay">Dra for å rotere · scroll for zoom</div>
           <div class="canvas-overlay bottom-right" id="globe-stats"></div>
         </div>
         <div class="controls-grid" style="margin-top: 0.75rem; display: flex; gap: 0.5rem; flex-wrap: wrap;">
           <button id="btn-spin" class="secondary">Auto-rotér</button>
           <button id="btn-orbit-show" class="secondary">Skjul baner</button>
-          <button id="btn-fly" class="secondary">Følg valgt</button>
+          <button id="btn-fly" class="secondary">Følg primær</button>
+          <button id="btn-reset-cam" class="secondary">Tilbakestill kamera</button>
         </div>
       </div>
       <div>
@@ -143,9 +345,17 @@
           <option value="starlink">Starlink (utvalg)</option>
           <option value="gps-ops">GPS</option>
         </select>
+
+        <div class="norad-loader">
+          <input type="text" id="norad-input" placeholder="NORAD-ID (f.eks. 25544)" inputmode="numeric">
+          <button id="norad-load" class="secondary" style="white-space: nowrap;">Hent TLE</button>
+        </div>
+        <div class="norad-status" id="norad-status"></div>
+
         <div class="sat-list" id="sat-list"></div>
         <p class="muted tiny" style="margin: 0.5rem 0 0;">
-          TLE-data fra CelesTrak. Listen oppdateres ved sidelasting.
+          Klikk navn for å velge primær. Kryss av flere for å vise dem
+          samtidig. TLE fra CelesTrak.
         </p>
       </div>
     </div>
@@ -153,7 +363,7 @@
 
   <!-- ═══ GROUND TRACK ═══ -->
   <div class="tab-panel" data-panel="ground">
-    <div class="controls-grid" style="display: flex; gap: 1rem; flex-wrap: wrap; align-items: end; margin-bottom: 0.75rem;">
+    <div class="compact-controls">
       <div class="field">
         <label>Antall baner</label>
         <select id="gt-orbits">
@@ -173,18 +383,30 @@
       </div>
     </div>
     <div class="chart">
-      <div class="chart-title" id="gt-title">Velg en satellitt for å se ground track</div>
-      <svg id="gt-svg" viewBox="0 0 800 400" preserveAspectRatio="none"></svg>
+      <div class="chart-title" id="gt-title">Velg en eller flere satellitter for å se ground track</div>
+      <svg id="gt-svg" viewBox="0 0 800 400" preserveAspectRatio="xMidYMid meet"></svg>
     </div>
     <p class="muted small">
       Bakkestasjon (Trondheim, 63,43° N / 10,40° E) markert med kryss. Fyldte
       sirkler viser hvor satellitten er over horisonten (≥5° elevasjon).
+      Alle valgte satellitter tegnes — primær med tykkere strek.
     </p>
   </div>
 
   <!-- ═══ PASS-PREDIKSJONER ═══ -->
   <div class="tab-panel" data-panel="passes">
-    <div class="controls-grid" style="display: flex; gap: 1rem; flex-wrap: wrap; align-items: end; margin-bottom: 0.75rem;">
+    <p class="small" style="margin-top: 0;">
+      Beregner kommende passes for valgte satellitter over Trondheim. Peak-elevasjonen
+      finjusteres med gylden-snitt-søk innenfor sample-vinduet, så maks-verdien er
+      stabil mellom kjøringer.
+    </p>
+
+    <div class="pass-sat-picker" id="pass-sat-picker">
+      <span class="picker-label">Velg sat:</span>
+      <em class="muted small">— legg til satellitter fra listen først —</em>
+    </div>
+
+    <div class="compact-controls">
       <div class="field">
         <label>Bakkestasjon</label>
         <input type="text" id="pass-station" value="Trondheim (63.43°N / 10.40°E / 51m)" disabled style="min-width: 18rem;">
@@ -196,6 +418,7 @@
           <option value="5" selected>5°</option>
           <option value="10">10°</option>
           <option value="20">20°</option>
+          <option value="30">30°</option>
         </select>
       </div>
       <div class="field">
@@ -210,20 +433,20 @@
     </div>
 
     <div id="pass-results">
-      <p class="muted">Velg en satellitt og trykk "Beregn passes".</p>
+      <p class="muted">Velg én eller flere satellitter og trykk "Beregn passes".</p>
     </div>
   </div>
 
   <!-- ═══ DOPPLER ═══ -->
   <div class="tab-panel" data-panel="doppler">
     <p>
-      Doppler-skift for radio-mottak fra valgt satellitt over Trondheim.
+      Doppler-skift for radio-mottak fra primær satellitt over Trondheim.
       Når satellitten kommer mot deg blir frekvensen høyere; når den drar
       seg unna lavere. Skift er forholdet mellom radial hastighet og
       lyshastighet, ganget med senderfrekvens.
     </p>
 
-    <div class="controls-grid" style="display: flex; gap: 1rem; flex-wrap: wrap; align-items: end; margin-bottom: 0.75rem;">
+    <div class="compact-controls">
       <div class="field" style="flex: 0 0 13rem;">
         <label>Senderfrekvens (MHz)</label>
         <input type="number" id="dop-freq" value="145.825" step="0.001" min="0">
@@ -234,6 +457,7 @@
           <option value="900">15 min</option>
           <option value="1800" selected>30 min</option>
           <option value="3600">1 time</option>
+          <option value="7200">2 timer</option>
         </select>
       </div>
       <button id="dop-calc">Beregn</button>
@@ -310,10 +534,10 @@
     <div id="lb-verdict" style="margin-top: 0.75rem;"></div>
 
     <p class="muted small" style="margin-top: 1rem;">
-      "Distanse" hentes automatisk fra valgt satellitt om mulig (slant range
+      "Distanse" hentes automatisk fra primær satellitt om mulig (slant range
       ved nåværende posisjon over Trondheim).
     </p>
-    <button id="lb-from-sat" class="secondary">Hent distanse fra valgt satellitt</button>
+    <button id="lb-from-sat" class="secondary">Hent distanse fra primær satellitt</button>
   </div>
 
   <!-- ═══ ANTENNE ═══ -->
@@ -327,7 +551,8 @@
           <option value="yagi3">Yagi 3-elements</option>
           <option value="yagi5">Yagi 5-elements</option>
           <option value="yagi7">Yagi 7-elements</option>
-          <option value="helix">Helix (sirk. polarisert)</option>
+          <option value="qfh">QFH (kvadrifilar helix)</option>
+          <option value="helix">Aksial helix (sirk. polarisert)</option>
         </select>
       </div>
       <div class="field">
@@ -356,7 +581,7 @@
   <div class="tab-panel" data-panel="tle">
     <p>
       Lim inn et TLE (to-linjers element-sett) for å se de orbitale parameterne
-      forklart. Du kan også bytte til en annen satellitt fra listen.
+      forklart. Du kan også hente fra primær satellitt eller via NORAD-ID.
     </p>
 
     <label>TLE (3 linjer: navn + linje 1 + linje 2)</label>
@@ -364,18 +589,20 @@
       placeholder="ISS (ZARYA)
 1 25544U 98067A   24123.50000000  .00012345  00000-0  22822-3 0  9990
 2 25544  51.6400 123.4567 0001234 123.4567 234.5678 15.49000000123456"></textarea>
-    <div style="display: flex; gap: 0.5rem; margin-top: 0.5rem;">
+    <div style="display: flex; gap: 0.5rem; margin-top: 0.5rem; flex-wrap: wrap;">
       <button id="tle-parse">Dekod</button>
-      <button id="tle-from-selected" class="secondary">Hent fra valgt sat.</button>
+      <button id="tle-from-selected" class="secondary">Hent fra primær</button>
+      <input type="text" id="tle-norad-input" placeholder="NORAD-ID" style="max-width: 10rem;">
+      <button id="tle-from-norad" class="secondary">Hent via NORAD-ID</button>
     </div>
 
     <div id="tle-result" style="margin-top: 1rem;"></div>
   </div>
 
   <hr>
-  <h2 class="section-header">Frekvens-database for valgt satellitt</h2>
+  <h2 class="section-header">Frekvens-database for primær satellitt</h2>
   <div id="freq-info">
-    <p class="muted small">Velg en satellitt for å se frekvenser.</p>
+    <p class="muted small">Velg en primær satellitt for å se frekvenser og utstyrkrav.</p>
   </div>
 
   <hr>
@@ -383,7 +610,7 @@
     TLE-data fra <a href="https://celestrak.org" target="_blank" rel="noopener">CelesTrak</a>
     via <code>celestrak.org/NORAD/elements/gp.php</code>. Propagering med
     <a href="https://github.com/shashwatak/satellite-js" target="_blank" rel="noopener">satellite.js</a>
-    (SGP4-implementasjon).
+    (SGP4-implementasjon). Kontinent-omriss er Natural Earth 1:110m, forenklet.
   </p>
 </main>
 
@@ -404,77 +631,185 @@
   }
 }
 </script>
+<script id="land-data" type="application/json">[[[-59.6,-80],[-60.2,-81],[-66.3,-80.3],[-59.6,-80]],[[-159.2,-79.5],[-161.1,-79.6],[-163.7,-78.6],[-161.2,-78.4],[-159.2,-79.5]],[[-45.2,-78],[-43.9,-78.5],[-43.3,-80],[-50.5,-81],[-54.2,-80.6],[-48.7,-78],[-45.2,-78]],[[-99,-71.9],[-96.2,-72.5],[-100.8,-72.5],[-102.3,-71.9],[-99,-71.9]],[[-68.5,-71],[-68.8,-72.2],[-71.1,-72.5],[-74.2,-72.4],[-75,-71.7],[-72.1,-71.2],[-71.7,-69.5],[-70.3,-68.9],[-68.5,-71]],[[-180,-84.7],[-170,-83.9],[-158.1,-85.4],[-143.1,-85],[-153.6,-83.7],[-152.9,-82],[-156.8,-81.1],[-150.6,-81.3],[-146.4,-80.3],[-149.5,-79.4],[-155.3,-79.1],[-158.1,-78],[-158.4,-76.9],[-151.3,-77.4],[-146.1,-76.5],[-146.2,-75.4],[-144.9,-75.2],[-113.9,-73.7],[-112.3,-74.7],[-100.6,-75.3],[-100.1,-74.9],[-102.5,-74.1],[-103.7,-72.6],[-96.3,-73.6],[-90.1,-73.3],[-89.2,-72.6],[-76.2,-74],[-68.9,-73],[-67.1,-72],[-68.5,-69.7],[-67.3,-66.9],[-63,-64.6],[-57.8,-63.3],[-57.6,-63.9],[-62,-64.8],[-62.6,-65.5],[-62.1,-66.2],[-65.7,-68],[-61.8,-70.7],[-60.8,-73.7],[-70.6,-76.6],[-77.2,-76.7],[-73.7,-77.9],[-77.9,-78.4],[-78,-79.2],[-75.4,-80.3],[-59.7,-82.4],[-58.2,-83.2],[-49.8,-81.7],[-42.8,-82.1],[-28.6,-80.3],[-29.7,-79.3],[-35.6,-79.5],[-35.3,-78.1],[-17.5,-75.1],[-15.7,-74.5],[-16.5,-73.9],[-15.4,-73.1],[-10.3,-71.3],[-7.4,-71.7],[-6.9,-70.9],[-0.2,-71.6],[7.7,-69.9],[10.8,-70.8],[13.4,-70],[27.1,-70.5],[32,-69.7],[33.9,-68.5],[38.6,-69.8],[54.5,-65.8],[61.4,-68],[64.1,-67.4],[68.9,-67.9],[69.7,-69.2],[67.8,-70.3],[69.1,-70.7],[67.9,-71.9],[69.9,-72.3],[73.9,-69.9],[77.6,-69.5],[82.8,-67.2],[86.8,-67.1],[88,-66.2],[89.7,-67.1],[95.8,-67.4],[99.7,-67.2],[102.8,-65.6],[106.2,-66.9],[113.6,-65.9],[119.8,-67.3],[123.2,-66.5],[134.8,-66.2],[135.1,-65.3],[137.5,-67],[145.5,-66.9],[148.8,-68.4],[154.3,-68.6],[161.6,-70.6],[171.2,-71.7],[169.3,-73.7],[166.1,-74.4],[163.6,-76.2],[164.7,-78.2],[167,-78.8],[161.8,-79.2],[159.8,-80.9],[169.4,-83.8],[178.3,-84.5],[-180,-84.7]],[[-67.8,-53.8],[-65.1,-54.7],[-69.2,-55.5],[-74.7,-52.8],[-71.1,-54.1],[-69.3,-52.5],[-67.8,-53.8]],[[-58.5,-51.1],[-58,-51.9],[-61.2,-51.8],[-58.5,-51.1]],[[145.4,-40.8],[148.3,-40.9],[147.9,-43.2],[146,-43.5],[144.7,-41.2],[145.4,-40.8]],[[173,-40.9],[174.2,-41.3],[172.7,-43.4],[173.1,-43.9],[171.5,-44.2],[169.3,-46.6],[166.7,-46.2],[167,-45.1],[173,-40.9]],[[174.6,-36.2],[176.8,-37.9],[178.5,-37.7],[178,-39.2],[177.2,-39.1],[175.2,-41.7],[174.7,-41.3],[174.9,-39.9],[173.8,-39.5],[174.7,-37.4],[172.6,-34.5],[174.3,-35.3],[174.6,-36.2]],[[167.1,-22.2],[165.5,-21.7],[164,-20.1],[167.1,-22.2]],[[-180,-16.6],[178.7,-17],[179.4,-16.4],[-179.8,-16],[-180,-16.6]],[[50.1,-13.6],[50.4,-15.7],[49.7,-15.7],[47.1,-24.9],[45.4,-25.6],[44,-25],[43.3,-22.1],[44.4,-20.1],[44.4,-16.2],[47.7,-14.6],[49.2,-12],[50.1,-13.6]],[[143.6,-13.8],[145.4,-15],[146.4,-19],[148.8,-20.4],[149.7,-22.3],[150.7,-22.4],[153.1,-26.1],[153.1,-30.9],[150,-37.4],[146.3,-39],[145,-37.9],[143.6,-38.8],[140.6,-38],[139.6,-36.1],[138.1,-35.6],[138.2,-34.4],[136.8,-35.3],[137.8,-32.9],[136,-34.9],[134.3,-32.6],[131.3,-31.5],[126.1,-32.2],[123.7,-33.9],[119.9,-34],[118,-35.1],[115,-34.2],[115.7,-31.6],[113.3,-26.1],[113.8,-26.5],[113.4,-25.6],[114.2,-26.3],[113.4,-24.4],[114.1,-21.8],[114.2,-22.5],[116.7,-20.7],[120.9,-19.7],[123,-16.4],[123.9,-17.1],[123.5,-16.6],[125.7,-14.2],[127.1,-13.8],[129.6,-15],[130.6,-12.5],[132.6,-12.1],[131.8,-11.3],[132.4,-11.1],[135.3,-12.2],[136.5,-11.9],[137,-12.4],[135.5,-15],[140.2,-17.7],[141.7,-15],[142.1,-11],[142.8,-11.2],[143.6,-13.8]],[[124.4,-10.1],[123.5,-10.2],[124,-9.3],[127.3,-8.4],[124.4,-10.1]],[[108.6,-6.8],[110.8,-6.5],[115.7,-8.4],[108.3,-7.8],[105.4,-6.9],[106.1,-5.9],[108.6,-6.8]],[[152,-5.5],[150.2,-6.3],[148.3,-5.7],[150.1,-5],[150.8,-5.5],[151.5,-4.2],[152.3,-4.3],[152,-5.5]],[[134.1,-1.2],[134.4,-2.8],[135.5,-3.4],[138.3,-1.7],[144.6,-3.9],[147.6,-6.1],[147.2,-7.4],[150.7,-10.6],[147.9,-10.1],[144.7,-7.6],[142.6,-9.3],[139.1,-8.1],[137.6,-8.4],[138.7,-7.3],[137.9,-5.4],[133.7,-3.5],[133,-4.1],[132,-2.8],[133.7,-2.2],[132.2,-2.2],[130.5,-0.9],[132.4,-0.4],[134.1,-1.2]],[[125.2,1.4],[123.7,0.2],[120.2,0.2],[120.9,-1.4],[123.3,-0.6],[121.5,-1.9],[123.2,-5.3],[122.2,-5.3],[122.7,-4.5],[121.5,-4.6],[121,-2.6],[120.3,-2.9],[120.4,-5.5],[119.4,-5.4],[119.5,-3.5],[118.8,-2.8],[120,0.6],[120.9,1.3],[125.2,1.4]],[[128.7,1.1],[128.1,-0.9],[127.6,1.8],[128.7,1.1]],[[105.8,-5.9],[104.7,-5.9],[102.6,-4.2],[95.3,5.5],[97.5,5.2],[103.8,0.1],[103.4,-0.7],[106.1,-3.1],[105.8,-5.9]],[[117.9,1.8],[119,0.9],[117.8,0.8],[116.1,-4],[110.2,-2.9],[109.1,-0.5],[109.7,2],[111.2,1.9],[111.4,2.7],[113,3.1],[116.7,6.9],[119.2,5.4],[117.3,3.2],[117.9,1.8]],[[126.4,8.4],[126.5,7.2],[126.2,6.3],[125.8,7.3],[125.4,6.8],[125.4,5.6],[124.2,6.2],[123.6,7.8],[121.9,7.2],[123.5,8.7],[123.8,8.2],[125.5,9],[125.4,9.8],[126.4,8.4]],[[81.2,6.2],[80.3,6],[79.9,6.8],[80.1,9.8],[81.8,7.5],[81.2,6.2]],[[121.3,18.5],[122.2,18.5],[122.5,17.1],[121.7,15.9],[121.7,14.3],[124,13.8],[124.1,12.5],[122.9,13.6],[120.6,13.9],[121,14.5],[120.1,15],[119.9,16.4],[120.3,16],[120.7,18.5],[121.3,18.5]],[[-72.6,19.9],[-70,19.6],[-68.3,18.6],[-70.7,18.4],[-71.4,17.6],[-73.9,18],[-74.4,18.7],[-72.3,18.7],[-73.4,19.6],[-72.6,19.9]],[[110.3,18.7],[108.7,18.5],[108.6,19.4],[110.8,20.1],[110.3,18.7]],[[-79.7,22.8],[-74.2,20.3],[-77.8,19.9],[-77.1,20.4],[-78.7,21.6],[-81.8,22.6],[-85,21.9],[-82.3,23.2],[-79.7,22.8]],[[121.2,22.8],[120.7,22],[120.1,23.6],[121.5,25.3],[121.2,22.8]],[[15.5,38.2],[15.1,36.6],[12.4,37.6],[15.5,38.2]],[[9.2,41.2],[9.7,39.2],[8.8,38.9],[8.2,41],[9.2,41.2]],[[141,37.1],[140.3,35.1],[137.2,34.6],[135.8,33.5],[135.1,34.6],[131,33.9],[132,33.1],[131.3,31.5],[130.2,31.4],[130.4,32.3],[129.4,33.3],[132.6,35.4],[135.7,35.5],[136.7,37.3],[137.4,36.8],[139.4,38.2],[140.3,41.2],[141.4,41.4],[141.9,40],[141,37.1]],[[143.9,44.2],[145.3,44.4],[145.5,43.3],[143.2,42],[141.6,42.7],[141.1,41.6],[140,41.6],[139.8,42.6],[141.4,43.4],[142,45.6],[143.9,44.2]],[[-123.5,48.5],[-125.7,48.8],[-128.4,50.8],[-125.8,50.3],[-123.5,48.5]],[[-56.1,50.7],[-56.8,49.8],[-53.5,49.2],[-53.8,48.5],[-53.1,48.7],[-52.6,47.5],[-53.1,46.7],[-54.2,46.8],[-54.2,47.8],[-55.4,46.9],[-56.3,47.6],[-59.3,47.6],[-57.4,50.7],[-55.9,51.6],[-56.1,50.7]],[[143.6,50.7],[144.7,49],[143.2,49.3],[142.6,47.9],[143.5,46.1],[142.7,46.7],[142.1,46],[141.7,53.3],[142.7,54.4],[143.6,50.7]],[[-6.8,52.3],[-10,51.8],[-9.2,52.9],[-9.7,53.9],[-6.7,55.2],[-5.7,54.6],[-6.8,52.3]],[[-3,58.6],[-4.1,57.6],[-2,57.7],[-3.1,56],[-2.1,55.9],[0.5,52.9],[1.7,52.7],[1.4,51.3],[-5.2,50],[-3.4,51.4],[-5.3,52],[-4.2,52.3],[-4.6,53.5],[-3.1,53.4],[-2.9,54],[-4.8,54.8],[-5,55.8],[-5.6,55.3],[-6.2,56.8],[-5,58.6],[-3,58.6]],[[-85.2,65.7],[-80.1,63.7],[-83.1,64.1],[-85.5,63.1],[-87.2,63.5],[-85.9,65.7],[-85.2,65.7]],[[-14.5,66.5],[-14.7,65.8],[-13.6,65.1],[-18.7,63.5],[-22.8,64],[-21.8,64.4],[-24,64.9],[-22.2,65.4],[-24.3,65.6],[-22.1,66.4],[-20.6,65.7],[-14.5,66.5]],[[-180,69],[-174.9,67.2],[-174.3,66.3],[-174.6,67.1],[-171.9,66.9],[-169.9,66],[-172.5,65.4],[-173,64.3],[-178.4,65.4],[-178.7,66.1],[-179.9,65.9],[-179.4,65.4],[-180,65],[180,65],[177.4,64.6],[179.4,63],[179.2,62.3],[173.7,61.7],[170.3,59.9],[168.9,60.6],[163.5,59.9],[162,58.2],[163.2,57.6],[163.1,56.2],[161.7,55.3],[162.1,54.9],[160.4,54.3],[160,53.2],[158.5,53],[156.8,51],[155.4,55.4],[155.9,56.8],[163.7,61.1],[164.5,62.6],[160.1,60.5],[159.3,61.8],[156.7,61.4],[154.2,59.8],[155,59.1],[151.3,58.8],[151.3,59.5],[149.8,59.7],[142.2,59],[135.1,54.7],[138.2,53.8],[139.9,54.2],[141.4,52.2],[140.1,48.4],[138.2,46.3],[134.9,43.4],[133.5,42.8],[132.3,43.3],[127.5,39.8],[129.5,36.8],[129.1,35.1],[126.5,34.4],[126.1,36.7],[126.9,36.9],[124.7,38.1],[125.3,39.6],[124.3,39.9],[121.1,38.9],[122.2,40.4],[121.6,40.9],[118,39.2],[117.5,38.7],[118.9,37.4],[122.4,37.5],[122.5,36.9],[119.2,34.9],[121.9,31.7],[121.3,30.7],[122.1,29.8],[121.7,28.2],[118.7,24.5],[115.9,22.8],[110.8,21.4],[110.4,20.3],[109.9,20.3],[109.9,21.4],[108.5,21.7],[105.9,19.8],[105.7,19.1],[108.9,15.3],[109.3,13.4],[109.2,11.7],[105.2,8.6],[105.1,9.9],[103.5,10.6],[102.6,12.2],[100.8,12.6],[101,13.4],[100.1,13.4],[99.2,9.2],[103,5.5],[104.2,1.3],[101.4,2.8],[100.1,6.5],[98.5,8.4],[98.3,7.8],[98.8,11.4],[97.2,16.9],[95.4,15.7],[94.2,16],[94.3,18.2],[91.4,22.8],[90.5,22.8],[90.3,21.8],[87,21.5],[86.5,20.2],[82.2,16.6],[80.3,15.9],[79.9,10.4],[77.5,8],[73.5,16],[72.6,21.4],[70.5,20.9],[66.4,25.4],[61.5,25.1],[57.4,25.7],[56.5,27.1],[54.7,26.5],[51.5,27.9],[50.1,30.1],[48,30],[50.8,24.8],[51,26],[51.6,25.8],[51.8,24],[54,24.1],[56.4,26.4],[56.8,24.2],[59.8,22.3],[57.8,20.2],[57.7,18.9],[55.3,17.2],[52.4,16.4],[52.2,15.6],[48.7,14],[43.5,12.6],[42.7,16.8],[39.1,21.3],[38.5,23.7],[34.6,28.1],[34.9,29.5],[33.9,27.6],[32.4,29.9],[35.5,23.1],[36.9,22],[37.5,18.6],[39.3,15.9],[43.3,12.4],[42.7,11.7],[44.6,10.4],[51.1,12],[51,10.6],[47.7,4.2],[40.3,-2.6],[39.2,-4.7],[38.8,-6.5],[40.5,-10.8],[40.8,-14.7],[39.5,-16.7],[34.8,-19.8],[35.5,-24.1],[32.6,-25.7],[32.2,-28.8],[28.2,-32.8],[25.8,-33.9],[22.6,-33.9],[19.6,-34.8],[18.2,-33.9],[18.2,-31.7],[15.2,-27.1],[14.3,-22.1],[11.8,-18.1],[11.8,-15.8],[13.7,-10.7],[11.9,-5],[8.8,-1.1],[9.4,3.7],[8.5,4.8],[5.9,4.3],[4.3,6.3],[-2,4.7],[-9,4.8],[-12.4,7.3],[-14.8,10.9],[-16.6,12.2],[-17.6,14.7],[-16.1,18.1],[-17,21.9],[-14.4,26.3],[-9.6,29.9],[-9.3,32.6],[-6.9,34.1],[-5.9,35.8],[-2.2,35.2],[1.5,36.6],[9.5,37.4],[11.1,36.9],[10.3,33.8],[19.1,30.3],[20.1,31],[20.1,32.2],[21.5,32.8],[28.9,30.9],[31,31.6],[33.8,31],[36,34.6],[36.2,36.7],[32.5,36.1],[27.6,36.7],[26.2,39.5],[29.2,41.2],[33.5,42],[38.3,40.9],[40.4,41],[41.7,42],[36.7,45.2],[39.1,47.3],[35,46.3],[36.3,45.1],[33.9,44.4],[32.5,45.3],[33.3,46.1],[30.7,46.6],[28.8,44.9],[27.7,42.6],[28.8,41.1],[26.4,40.2],[24.9,40.9],[23.7,40.7],[24.4,40.1],[23.9,40],[22.6,40.3],[24,37.7],[23.1,37.9],[23.2,36.4],[22.5,36.4],[19.4,40.3],[19.5,41.7],[13.1,45.7],[12.3,45.4],[12.6,44.1],[18.5,40.2],[16.9,40.4],[17.1,38.9],[16.1,38],[15.4,40],[8.9,44.4],[6.5,43.1],[3.1,43.1],[3,41.9],[0.8,41],[-0.3,39.3],[0.1,38.7],[-2.1,36.7],[-5.4,35.9],[-6.5,36.9],[-8.9,36.9],[-9.4,43],[-8,43.7],[-1.9,43.4],[-1.4,44],[-1.2,46],[-4.5,48],[-4.6,48.7],[-1.6,48.6],[-1.9,49.8],[-1,49.3],[1.3,50.1],[1.6,50.9],[3.8,51.6],[4.7,53.1],[8.1,53.5],[8.8,54],[8.1,55.5],[8.5,57.1],[10.6,57.7],[10.3,56.9],[10.9,56.5],[9.6,55.5],[10.9,54],[12.5,54.5],[14.1,53.8],[17.6,54.9],[19.7,54.4],[21.3,55.2],[21.6,57.4],[24.1,57],[24.4,58.4],[23.3,59.2],[29.1,60],[28.1,60.5],[22.9,59.8],[21.3,60.7],[21.5,63.2],[25.4,65.1],[23.9,66],[22.2,65.7],[21.4,64.4],[17.8,62.7],[17.1,61.3],[18.8,60.1],[16.8,58.7],[15.9,56.1],[12.9,55.4],[10.4,59.5],[8.4,58.3],[5.7,58.6],[5,62],[5.9,62.6],[10.5,64.5],[14.8,67.8],[19.2,69.8],[24.5,71],[28.2,71.2],[31.3,70.5],[30,70.2],[31.1,69.6],[32.1,69.9],[40.3,67.9],[41.1,66.8],[40,66.3],[33.2,66.6],[34.8,65.9],[34.9,64.4],[37,63.9],[36.5,64.8],[37.2,65.1],[39.6,64.5],[40.4,64.8],[39.8,65.5],[42.1,66.5],[44,66.1],[44.5,66.8],[43.5,68.6],[46.3,68.2],[46.8,67.7],[45.6,67],[46.3,66.7],[53.7,68.9],[54.5,68.8],[53.5,68.2],[58.8,68.9],[59.9,68.3],[61.1,68.9],[60,69.5],[60.6,69.9],[68.5,68.1],[69.2,68.6],[66.9,69.5],[66.7,71],[69.2,72.8],[72.6,72.8],[71.8,71.4],[72.8,70.4],[72.6,69],[73.7,68.4],[71.3,66.3],[72.4,66.2],[75.1,67.8],[74.5,68.3],[74.9,69],[73.6,69.6],[74.4,70.6],[73.1,71.4],[74.9,72.1],[74.7,72.8],[75.7,72.3],[75.3,71.3],[76.4,71.2],[75.9,71.9],[77.6,72.3],[81.5,71.7],[80.5,73.6],[86.8,73.9],[86,74.5],[87.2,75.1],[100.8,76.4],[104.4,77.7],[107.2,76.5],[111.1,76.7],[114.1,75.8],[109.4,74.2],[123.2,73],[123.3,73.7],[127,73.6],[128.6,73],[129.1,72.4],[128.5,72],[131.3,70.8],[132.3,71.8],[139.9,71.5],[139.1,72.4],[140.5,72.8],[149.5,72.2],[153,70.8],[159,70.9],[160.9,69.4],[167.8,69.6],[169.6,68.7],[170.8,69],[170,69.7],[170.5,70.1],[178.6,69.4],[-180,69]],[[-95.6,69.1],[-99.8,69.4],[-98.2,70.1],[-95.6,69.1]],[[-90.5,69.5],[-90.5,68.5],[-89.2,69.3],[-87.3,67.2],[-85.6,68.8],[-85.5,69.9],[-82.6,69.7],[-81.3,69.2],[-82,68.1],[-81.3,67.6],[-83.3,66.4],[-85.8,66.6],[-87.3,64.8],[-93.2,62],[-94.7,58.9],[-93.2,58.8],[-92.3,57.1],[-82.3,55.1],[-82.1,53.3],[-79.9,51.2],[-78.6,52.6],[-79.8,54.7],[-76.5,56.5],[-78.5,58.8],[-77.3,59.9],[-78.1,62.3],[-73.8,62.4],[-69.6,61.1],[-69.3,59],[-67.7,58.2],[-64.6,60.3],[-61.4,57],[-61.8,56.3],[-57.3,54.6],[-55.8,53.3],[-55.7,52.1],[-60,50.2],[-66.4,50.2],[-71.1,46.8],[-65.1,49.2],[-64.2,48.7],[-65.1,48.1],[-64.5,46.2],[-61.5,45.9],[-60.5,47],[-59.8,45.9],[-65.4,43.5],[-66.1,43.6],[-66.2,44.5],[-64.4,45.3],[-67.1,45.1],[-70.7,43],[-70,41.6],[-73.7,40.9],[-71.9,40.9],[-74,40.8],[-74.9,38.9],[-75.5,39.5],[-75.1,38.4],[-75.9,37.2],[-76.4,39.1],[-76.3,38.1],[-77,38.2],[-75.7,35.6],[-81.3,31.4],[-80.1,26.9],[-80.4,25.2],[-81.7,25.9],[-82.9,29.1],[-84.1,30.1],[-89.2,30.3],[-89.2,29.3],[-90.2,29.1],[-93.8,29.7],[-96.6,28.3],[-97.4,27.4],[-97.9,22.4],[-96.3,19.3],[-94.4,18.1],[-92,18.7],[-90.8,19.3],[-90.3,21],[-87.1,21.5],[-88.9,15.9],[-85,16],[-83.4,15.3],[-83.8,11.1],[-81.4,8.8],[-79.6,9.6],[-76.8,8.6],[-74.9,11.1],[-71.8,12.4],[-71.1,12.1],[-71.9,11.4],[-71.7,9.1],[-71,9.9],[-71.4,11],[-69.9,12.2],[-68.2,10.6],[-64.9,10.1],[-61.9,10.7],[-62.7,10.4],[-62.4,9.9],[-57.1,6],[-54,5.8],[-51.3,4.2],[-50,1.7],[-50.4,-0.1],[-48.6,-0.2],[-48.6,-1.2],[-47.8,-0.6],[-44.9,-1.6],[-44.6,-2.7],[-40,-2.9],[-35.6,-5.1],[-34.7,-7.3],[-35.1,-9],[-38.7,-13.1],[-39.3,-17.9],[-40.9,-21.9],[-42,-23],[-47.6,-24.9],[-48.9,-28.7],[-53.8,-34.4],[-56.2,-34.9],[-58.4,-33.9],[-56.8,-36.9],[-59.2,-38.7],[-62.3,-38.8],[-62.1,-40.7],[-62.7,-41],[-65.1,-41.1],[-65,-42.1],[-63.5,-42.6],[-65.2,-43.5],[-65.6,-45],[-67.3,-45.6],[-67.6,-46.3],[-65.6,-47.2],[-66,-48.1],[-69.1,-50.7],[-68.2,-52.4],[-70.8,-52.9],[-71,-53.8],[-74.9,-52.3],[-75.6,-48.7],[-74.1,-46.9],[-75.6,-46.6],[-74.4,-44.1],[-73.2,-44.5],[-72.7,-42.4],[-73.4,-42.1],[-73.7,-43.4],[-74.3,-43.2],[-73.2,-39.3],[-73.6,-37.2],[-71.4,-32.4],[-70.2,-19.8],[-71.5,-17.4],[-76,-14.6],[-79.8,-7.2],[-81.3,-6.1],[-81.4,-4.7],[-79.8,-2.7],[-81,-2.2],[-80.9,-1.1],[-77.1,3.8],[-78.2,8.3],[-79.6,8.9],[-80.9,7.2],[-85.7,9.9],[-85.7,11.1],[-87.5,13.3],[-91.2,13.9],[-94.7,16.2],[-96.6,15.7],[-103.5,18.3],[-105.5,19.9],[-106,22.8],[-109.3,25.6],[-109.3,26.4],[-112.2,29],[-113.9,31.6],[-114.8,31.8],[-114.7,30.2],[-109.4,23.4],[-110,22.8],[-112.2,24.7],[-112.3,26],[-115.1,27.7],[-114.2,28.6],[-115.5,29.6],[-117.3,33],[-120.6,34.6],[-124.4,40.3],[-123.9,45.5],[-124.7,48.2],[-123.1,48],[-122.6,47.1],[-122.8,49],[-127.4,50.8],[-127.8,52.3],[-129.1,52.8],[-134.1,58.1],[-147.1,60.9],[-148.2,60.7],[-148,60],[-151.7,59.2],[-150.6,61.3],[-154,59.4],[-153.3,58.9],[-154.2,58.1],[-158.4,56],[-164.8,54.4],[-157.7,57.6],[-157,58.9],[-162,58.7],[-161.9,59.6],[-163.8,59.8],[-166.1,61.5],[-164.6,63.1],[-160.8,63.8],[-161.5,64.4],[-160.8,64.8],[-165,64.4],[-168.1,65.7],[-164.5,66.6],[-161.7,66.1],[-166.8,68.4],[-161.9,70.3],[-156.6,71.4],[-136.5,68.9],[-129.1,69.8],[-128.1,70.5],[-125.8,69.5],[-124.4,70.2],[-124.3,69.4],[-121.5,69.8],[-115.2,68.9],[-113.9,68.4],[-115.3,67.9],[-109.9,68],[-108.9,67.4],[-107.8,67.9],[-108.8,68.3],[-108.2,68.7],[-106.1,68.8],[-101.5,67.6],[-98.4,67.8],[-98.6,68.4],[-97.7,68.6],[-96.1,68.2],[-96.1,67.3],[-94.2,69.1],[-96.5,70.1],[-96.4,71.2],[-95.2,71.9],[-92.9,71.3],[-91.5,70.2],[-92.4,69.7],[-90.5,69.5]],[[-114.2,73.1],[-114.7,72.7],[-111.1,72.5],[-109.9,73],[-108.2,71.7],[-107.7,72.1],[-108.4,73.1],[-106.5,73.1],[-105.4,72.7],[-104.5,71],[-101,70],[-102.7,69.5],[-102.4,68.8],[-113.3,68.5],[-116.1,69.2],[-117.3,70],[-112.4,70.4],[-117.9,70.5],[-118.4,70.9],[-116.1,71.3],[-119.4,71.6],[-117.9,72.7],[-114.2,73.1]],[[-76.3,73.1],[-79.5,72.7],[-80.9,73.3],[-76.3,73.1]],[[-86.6,73.2],[-85.8,72.5],[-82.3,73.8],[-80.6,72.7],[-80.8,72.1],[-77.8,72.8],[-74.1,71.3],[-72.2,71.6],[-67.9,70.1],[-67,69.2],[-68.8,68.7],[-61.9,66.9],[-63.9,65],[-66.7,66.4],[-68,66.3],[-68.1,65.7],[-64.7,63.4],[-65,62.7],[-68.8,63.7],[-66.2,61.9],[-71,62.9],[-74.8,64.7],[-77.7,64.2],[-78.6,64.6],[-77.9,65.3],[-74,65.5],[-72.9,67.7],[-79,70.2],[-88.7,70.4],[-89.5,70.8],[-88.5,71.2],[-89.9,71.2],[-90.2,72.2],[-88.4,73.5],[-85.8,73.8],[-86.6,73.2]],[[-100.4,73.8],[-97.4,73.8],[-98.1,73],[-96.5,72.6],[-96.7,71.7],[-99.3,71.4],[-102.5,72.5],[-100.4,72.7],[-101.5,73.4],[-100.4,73.8]],[[-93.2,72.8],[-95.4,72.1],[-96,73.4],[-94.5,74.1],[-90.5,73.9],[-93.2,72.8]],[[-120.5,71.4],[-123.1,70.9],[-125.9,71.9],[-123.9,73.7],[-124.9,74.3],[-117.6,74.2],[-115.5,73.5],[-119.2,72.5],[-120.5,71.4]],[[-93.6,75],[-96.8,74.9],[-94.9,75.6],[-93.6,75]],[[145.1,75.6],[144.3,74.8],[139,74.6],[137,75.3],[138.8,76.1],[145.1,75.6]],[[-98.5,76.7],[-97.7,76.3],[-98.2,75],[-102.5,75.6],[-102.6,76.3],[-98.5,76.7]],[[-108.2,76.2],[-105.9,76],[-106.3,75],[-113.7,74.4],[-111.8,75.2],[-117.7,75.2],[-115.4,76.5],[-109.1,75.5],[-110.5,76.4],[-108.2,76.2]],[[57.5,70.7],[51.6,71.5],[52.4,72.8],[54.4,73.6],[53.5,73.8],[55.9,74.6],[55.6,75.1],[66.2,76.8],[68.9,76.5],[58.5,74.3],[55.4,72.4],[55.6,71.5],[57.5,70.7]],[[-94.7,77.1],[-89.2,75.6],[-81.1,75.7],[-79.8,74.9],[-92.4,74.8],[-93.9,76.3],[-97.1,76.8],[-94.7,77.1]],[[-116.2,77.6],[-117.1,76.5],[-122.9,76.1],[-119.1,77.5],[-116.2,77.6]],[[24.7,77.9],[20.7,77.7],[21.4,77.9],[20.8,78.3],[22.9,78.5],[24.7,77.9]],[[-95.8,78.1],[-98.1,78.1],[-98.6,78.9],[-95.8,78.1]],[[-100.1,78.3],[-105.2,78.4],[-104.2,78.7],[-105.5,79.3],[-100.1,78.3]],[[105.1,78.3],[99.4,77.9],[102.1,79.3],[105.1,78.3]],[[18.3,79.7],[21.5,79],[19,78.6],[17.1,76.8],[15.9,76.8],[10.4,79.7],[18.3,79.7]],[[25.4,80.4],[27.4,80.1],[23,79.4],[17.4,80.3],[25.4,80.4]],[[51.1,80.5],[47.6,80],[44.8,80.6],[51.1,80.5]],[[99.9,78.9],[95,79],[91.2,80.3],[95.9,81.3],[100.2,79.8],[99.9,78.9]],[[-87,79.7],[-85.8,79.3],[-90.8,78.2],[-92.9,78.3],[-94,78.8],[-93.1,79.4],[-96.7,80.2],[-94.7,81.2],[-92.4,81.3],[-87,79.7]],[[-68.5,83.1],[-61.9,82.4],[-67.7,81.5],[-65.5,81.5],[-71.2,79.8],[-76.9,79.3],[-75.5,79.2],[-76.2,79],[-75.4,78.5],[-79.8,77.2],[-77.9,76.8],[-80.6,76.2],[-89.5,76.5],[-87.8,77.2],[-88.3,77.9],[-85,77.5],[-88,78.4],[-85.1,79.3],[-86.9,80.3],[-81.8,80.5],[-87.6,80.5],[-91.6,81.9],[-79.3,83.1],[-68.5,83.1]],[[-27.1,83.5],[-20.8,82.7],[-31.4,82],[-22.9,82.1],[-22.1,81.7],[-23.2,81.2],[-15.8,81.9],[-12.2,81.3],[-20,80.2],[-17.7,80.1],[-19.7,78.8],[-19.7,77.6],[-18.5,77],[-21.7,76.6],[-19.8,76.1],[-19.6,75.2],[-20.7,75.2],[-19.4,74.3],[-23.6,73.3],[-22.3,72.2],[-24.8,72.3],[-22.1,71.5],[-21.8,70.7],[-23.5,70.5],[-25.5,71.4],[-25.2,70.8],[-26.4,70.2],[-22.3,70.1],[-39.8,65.5],[-41.2,63.5],[-42.8,62.7],[-42.4,61.9],[-43.4,60.1],[-48.3,60.9],[-51.6,63.6],[-54,67.2],[-50.9,69.9],[-54.7,69.6],[-54.4,70.8],[-51.4,70.6],[-55.8,71.7],[-54.7,72.6],[-58.6,75.5],[-68.5,76.1],[-71.4,77],[-66.8,77.4],[-73.3,78],[-65.7,79.4],[-68,80.1],[-62.2,81.3],[-62.6,81.8],[-50.4,82.4],[-44.5,81.7],[-46.8,82.6],[-43.4,83.2],[-27.1,83.5]]]</script>
 <script type="module">
+/* ═══════════════════════════════════════════════════════════════════════
+   SATELLITT-ARBEIDSBORD — JS
+   Multi-select, NORAD-søk, ground track med kontinent-omriss,
+   robust pass-prediksjon med peak refinement.
+   ═══════════════════════════════════════════════════════════════════════ */
+
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
-/* ═══════════════════════════════════════════════════════════════════════
-   FREKVENSDATABASE
-   "rx: true" betyr enkelt mottakbart med amatør-utstyr (VHF/UHF SDR).
-   "rx: false" er kommersielle/militære/krypterte sendinger.
-   ═══════════════════════════════════════════════════════════════════════ */
+const satelliteJS = window.satellite;
 
+/* ═══ FREKVENSDATABASE ═══════════════════════════════════════════════
+   freqs: [{ mhz, mode, rx (mottakbart med vanlig amatør-utstyr), data (data type)}]
+   equipment: { antenna: anbefalt antennetype, lna: trenger LNA?, filter: BS-filter? }
+   notes: tekstforklaring
+   ═══════════════════════════════════════════════════════════════════ */
 const FREQUENCIES = {
-  // ISS — Den internasjonale romstasjonen
+  // ═══ ROMSTASJONEN ═══
   '25544': {
     label: 'ISS',
-    notes: 'Romstasjonen sender APRS i 145.825 nesten kontinuerlig. Voice-repeater på 437.800/145.990 åpner periodisk. SSTV-bilder slippes ut ved spesielle anledninger på 145.800.',
+    notes: 'Romstasjonen sender APRS i 145.825 nesten kontinuerlig. Voice-repeater åpner periodisk. SSTV-bilder slippes ut ved spesielle anledninger.',
+    equipment: {
+      antenna: 'Halvbølge-dipol eller vertikal antenne (VHF/UHF)',
+      lna: 'Ikke nødvendig — sterkt signal',
+      filter: 'FM-bandstop hjelper hvis du bor i by'
+    },
     freqs: [
-      { mhz: 145.825,  mode: 'APRS digipeater (FM/AFSK 1200)', rx: true },
-      { mhz: 145.800,  mode: 'SSTV (når aktiv)', rx: true },
-      { mhz: 437.800,  mode: 'Voice repeater (FM, ned)', rx: true },
-      { mhz: 145.990,  mode: 'Voice repeater (FM, opp)', rx: false },
-      { mhz: 143.625,  mode: 'Russisk voice (FM)', rx: true },
+      { mhz: 145.825, mode: 'APRS digipeater (FM/AFSK 1200 bd)', data: 'pakkedata, posisjonsmeldinger', rx: true },
+      { mhz: 145.800, mode: 'SSTV (når aktiv)', data: 'analoge bilder fra mannskapet', rx: true },
+      { mhz: 437.800, mode: 'Voice repeater (FM, ned)', data: 'tale fra mannskapet', rx: true },
+      { mhz: 145.990, mode: 'Voice repeater (FM, opp)', data: 'krever lisens', rx: false },
+      { mhz: 143.625, mode: 'Russisk voice (FM)', data: 'tale, sjelden aktiv', rx: true },
     ]
   },
-  // NOAA APT-satellitter — vær
-  '25338': { label: 'NOAA-15', notes: 'APT 137 MHz. Sender kontinuerlig værbilder. Kan tas opp med en enkel V-dipol og en RTL-SDR.', freqs: [
-    { mhz: 137.620,  mode: 'APT (analog FM)', rx: true },
-    { mhz: 1702.5,   mode: 'HRPT (digital)', rx: false },
-  ]},
-  '28654': { label: 'NOAA-18', notes: 'APT 137 MHz. Lik NOAA-15.', freqs: [
-    { mhz: 137.9125, mode: 'APT (analog FM)', rx: true },
-    { mhz: 1707.0,   mode: 'HRPT (digital)', rx: false },
-  ]},
-  '33591': { label: 'NOAA-19', notes: 'APT 137 MHz. Beste av NOAA-flåten i 2026.', freqs: [
-    { mhz: 137.100,  mode: 'APT (analog FM)', rx: true },
-    { mhz: 1698.0,   mode: 'HRPT (digital)', rx: false },
-  ]},
-  // Meteor-M2 — russisk vær
-  '40069': { label: 'Meteor-M2', notes: 'LRPT digital værsatellitt. Krever SDR + LRPT-dekoder, men gir mye bedre bilder enn APT.', freqs: [
-    { mhz: 137.100,  mode: 'LRPT (QPSK 72k)', rx: true },
-  ]},
-  // AMSAT-OSCAR
-  '43017': { label: 'FOX-1B (AO-91)', notes: 'AMSAT-OSCAR repeater (FM). Krever ofte direktiv antenne og litt øvelse for å få ren mottak.', freqs: [
-    { mhz: 145.960,  mode: 'Voice repeater opp (FM)', rx: false },
-    { mhz: 435.250,  mode: 'Voice repeater ned (FM)', rx: true },
-  ]},
-  '43137': { label: 'FOX-1D (AO-92)', notes: 'AMSAT-OSCAR repeater. Samme prinsipp som AO-91.', freqs: [
-    { mhz: 435.350,  mode: 'Voice repeater ned (FM)', rx: true },
-    { mhz: 145.880,  mode: 'Voice repeater opp (FM)', rx: false },
-  ]},
-  // ARISS skolekontakt
-  '50467': { label: 'RS-44', notes: 'Russisk amatørrepeater i Molnija-bane. SSB/CW lineær transponder.', freqs: [
-    { mhz: 435.610,  mode: 'Lineær transponder ned', rx: true },
-    { mhz: 145.965,  mode: 'Lineær transponder opp', rx: false },
-  ]},
-  // PicSat / generic CubeSats
-  '__GENERIC_CUBESAT__': { label: 'Generisk CubeSat', freqs: [
-    { mhz: 437.0, mode: 'Telemetri (BPSK/GMSK 9k6)', rx: true },
-  ]},
-  // GPS
-  '__GENERIC_GPS__': { label: 'GPS / Navigation', notes: 'L1 og L5 er åpne signaler men krever GPS-mottaker, ikke vanlig SDR.', freqs: [
-    { mhz: 1575.42, mode: 'L1 C/A (BPSK)', rx: false },
-    { mhz: 1227.60, mode: 'L2 (begrenset)', rx: false },
-  ]},
-  // Starlink (downlink ikke mottakbart med vanlig utstyr)
-  '__GENERIC_STARLINK__': { label: 'Starlink', notes: 'Ku/Ka-bånd, kryptert, ikke mottakbart med amatørutstyr. Inkludert her bare for sporing.', freqs: [
-    { mhz: 12000, mode: 'Ku-bånd ned (krypt.)', rx: false },
-    { mhz: 14000, mode: 'Ku-bånd opp (krypt.)', rx: false },
-  ]},
+  // ═══ NOAA APT (vær) ═══
+  '25338': {
+    label: 'NOAA-15',
+    notes: 'APT (Automatic Picture Transmission) på 137 MHz — kontinuerlig analog værsendinger. Krever lite utstyr men gir grovere bilder enn LRPT.',
+    equipment: {
+      antenna: 'V-dipol horisontal, eller QFH (best). Armlengde ~54 cm per side',
+      lna: 'Anbefales hvis dipol — gir merkbart bedre bilder',
+      filter: 'FM-bandstop sterkt anbefalt (FM-band 88-108 MHz overlater til 137)'
+    },
+    freqs: [
+      { mhz: 137.620, mode: 'APT (analog FM, 4 kHz dev.)', data: 'analoge IR/synlig værbilder', rx: true },
+      { mhz: 1702.5,  mode: 'HRPT (digital, 1.7 GHz)', data: 'hi-res værbilder, krever parabol', rx: false },
+    ]
+  },
+  '28654': {
+    label: 'NOAA-18',
+    notes: 'APT 137 MHz. Lik NOAA-15.',
+    equipment: {
+      antenna: 'V-dipol horisontal eller QFH. Armlengde ~54 cm per side',
+      lna: 'Anbefales',
+      filter: 'FM-bandstop sterkt anbefalt'
+    },
+    freqs: [
+      { mhz: 137.9125, mode: 'APT (analog FM)', data: 'analoge værbilder', rx: true },
+      { mhz: 1707.0,   mode: 'HRPT (1.7 GHz)', data: 'hi-res, krever parabol', rx: false },
+    ]
+  },
+  '33591': {
+    label: 'NOAA-19',
+    notes: 'APT 137 MHz. Ofte den beste APT-satellitten.',
+    equipment: {
+      antenna: 'V-dipol horisontal eller QFH. Armlengde ~54 cm per side',
+      lna: 'Anbefales',
+      filter: 'FM-bandstop sterkt anbefalt'
+    },
+    freqs: [
+      { mhz: 137.100, mode: 'APT (analog FM)', data: 'analoge værbilder', rx: true },
+      { mhz: 1698.0,  mode: 'HRPT (1.7 GHz)', data: 'hi-res, krever parabol', rx: false },
+    ]
+  },
+  // ═══ METEOR M2-3 og M2-4 ═══
+  '57166': {
+    label: 'METEOR-M 2-3',
+    notes: 'Russisk LRPT-værsatellitt på 137,9 MHz. Digitalt QPSK-signal som gir mye bedre bilder enn NOAA APT, men krever LRPT-dekoder (SatDump). Symbol rate kan veksle mellom 72k og 80k uten varsel.',
+    equipment: {
+      antenna: 'V-dipol horisontal (~54 cm armer) eller QFH (sterkt anbefalt for høyere elevasjon)',
+      lna: 'Anbefales — øker SNR merkbart, særlig på lavere passes',
+      filter: 'FM-bandstop sterkt anbefalt (FM-stasjoner på 88-108 MHz forstyrrer)'
+    },
+    freqs: [
+      { mhz: 137.900, mode: 'LRPT (QPSK, 72k eller 80k)', data: 'digitale MSU-MR-værbilder (3 kanaler, dagside og IR)', rx: true },
+    ]
+  },
+  '59051': {
+    label: 'METEOR-M 2-4',
+    notes: 'Søsterssatellitt til M2-3. Samme frekvens og protokoll. Symbol rate veksler mellom 72k og 80k.',
+    equipment: {
+      antenna: 'V-dipol horisontal (~54 cm armer) eller QFH',
+      lna: 'Anbefales',
+      filter: 'FM-bandstop anbefalt'
+    },
+    freqs: [
+      { mhz: 137.900, mode: 'LRPT (QPSK, 72k eller 80k)', data: 'digitale MSU-MR-værbilder', rx: true },
+    ]
+  },
+  // ═══ AMSAT-OSCAR ═══
+  '43017': {
+    label: 'FOX-1B (AO-91)',
+    notes: 'AMSAT-OSCAR repeater (FM). Krever ofte direktiv antenne for ren mottak.',
+    equipment: {
+      antenna: 'Yagi 3-5 elements (2m for opp, 70cm for ned), eller Arrow-antenne',
+      lna: 'Anbefales på 70cm',
+      filter: 'Ikke nødvendig'
+    },
+    freqs: [
+      { mhz: 145.960, mode: 'Voice repeater opp (FM, 67 Hz CTCSS)', data: 'krever lisens', rx: false },
+      { mhz: 435.250, mode: 'Voice repeater ned (FM)', data: 'tale-QSO', rx: true },
+    ]
+  },
+  '43137': {
+    label: 'FOX-1D (AO-92)',
+    notes: 'AMSAT-OSCAR repeater. Samme prinsipp som AO-91.',
+    equipment: {
+      antenna: 'Yagi 3-5 elements eller Arrow',
+      lna: 'Anbefales på 70cm',
+      filter: 'Ikke nødvendig'
+    },
+    freqs: [
+      { mhz: 435.350, mode: 'Voice repeater ned (FM)', data: 'tale-QSO', rx: true },
+      { mhz: 145.880, mode: 'Voice repeater opp (FM)', data: 'krever lisens', rx: false },
+    ]
+  },
+  '50467': {
+    label: 'RS-44',
+    notes: 'Russisk amatørrepeater i Molnija-bane. SSB/CW lineær transponder — flere QSO-er samtidig.',
+    equipment: {
+      antenna: 'Yagi (2m og 70cm) eller QFH',
+      lna: 'Anbefales',
+      filter: 'Ikke nødvendig'
+    },
+    freqs: [
+      { mhz: 435.610, mode: 'Lineær transponder ned (SSB/CW)', data: 'tale og morse', rx: true },
+      { mhz: 145.965, mode: 'Lineær transponder opp', data: 'krever lisens', rx: false },
+    ]
+  },
+  // ═══ Generiske kategorier ═══
+  '__GENERIC_CUBESAT__': {
+    label: 'Generisk CubeSat',
+    notes: 'Mange CubeSats har telemetri på 70cm. Sjekk SatNOGS eller AMSAT for spesifikk frekvens.',
+    equipment: {
+      antenna: 'Yagi 3+ elements anbefalt for svake signaler',
+      lna: 'Anbefales',
+      filter: 'Ikke kritisk'
+    },
+    freqs: [
+      { mhz: 437.0, mode: 'Telemetri (BPSK/GMSK 9k6 bd)', data: 'helsedata, posisjon', rx: true },
+    ]
+  },
+  '__GENERIC_GPS__': {
+    label: 'GPS / Navigation',
+    notes: 'L1 og L5 er åpne signaler men krever GPS-mottaker, ikke vanlig SDR.',
+    equipment: {
+      antenna: 'Patch-antenne (innebygd i de fleste GPS-mottakere)',
+      lna: 'Innebygd i moderne mottakere',
+      filter: 'Innebygd'
+    },
+    freqs: [
+      { mhz: 1575.42, mode: 'L1 C/A (BPSK)', data: 'navigasjon (åpent)', rx: false },
+      { mhz: 1227.60, mode: 'L2 (begrenset)', data: 'militært/CRPA-bruk', rx: false },
+    ]
+  },
+  '__GENERIC_STARLINK__': {
+    label: 'Starlink',
+    notes: 'Ku/Ka-bånd, kryptert, ikke mottakbart med amatørutstyr. Inkludert her bare for sporing.',
+    equipment: { antenna: 'Phased-array (Starlink-terminal)', lna: 'Innebygd', filter: 'Innebygd' },
+    freqs: [
+      { mhz: 12000, mode: 'Ku-bånd ned (krypt.)', data: 'internett, kryptert', rx: false },
+      { mhz: 14000, mode: 'Ku-bånd opp (krypt.)', data: 'krypt.', rx: false },
+    ]
+  },
 };
 
-// CelesTrak-grupper
+/* ═══ CelesTrak-grupper ═══════════════════════════════════════════ */
 const SAT_GROUPS = {
   amateur:  'https://celestrak.org/NORAD/elements/gp.php?GROUP=amateur&FORMAT=tle',
   weather:  'https://celestrak.org/NORAD/elements/gp.php?GROUP=weather&FORMAT=tle',
@@ -486,14 +821,41 @@ const SAT_GROUPS = {
 
 const STATION = { lat: 63.4305, lon: 10.3951, alt: 0.0513 }; // km
 
-let satellites = [];      // { name, line1, line2, satrec, noradId }
-let selected = null;      // valgt satellitt
+/* Faste farger for valgte satellitter (når flere er valgt). Indeks rotates. */
+const SAT_COLORS = [
+  '#b8552e', // accent (terrakotta) — primær
+  '#4a6b7a', // blå
+  '#5a6b3e', // mose
+  '#c89832', // okre
+  '#8c3e1f', // dyp accent
+  '#2f4855', // dyp blå
+  '#6e4a7a', // lilla
+  '#a05050', // rosa-rød
+];
+
+/* ═══ TILSTAND ═══════════════════════════════════════════════════════ */
+let satellites = [];           // alle TLE-er fra valgt gruppe
+let customSats = new Map();    // ekstra-satter hentet via NORAD-ID (NORAD -> sat)
+const selectedIds = [];         // ordnet liste av NORAD-IDer; [0] = primær
 let currentGroup = 'amateur';
 
-const satelliteJS = window.satellite;
+function getSat(noradId) {
+  return customSats.get(noradId) ||
+         satellites.find(s => s.noradId === noradId);
+}
+function primarySat() {
+  return selectedIds.length > 0 ? getSat(selectedIds[0]) : null;
+}
+function selectedSats() {
+  return selectedIds.map(getSat).filter(Boolean);
+}
+function colorForId(noradId) {
+  const idx = selectedIds.indexOf(noradId);
+  return idx >= 0 ? SAT_COLORS[idx % SAT_COLORS.length] : SAT_COLORS[0];
+}
 
-/* ═══ HJELPEFUNKSJONER ═══ */
-function parseTLEs(text, group) {
+/* ═══ TLE-PARSING ════════════════════════════════════════════════════ */
+function parseTLEs(text) {
   const lines = text.split(/\r?\n/).map(l => l.trim()).filter(l => l.length > 0);
   const sats = [];
   for (let i = 0; i + 2 < lines.length; i += 3) {
@@ -512,6 +874,19 @@ function parseTLEs(text, group) {
   return sats;
 }
 
+async function fetchTLEByNorad(noradId) {
+  const url = `https://celestrak.org/NORAD/elements/gp.php?CATNR=${encodeURIComponent(noradId)}&FORMAT=tle`;
+  const r = await fetch(url);
+  if (!r.ok) throw new Error(`HTTP ${r.status}`);
+  const text = await r.text();
+  if (text.includes('No GP data found') || text.trim().length < 50) {
+    throw new Error('Ingen TLE for denne NORAD-ID');
+  }
+  const parsed = parseTLEs(text);
+  if (parsed.length === 0) throw new Error('Klarte ikke parse TLE-respons');
+  return parsed[0];
+}
+
 async function loadSatGroup(group) {
   const list = document.getElementById('sat-list');
   list.innerHTML = '<div class="muted small" style="padding: 1rem;">Henter TLE-data...</div>';
@@ -519,98 +894,17 @@ async function loadSatGroup(group) {
     const r = await fetch(SAT_GROUPS[group]);
     if (!r.ok) throw new Error('HTTP ' + r.status);
     const text = await r.text();
-    satellites = parseTLEs(text, group);
-    if (group === 'starlink') satellites = satellites.slice(0, 50); // begrens
-    document.getElementById('sat-count').textContent = `${satellites.length} sat. lastet`;
+    satellites = parseTLEs(text);
+    if (group === 'starlink') satellites = satellites.slice(0, 50);
+    document.getElementById('sat-count').textContent =
+      `${satellites.length}${customSats.size ? ' + ' + customSats.size + ' egne' : ''} sat. lastet`;
     renderSatList();
   } catch (e) {
     list.innerHTML = `<div class="muted small" style="padding: 1rem;">Klarte ikke laste TLE: ${e.message}</div>`;
   }
 }
 
-function renderSatList(filter = '') {
-  const list = document.getElementById('sat-list');
-  const f = filter.toLowerCase();
-  const matched = satellites.filter(s => !f || s.name.toLowerCase().includes(f));
-  list.innerHTML = matched.slice(0, 200).map(s => {
-    const fr = FREQUENCIES[s.noradId];
-    let primaryFreq = '';
-    if (fr && fr.freqs && fr.freqs.length > 0) {
-      const rxFreqs = fr.freqs.filter(f => f.rx);
-      const main = rxFreqs[0] || fr.freqs[0];
-      primaryFreq = `${main.mhz.toFixed(3)} MHz`;
-    }
-    const isSel = selected && selected.noradId === s.noradId;
-    return `
-      <div class="sat-row ${isSel ? 'selected' : ''}" data-norad="${s.noradId}">
-        <div>
-          <div class="sat-name">${s.name}</div>
-          <div class="sat-meta">NORAD ${s.noradId}</div>
-        </div>
-        <div class="sat-freq">${primaryFreq}</div>
-      </div>
-    `;
-  }).join('');
-  list.querySelectorAll('.sat-row').forEach(row => {
-    row.addEventListener('click', () => {
-      const norad = row.dataset.norad;
-      const sat = satellites.find(s => s.noradId === norad);
-      if (sat) selectSatellite(sat);
-    });
-  });
-}
-
-function selectSatellite(sat) {
-  selected = sat;
-  // Oppdater valgt-bar
-  document.getElementById('sel-name').textContent = sat.name;
-  document.getElementById('sel-meta').textContent = `NORAD ${sat.noradId}`;
-  // Marker i listen
-  document.querySelectorAll('.sat-row').forEach(r => {
-    r.classList.toggle('selected', r.dataset.norad === sat.noradId);
-  });
-  // Frekvens-info
-  renderFrequencyInfo(sat);
-  // Reagér i alle aktive faner
-  HW.bus.dispatchEvent(new CustomEvent('satchange', { detail: sat }));
-  // Trigger nåværende fane
-  const active = document.querySelector('.tab-panel.active');
-  if (active) refreshTab(active.dataset.panel);
-}
-
-function renderFrequencyInfo(sat) {
-  const c = document.getElementById('freq-info');
-  let entry = FREQUENCIES[sat.noradId];
-
-  // Heuristikk: gjenkjenn generic-typer
-  if (!entry) {
-    const u = sat.name.toUpperCase();
-    if (u.startsWith('STARLINK')) entry = FREQUENCIES['__GENERIC_STARLINK__'];
-    else if (u.startsWith('GPS') || u.includes('NAVSTAR')) entry = FREQUENCIES['__GENERIC_GPS__'];
-    else if (u.includes('CUBESAT') || /^[A-Z]{2,4}-?\d{1,3}/.test(u)) entry = FREQUENCIES['__GENERIC_CUBESAT__'];
-  }
-
-  if (!entry || !entry.freqs || entry.freqs.length === 0) {
-    c.innerHTML = `<p class="muted small">Ingen frekvensdata registrert for <strong>${sat.name}</strong> i denne databasen. Sjekk <a href="https://www.satnogs.org/" target="_blank">SatNOGS</a> eller <a href="https://amsat.org" target="_blank">AMSAT</a>.</p>`;
-    return;
-  }
-
-  c.innerHTML = `
-    <h4 style="margin-top: 0;">${entry.label || sat.name}</h4>
-    ${entry.notes ? `<p class="small">${entry.notes}</p>` : ''}
-    <ul class="freq-list">
-      ${entry.freqs.map(f => `
-        <li>
-          <span class="freq-mhz">${f.mhz.toFixed(3)} MHz</span>
-          <span class="freq-mode">${f.mode}</span>
-          <span class="freq-rx ${f.rx ? 'yes' : 'no'}">${f.rx ? 'rx' : 'kryptert'}</span>
-        </li>
-      `).join('')}
-    </ul>
-  `;
-}
-
-/* ═══ POSISJONS-BEREGNING ═══ */
+/* ═══ POSISJON OG LOOK-ANGLES ════════════════════════════════════════ */
 function getSatPosition(sat, date = new Date()) {
   if (!sat || !sat.satrec) return null;
   const pv = satelliteJS.propagate(sat.satrec, date);
@@ -620,18 +914,16 @@ function getSatPosition(sat, date = new Date()) {
   return {
     lat: satelliteJS.degreesLat(geo.latitude),
     lon: satelliteJS.degreesLong(geo.longitude),
-    alt: geo.height,  // km
+    alt: geo.height,
     eci: pv.position,
     eciVel: pv.velocity,
     gmst
   };
 }
 
-/* Solens posisjon i ECI (lavpresisjon, men nok for skygge-sjekk).
-   Basert på Vallado, Fundamentals of Astrodynamics. */
+/* Solens posisjon i ECI (lavpresisjon) */
 function sunPositionECI(date) {
   const ms = date.getTime();
-  // Julian Date
   const jd = ms / 86400000 + 2440587.5;
   const T = (jd - 2451545.0) / 36525.0;
   const L = ((280.460 + 36000.771 * T) % 360) * Math.PI / 180;
@@ -647,25 +939,34 @@ function sunPositionECI(date) {
   };
 }
 
-/* Cylindrisk skygge-modell: sjekker om satellitten er i jordens skygge.
-   Returnerer true om satellitten er i sollys. */
 function isSunlit(eciPos, date) {
   if (!eciPos) return false;
   const sun = sunPositionECI(date);
   const sunMag = Math.sqrt(sun.x*sun.x + sun.y*sun.y + sun.z*sun.z);
   const sunDir = { x: sun.x/sunMag, y: sun.y/sunMag, z: sun.z/sunMag };
-  // Projiser sat-pos på sol-retning
   const proj = eciPos.x * sunDir.x + eciPos.y * sunDir.y + eciPos.z * sunDir.z;
   if (proj < 0) {
-    // På nattsiden — sjekk om innenfor skygge-sylinderen
     const perpX = eciPos.x - proj * sunDir.x;
     const perpY = eciPos.y - proj * sunDir.y;
     const perpZ = eciPos.z - proj * sunDir.z;
     const perpMag = Math.sqrt(perpX*perpX + perpY*perpY + perpZ*perpZ);
-    if (perpMag < 6378.137) return false; // i skygge
+    if (perpMag < 6378.137) return false;
   }
   return true;
 }
+
+/* Bakkestasjon i ECF (forhåndsberegnet) */
+const Re = 6378.137;
+const f_e = 1/298.257223563;
+const e2 = f_e * (2 - f_e);
+const _stLat = STATION.lat * Math.PI / 180;
+const _stLon = STATION.lon * Math.PI / 180;
+const _N = Re / Math.sqrt(1 - e2 * Math.sin(_stLat)**2);
+const STATION_ECF = {
+  x: (_N + STATION.alt) * Math.cos(_stLat) * Math.cos(_stLon),
+  y: (_N + STATION.alt) * Math.cos(_stLat) * Math.sin(_stLon),
+  z: (_N * (1 - e2) + STATION.alt) * Math.sin(_stLat)
+};
 
 function lookAngles(sat, date = new Date()) {
   if (!sat || !sat.satrec) return null;
@@ -681,24 +982,9 @@ function lookAngles(sat, date = new Date()) {
   const velocityEcf = satelliteJS.eciToEcf(pv.velocity, gmst);
   const la = satelliteJS.ecfToLookAngles(observerGd, positionEcf);
 
-  // Radiell hastighet (positiv = bort fra)
-  const stationEcf = satelliteJS.eciToEcf({
-    x: 0, y: 0, z: 0
-  }, gmst);
-  // Faktisk bakkestasjon i ECF:
-  const Re = 6378.137;
-  const lat = STATION.lat * Math.PI / 180;
-  const lon = STATION.lon * Math.PI / 180;
-  const cosLat = Math.cos(lat), sinLat = Math.sin(lat);
-  const cosLon = Math.cos(lon), sinLon = Math.sin(lon);
-  const N = Re / Math.sqrt(1 - 0.00669437999014 * sinLat * sinLat);
-  const sx = (N + STATION.alt) * cosLat * cosLon;
-  const sy = (N + STATION.alt) * cosLat * sinLon;
-  const sz = (N * (1 - 0.00669437999014) + STATION.alt) * sinLat;
-
-  const dx = positionEcf.x - sx;
-  const dy = positionEcf.y - sy;
-  const dz = positionEcf.z - sz;
+  const dx = positionEcf.x - STATION_ECF.x;
+  const dy = positionEcf.y - STATION_ECF.y;
+  const dz = positionEcf.z - STATION_ECF.z;
   const range = Math.sqrt(dx*dx + dy*dy + dz*dz);
   const radialVel = (dx * velocityEcf.x + dy * velocityEcf.y + dz * velocityEcf.z) / range;
 
@@ -706,15 +992,269 @@ function lookAngles(sat, date = new Date()) {
     azimuth: la.azimuth * 180 / Math.PI,
     elevation: la.elevation * 180 / Math.PI,
     rangeKm: range,
-    radialVelKmS: radialVel
+    radialVelKmS: radialVel,
+    eci: pv.position,
+    eciVel: pv.velocity
   };
 }
+/* ═══ UI: SAT-LISTE OG MULTI-SELECT ════════════════════════════════ */
+function renderSatList(filter = '') {
+  const list = document.getElementById('sat-list');
+  const f = filter.toLowerCase();
 
-/* ═══ 3D GLOBE (LIVE TRACKER) ═══ */
-let globe = null;
+  // Vis først evt. egne (custom) satter, deretter gruppen
+  const customArr = Array.from(customSats.values());
+  const merged = [
+    ...customArr.filter(s => !f || s.name.toLowerCase().includes(f) || s.noradId.includes(f)),
+    ...satellites.filter(s => !f || s.name.toLowerCase().includes(f) || s.noradId.includes(f))
+  ];
+  // Fjern duplikater (custom kan tilfeldigvis matche en i gruppen)
+  const seen = new Set();
+  const uniq = [];
+  for (const s of merged) {
+    if (seen.has(s.noradId)) continue;
+    seen.add(s.noradId);
+    uniq.push(s);
+  }
+
+  list.innerHTML = uniq.slice(0, 200).map(s => {
+    const fr = FREQUENCIES[s.noradId];
+    let primaryFreq = '';
+    if (fr && fr.freqs && fr.freqs.length > 0) {
+      const rxFreqs = fr.freqs.filter(ff => ff.rx);
+      const main = rxFreqs[0] || fr.freqs[0];
+      primaryFreq = `${main.mhz.toFixed(3)} MHz`;
+    }
+    const isPrimary = primarySat() && primarySat().noradId === s.noradId;
+    const isSel = selectedIds.includes(s.noradId);
+    const color = isSel ? colorForId(s.noradId) : 'transparent';
+    const isCustom = customSats.has(s.noradId);
+    return `
+      <div class="sat-row ${isPrimary ? 'primary' : ''}" data-norad="${s.noradId}">
+        <input type="checkbox" data-norad-cb="${s.noradId}" ${isSel ? 'checked' : ''} aria-label="Velg ${s.name}">
+        <div data-pick="${s.noradId}">
+          <div class="sat-name">
+            ${isSel ? `<span class="sat-color-dot" style="background:${color}"></span>` : ''}
+            ${s.name}${isCustom ? ' <span class="muted tiny">(egen)</span>' : ''}
+          </div>
+          <div class="sat-meta">NORAD ${s.noradId}</div>
+        </div>
+        <div class="sat-freq">${primaryFreq}</div>
+      </div>
+    `;
+  }).join('');
+
+  // Klikk på navnet → velg primær (uten å endre checkbox)
+  list.querySelectorAll('[data-pick]').forEach(el => {
+    el.addEventListener('click', e => {
+      const norad = el.dataset.pick;
+      // Hvis ikke valgt fra før → legg til som primær
+      if (!selectedIds.includes(norad)) {
+        selectedIds.unshift(norad);
+      } else {
+        // Allerede valgt → flytt til primær (forrest)
+        const idx = selectedIds.indexOf(norad);
+        selectedIds.splice(idx, 1);
+        selectedIds.unshift(norad);
+      }
+      onSelectionChange();
+    });
+  });
+
+  // Checkbox → toggle valgt (uten å påvirke primær)
+  list.querySelectorAll('[data-norad-cb]').forEach(cb => {
+    cb.addEventListener('click', e => e.stopPropagation()); // ikke trigger pick-handler
+    cb.addEventListener('change', e => {
+      const norad = cb.dataset.noradCb;
+      if (cb.checked) {
+        if (!selectedIds.includes(norad)) selectedIds.push(norad);
+      } else {
+        const idx = selectedIds.indexOf(norad);
+        if (idx >= 0) selectedIds.splice(idx, 1);
+      }
+      onSelectionChange();
+    });
+  });
+}
+
+/* Render chips i selected-bar */
+function renderChips() {
+  const cont = document.getElementById('chip-list');
+  if (selectedIds.length === 0) {
+    cont.innerHTML = '<em class="muted">— ingen —</em>';
+    return;
+  }
+  cont.innerHTML = selectedIds.map((id, idx) => {
+    const sat = getSat(id);
+    if (!sat) return '';
+    const color = SAT_COLORS[idx % SAT_COLORS.length];
+    const isPrimary = idx === 0;
+    return `
+      <span class="sat-chip ${isPrimary ? 'primary' : ''}">
+        <span class="chip-dot" style="background:${color}"></span>
+        <span class="chip-name">${sat.name}</span>
+        ${!isPrimary ? `<span class="chip-promote" data-promote="${id}" title="Gjør til primær">★</span>` : ''}
+        <span class="chip-x" data-remove="${id}" title="Fjern">×</span>
+      </span>
+    `;
+  }).join('');
+
+  cont.querySelectorAll('[data-remove]').forEach(el => {
+    el.addEventListener('click', () => {
+      const id = el.dataset.remove;
+      const idx = selectedIds.indexOf(id);
+      if (idx >= 0) {
+        selectedIds.splice(idx, 1);
+        onSelectionChange();
+      }
+    });
+  });
+  cont.querySelectorAll('[data-promote]').forEach(el => {
+    el.addEventListener('click', () => {
+      const id = el.dataset.promote;
+      const idx = selectedIds.indexOf(id);
+      if (idx > 0) {
+        selectedIds.splice(idx, 1);
+        selectedIds.unshift(id);
+        onSelectionChange();
+      }
+    });
+  });
+}
+
+/* Render mini-pickers i pass-fanen */
+function renderPassPicker() {
+  const cont = document.getElementById('pass-sat-picker');
+  if (selectedIds.length === 0) {
+    cont.innerHTML = '<span class="picker-label">Velg sat:</span><em class="muted small">— legg til satellitter fra listen først —</em>';
+    return;
+  }
+  cont.innerHTML = '<span class="picker-label">Inkluder:</span>' +
+    selectedIds.map((id, idx) => {
+      const sat = getSat(id);
+      if (!sat) return '';
+      const color = SAT_COLORS[idx % SAT_COLORS.length];
+      const isActive = passActiveSet.has(id);
+      return `
+        <span class="sat-mini-chip ${isActive ? 'active' : ''}" data-pass-toggle="${id}">
+          <span class="chip-dot" style="background:${isActive ? '#fff' : color}"></span>
+          ${sat.name}
+        </span>
+      `;
+    }).join('') +
+    `<button class="secondary" id="pass-pick-all" style="font-size: 0.72rem; padding: 0.2rem 0.5rem; margin-left: 0.4rem;">Alle</button>` +
+    `<button class="secondary" id="pass-pick-none" style="font-size: 0.72rem; padding: 0.2rem 0.5rem;">Ingen</button>`;
+
+  cont.querySelectorAll('[data-pass-toggle]').forEach(el => {
+    el.addEventListener('click', () => {
+      const id = el.dataset.passToggle;
+      if (passActiveSet.has(id)) passActiveSet.delete(id);
+      else passActiveSet.add(id);
+      renderPassPicker();
+    });
+  });
+  document.getElementById('pass-pick-all')?.addEventListener('click', () => {
+    selectedIds.forEach(id => passActiveSet.add(id));
+    renderPassPicker();
+  });
+  document.getElementById('pass-pick-none')?.addEventListener('click', () => {
+    passActiveSet.clear();
+    renderPassPicker();
+  });
+}
+
+/* Sett av satellitter aktive i pass-fanen (subset av selectedIds) */
+const passActiveSet = new Set();
+
+/* Kalles når valg endrer seg */
+function onSelectionChange() {
+  // Oppdater pass-fanens aktive-sett: når en satellitt fjernes, fjern fra pass.
+  // Når en legges til, inkluder den automatisk.
+  for (const id of [...passActiveSet]) {
+    if (!selectedIds.includes(id)) passActiveSet.delete(id);
+  }
+  for (const id of selectedIds) passActiveSet.add(id);
+
+  renderSatList(document.getElementById('sat-search').value);
+  renderChips();
+  renderPassPicker();
+
+  const primary = primarySat();
+  if (primary) {
+    renderFrequencyInfo(primary);
+  } else {
+    document.getElementById('freq-info').innerHTML =
+      '<p class="muted small">Velg en primær satellitt for å se frekvenser og utstyrkrav.</p>';
+  }
+
+  // Refresh tab content
+  const active = document.querySelector('.tab-panel.active');
+  if (active) refreshTab(active.dataset.panel);
+}
+
+/* ═══ FREKVENSINFO + UTSTYRKRAV ═══════════════════════════════════ */
+function renderFrequencyInfo(sat) {
+  const c = document.getElementById('freq-info');
+  let entry = FREQUENCIES[sat.noradId];
+
+  if (!entry) {
+    const u = sat.name.toUpperCase();
+    if (u.startsWith('STARLINK')) entry = FREQUENCIES['__GENERIC_STARLINK__'];
+    else if (u.startsWith('GPS') || u.includes('NAVSTAR')) entry = FREQUENCIES['__GENERIC_GPS__'];
+    else if (u.includes('CUBESAT') || /^[A-Z]{2,4}-?\d{1,3}/.test(u)) entry = FREQUENCIES['__GENERIC_CUBESAT__'];
+  }
+
+  if (!entry || !entry.freqs || entry.freqs.length === 0) {
+    c.innerHTML = `
+      <p class="muted small">Ingen frekvensdata registrert for <strong>${sat.name}</strong> (NORAD ${sat.noradId}) i denne databasen.</p>
+      <p class="small">Sjekk:</p>
+      <ul class="small">
+        <li><a href="https://db.satnogs.org/satellite/${sat.noradId}/" target="_blank" rel="noopener">SatNOGS DB (NORAD ${sat.noradId})</a> — crowdsourced frekvensdata</li>
+        <li><a href="https://www.amsat.org/status/" target="_blank" rel="noopener">AMSAT-NA status</a> — for amatør-satellitter</li>
+        <li><a href="https://tinygs.com/" target="_blank" rel="noopener">TinyGS</a> — telemetri-database</li>
+      </ul>
+    `;
+    return;
+  }
+
+  let equipHTML = '';
+  if (entry.equipment) {
+    const eq = entry.equipment;
+    equipHTML = `
+      <div class="equipment-req">
+        <strong>Anbefalt utstyr:</strong>
+        <ul>
+          <li><strong>Antenne:</strong> ${eq.antenna}</li>
+          <li><strong>LNA (forforsterker):</strong> ${eq.lna}</li>
+          <li><strong>Filter:</strong> ${eq.filter}</li>
+        </ul>
+      </div>
+    `;
+  }
+
+  c.innerHTML = `
+    <h4 style="margin-top: 0;">${entry.label || sat.name}</h4>
+    ${entry.notes ? `<p class="small">${entry.notes}</p>` : ''}
+    ${equipHTML}
+    <ul class="freq-list">
+      ${entry.freqs.map(fr => `
+        <li>
+          <span class="freq-mhz">${fr.mhz.toFixed(3)} MHz</span>
+          <span class="freq-mode">
+            <strong>${fr.mode}</strong>
+            ${fr.data ? `<br><span class="muted tiny">${fr.data}</span>` : ''}
+          </span>
+          <span class="freq-rx ${fr.rx ? 'yes' : 'no'}">${fr.rx ? 'rx' : 'krypt./uplink'}</span>
+        </li>
+      `).join('')}
+    </ul>
+  `;
+}
+/* ═══ 3D GLOBE (LIVE TRACKER) ════════════════════════════════════════ */
+let globeAPI = null;
 
 function initGlobe() {
-  const canvas = document.getElementById('globe-canvas');
+  const canvasParent = document.getElementById('globe-canvas');
   const scene = new THREE.Scene();
   scene.background = new THREE.Color(0x0a0d14);
 
@@ -722,46 +1262,78 @@ function initGlobe() {
   camera.position.set(0, 5, 22);
 
   const renderer = new THREE.WebGLRenderer({ antialias: true });
-  renderer.setPixelRatio(window.devicePixelRatio);
-  canvas.appendChild(renderer.domElement);
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  // Sett canvas-stilen så den ikke gror utenfor parent
+  renderer.domElement.style.display = 'block';
+  renderer.domElement.style.width = '100%';
+  renderer.domElement.style.height = '100%';
+  canvasParent.appendChild(renderer.domElement);
 
   function resize() {
-    const r = canvas.getBoundingClientRect();
+    const r = canvasParent.getBoundingClientRect();
+    if (r.width === 0 || r.height === 0) return;
     renderer.setSize(r.width, r.height, false);
     camera.aspect = r.width / r.height;
     camera.updateProjectionMatrix();
   }
-  new ResizeObserver(resize).observe(canvas);
+  new ResizeObserver(resize).observe(canvasParent);
   resize();
 
   const controls = new OrbitControls(camera, renderer.domElement);
   controls.enableDamping = true;
+  controls.dampingFactor = 0.08;
   controls.minDistance = 8;
-  controls.maxDistance = 40;
+  controls.maxDistance = 60;
+  controls.enablePan = false;
+  controls.autoRotate = false;
+  controls.autoRotateSpeed = 0.4;
 
-  // Lys
-  scene.add(new THREE.AmbientLight(0x404858, 0.6));
+  scene.add(new THREE.AmbientLight(0x404858, 0.55));
   const sun = new THREE.DirectionalLight(0xffeec0, 1.0);
   sun.position.set(20, 10, 15);
   scene.add(sun);
 
-  // Jord (radius 6.378)
+  // Jord
   const R = 6.378;
   const earthGeo = new THREE.SphereGeometry(R, 64, 48);
   const earthMat = new THREE.MeshPhongMaterial({
-    color: 0x254858,
+    color: 0x1f3340,
     emissive: 0x0a141a,
-    specular: 0x445566,
-    shininess: 8,
-    flatShading: false
+    specular: 0x344455,
+    shininess: 8
   });
   const earth = new THREE.Mesh(earthGeo, earthMat);
   scene.add(earth);
 
-  // Wireframe overlay (lat/lon-grid)
+  // Kontinent-linjer på jordkulen (fra inline land-data)
+  const landGroup = new THREE.Group();
+  scene.add(landGroup);
+  try {
+    const landData = JSON.parse(document.getElementById('land-data').textContent);
+    const landMat = new THREE.LineBasicMaterial({ color: 0x6fa3b8, transparent: true, opacity: 0.55 });
+    for (const ring of landData) {
+      const pts = [];
+      for (const [lon, lat] of ring) {
+        const lonR = lon * Math.PI / 180;
+        const latR = lat * Math.PI / 180;
+        const r = R + 0.005;
+        pts.push(new THREE.Vector3(
+          r * Math.cos(latR) * Math.cos(lonR),
+          r * Math.sin(latR),
+          -r * Math.cos(latR) * Math.sin(lonR)
+        ));
+      }
+      const g = new THREE.BufferGeometry().setFromPoints(pts);
+      landGroup.add(new THREE.Line(g, landMat));
+    }
+  } catch (e) {
+    console.warn('Klarte ikke laste land-data:', e);
+  }
+
+  // Lat/lon-grid
   const grid = new THREE.LineSegments(
-    new THREE.WireframeGeometry(new THREE.SphereGeometry(R + 0.01, 24, 18)),
-    new THREE.LineBasicMaterial({ color: 0x4a6b7a, transparent: true, opacity: 0.18 })
+    new THREE.WireframeGeometry(new THREE.SphereGeometry(R + 0.002, 24, 18)),
+    new THREE.LineBasicMaterial({ color: 0x2a4555, transparent: true, opacity: 0.25 })
   );
   scene.add(grid);
 
@@ -783,83 +1355,140 @@ function initGlobe() {
   );
   scene.add(stars);
 
-  // Bakkestasjon-markør (Trondheim)
-  const stationGroup = new THREE.Group();
-  const lat = STATION.lat * Math.PI / 180, lon = STATION.lon * Math.PI / 180;
-  // ECEF-konvensjon der jord ikke roterer i scenen — bakkestasjon "fester" på jorden ved jordrotasjon
+  // En kombinert "earth-rotation"-gruppe slik at vi roterer alt jord-fast i én gang
+  const earthRot = new THREE.Group();
+  scene.add(earthRot);
+
+  // Bakkestasjon: parented under earthRot
   const stationDot = new THREE.Mesh(
     new THREE.SphereGeometry(0.08, 12, 8),
     new THREE.MeshBasicMaterial({ color: 0xffaa44 })
   );
-  stationGroup.add(stationDot);
-  scene.add(stationGroup);
-
-  // Satellitt-mesh
-  const satMesh = new THREE.Mesh(
-    new THREE.SphereGeometry(0.12, 12, 10),
-    new THREE.MeshBasicMaterial({ color: 0xb8552e })
-  );
-  satMesh.visible = false;
-  scene.add(satMesh);
-
-  // Linje fra bakkestasjon til satellitt
-  const linkGeo = new THREE.BufferGeometry();
-  linkGeo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(6), 3));
-  const linkLine = new THREE.Line(
-    linkGeo,
-    new THREE.LineBasicMaterial({ color: 0xb8552e, transparent: true, opacity: 0.5 })
-  );
-  linkLine.visible = false;
-  scene.add(linkLine);
-
-  // Bane-kurve (forutsi 1 omløp framover)
-  const orbitGeo = new THREE.BufferGeometry();
-  orbitGeo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(720 * 3), 3));
-  const orbitLine = new THREE.Line(
-    orbitGeo,
-    new THREE.LineBasicMaterial({ color: 0xb8552e, transparent: true, opacity: 0.45 })
-  );
-  scene.add(orbitLine);
-
-  // Mange-satellitter visualisering (når flere er lastet)
-  const manyGeo = new THREE.BufferGeometry();
-  const manyPos = new Float32Array(2000 * 3);
-  manyGeo.setAttribute('position', new THREE.BufferAttribute(manyPos, 3));
-  const manyMat = new THREE.PointsMaterial({ color: 0x88ccdd, size: 0.07, transparent: true, opacity: 0.6 });
-  const manyPoints = new THREE.Points(manyGeo, manyMat);
-  scene.add(manyPoints);
-
-  let autoSpin = false;
-  let showOrbit = true;
-  let followSelected = false;
-
-  document.getElementById('btn-spin').addEventListener('click', e => {
-    autoSpin = !autoSpin;
-    e.target.textContent = autoSpin ? 'Stopp rotasjon' : 'Auto-rotér';
-  });
-  document.getElementById('btn-orbit-show').addEventListener('click', e => {
-    showOrbit = !showOrbit;
-    orbitLine.visible = showOrbit;
-    e.target.textContent = showOrbit ? 'Skjul baner' : 'Vis baner';
-  });
-  document.getElementById('btn-fly').addEventListener('click', e => {
-    followSelected = !followSelected;
-    e.target.textContent = followSelected ? 'Slipp valgt' : 'Følg valgt';
-  });
-
-  // ECEF-konvertering for satellitt-posisjoner (lon, lat, alt over jord)
-  function lla2xyz(latDeg, lonDeg, altKm, gmst, scale = 1) {
-    // Vi tegner i ECI (jorden roterer ikke i scenen).
-    // For å plassere bakkestasjon konsekvent, bruker vi en "stillegjort" ECEF
-    // der vi roterer alt sammen med GMST.
-    const Re = 6.378; // skaleringsenheter, 1 = 1000 km
-    const lat = latDeg * Math.PI / 180;
-    const lon = lonDeg * Math.PI / 180;
-    const r = Re + altKm / 1000;
-    return [
+  earthRot.add(stationDot);
+  // Plasser stasjonen i jord-fast frame
+  {
+    const Rscene = 6.378;
+    const lat = STATION.lat * Math.PI / 180;
+    const lon = STATION.lon * Math.PI / 180;
+    const r = Rscene + STATION.alt / 1000;
+    stationDot.position.set(
       r * Math.cos(lat) * Math.cos(lon),
       r * Math.sin(lat),
       -r * Math.cos(lat) * Math.sin(lon)
+    );
+  }
+
+  // Selv om jorden roterer i scenen, må vi flytte landGroup, grid med — så pak alle inn:
+  scene.remove(earth);
+  scene.remove(grid);
+  scene.remove(landGroup);
+  earthRot.add(earth);
+  earthRot.add(grid);
+  earthRot.add(landGroup);
+
+  // Satellite mesher: tegn i ECI-frame (utenfor earthRot)
+  const satMeshes = new Map();   // noradId -> { mesh, orbitLine, linkLine }
+  const satGroup = new THREE.Group();
+  scene.add(satGroup);
+
+  // Mange-satellitter (ikke-valgte): grå punkter
+  const manyGeo = new THREE.BufferGeometry();
+  const manyPos = new Float32Array(2500 * 3);
+  manyGeo.setAttribute('position', new THREE.BufferAttribute(manyPos, 3));
+  const manyMat = new THREE.PointsMaterial({ color: 0x6a7a82, size: 0.06, transparent: true, opacity: 0.5 });
+  const manyPoints = new THREE.Points(manyGeo, manyMat);
+  scene.add(manyPoints);
+
+  let showOrbit = true;
+  let followPrimary = false;
+
+  function createOrUpdateSatVisual(noradId, color) {
+    let v = satMeshes.get(noradId);
+    if (!v) {
+      const colorNum = new THREE.Color(color).getHex();
+      const mesh = new THREE.Mesh(
+        new THREE.SphereGeometry(0.12, 12, 10),
+        new THREE.MeshBasicMaterial({ color: colorNum })
+      );
+      const orbitGeo = new THREE.BufferGeometry();
+      orbitGeo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(720 * 3), 3));
+      const orbitLine = new THREE.Line(
+        orbitGeo,
+        new THREE.LineBasicMaterial({ color: colorNum, transparent: true, opacity: 0.5 })
+      );
+      const linkGeo = new THREE.BufferGeometry();
+      linkGeo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(6), 3));
+      const linkLine = new THREE.Line(
+        linkGeo,
+        new THREE.LineBasicMaterial({ color: colorNum, transparent: true, opacity: 0.5 })
+      );
+      satGroup.add(mesh);
+      satGroup.add(orbitLine);
+      satGroup.add(linkLine);
+      v = { mesh, orbitLine, linkLine, color };
+      satMeshes.set(noradId, v);
+    } else if (v.color !== color) {
+      const colorNum = new THREE.Color(color).getHex();
+      v.mesh.material.color.setHex(colorNum);
+      v.orbitLine.material.color.setHex(colorNum);
+      v.linkLine.material.color.setHex(colorNum);
+      v.color = color;
+    }
+    return v;
+  }
+
+  function removeSatVisual(noradId) {
+    const v = satMeshes.get(noradId);
+    if (!v) return;
+    satGroup.remove(v.mesh, v.orbitLine, v.linkLine);
+    v.mesh.geometry.dispose();
+    v.orbitLine.geometry.dispose();
+    v.linkLine.geometry.dispose();
+    satMeshes.delete(noradId);
+  }
+
+  document.getElementById('btn-spin').addEventListener('click', e => {
+    controls.autoRotate = !controls.autoRotate;
+    e.target.textContent = controls.autoRotate ? 'Stopp rotasjon' : 'Auto-rotér';
+  });
+  document.getElementById('btn-orbit-show').addEventListener('click', e => {
+    showOrbit = !showOrbit;
+    for (const v of satMeshes.values()) v.orbitLine.visible = showOrbit;
+    e.target.textContent = showOrbit ? 'Skjul baner' : 'Vis baner';
+  });
+  document.getElementById('btn-fly').addEventListener('click', e => {
+    followPrimary = !followPrimary;
+    e.target.textContent = followPrimary ? 'Slipp primær' : 'Følg primær';
+  });
+  document.getElementById('btn-reset-cam').addEventListener('click', () => {
+    camera.position.set(0, 5, 22);
+    controls.target.set(0, 0, 0);
+    controls.update();
+    followPrimary = false;
+    document.getElementById('btn-fly').textContent = 'Følg primær';
+  });
+
+  // ECI -> scene koords. Jorden er en barn av earthRot som har rotation.y = gmst.
+  // Satellittene er IKKE under earthRot — de er i scenens worldspace.
+  // For at en (lat, lon) skal være jord-fast på samme posisjon i scenen, må
+  // satellitt-koords i worldspace = three.js-Y-rotasjon med vinkel gmst anvendt på
+  // bakke-fast koord.
+  // Three.js Y-rotasjon med vinkel θ: x' = x*cos θ + z*sin θ; z' = -x*sin θ + z*cos θ
+  function lla2eci(latDeg, lonDeg, altKm, gmst) {
+    const Rscene = 6.378;
+    const lat = latDeg * Math.PI / 180;
+    const lon = lonDeg * Math.PI / 180;
+    const r = Rscene + altKm / 1000;
+    // Jord-fast (samme koordinatsystem som earthRot.children, før rotasjon)
+    const xEcf = r * Math.cos(lat) * Math.cos(lon);
+    const yEcf = r * Math.sin(lat);
+    const zEcf = -r * Math.cos(lat) * Math.sin(lon);
+    // Anvend Three.js Y-rotasjon med vinkel gmst
+    const c = Math.cos(gmst), s = Math.sin(gmst);
+    return [
+      xEcf * c + zEcf * s,
+      yEcf,
+      -xEcf * s + zEcf * c
     ];
   }
 
@@ -867,105 +1496,91 @@ function initGlobe() {
     const now = new Date();
     const gmst = satelliteJS.gstime(now);
 
-    // Bakkestasjon på jorden — vi får jorden til å rotere i stedet
-    earth.rotation.y = -gmst;
-    grid.rotation.y = -gmst;
-    stationGroup.rotation.y = -gmst;
+    earthRot.rotation.y = gmst;
 
-    // Bakkestasjon-posisjon (i jordens roterende referansesystem, men her plassert via gmst)
-    const stXYZ = lla2xyz(STATION.lat, STATION.lon, STATION.alt, 0);
-    stationDot.position.set(stXYZ[0], stXYZ[1], stXYZ[2]);
+    // Synkroniser satMeshes med selectedIds
+    const wantIds = new Set(selectedIds);
+    for (const id of satMeshes.keys()) {
+      if (!wantIds.has(id)) removeSatVisual(id);
+    }
 
-    // Mange-satellitter: tegn alle som punkter
+    // Plasser valgte
+    const primary = primarySat();
+    let primPos = null;
+    selectedIds.forEach((id, idx) => {
+      const sat = getSat(id);
+      if (!sat) return;
+      const pos = getSatPosition(sat, now);
+      if (!pos) return;
+      const color = SAT_COLORS[idx % SAT_COLORS.length];
+      const v = createOrUpdateSatVisual(id, color);
+      const xyz = lla2eci(pos.lat, pos.lon, pos.alt, gmst);
+      v.mesh.position.set(xyz[0], xyz[1], xyz[2]);
+      v.mesh.visible = true;
+
+      // Link-linje (bakkestasjon -> sat) når over horisonten
+      const la = lookAngles(sat, now);
+      const stECI = lla2eci(STATION.lat, STATION.lon, STATION.alt, gmst);
+      const lp = v.linkLine.geometry.attributes.position.array;
+      lp[0] = stECI[0]; lp[1] = stECI[1]; lp[2] = stECI[2];
+      lp[3] = xyz[0];   lp[4] = xyz[1];   lp[5] = xyz[2];
+      v.linkLine.geometry.attributes.position.needsUpdate = true;
+      v.linkLine.visible = la && la.elevation > 0;
+
+      // Orbit-bane (1 omløp framover)
+      v.orbitLine.visible = showOrbit;
+      if (showOrbit) {
+        const op = v.orbitLine.geometry.attributes.position.array;
+        const periodMin = (2 * Math.PI) / sat.satrec.no;
+        const stepS = (periodMin * 60) / 720;
+        for (let i = 0; i < 720; i++) {
+          const t = new Date(now.getTime() + i * stepS * 1000);
+          const p = getSatPosition(sat, t);
+          if (!p) { op[i*3] = 0; op[i*3+1] = 0; op[i*3+2] = 0; continue; }
+          const gm = satelliteJS.gstime(t);
+          const oxyz = lla2eci(p.lat, p.lon, p.alt, gm);
+          op[i*3] = oxyz[0]; op[i*3+1] = oxyz[1]; op[i*3+2] = oxyz[2];
+        }
+        v.orbitLine.geometry.attributes.position.needsUpdate = true;
+      }
+
+      if (idx === 0) primPos = { xyz, pos, la };
+    });
+
+    // Mange-punkter: ikke-valgte sats
     let nMany = 0;
     for (const s of satellites) {
-      if (selected && s.noradId === selected.noradId) continue;
+      if (selectedIds.includes(s.noradId)) continue;
       const pos = getSatPosition(s, now);
       if (!pos) continue;
-      const xyz = lla2xyz(pos.lat, pos.lon, pos.alt, gmst);
-      manyPos[nMany * 3] = xyz[0];
+      const xyz = lla2eci(pos.lat, pos.lon, pos.alt, gmst);
+      manyPos[nMany * 3]     = xyz[0];
       manyPos[nMany * 3 + 1] = xyz[1];
       manyPos[nMany * 3 + 2] = xyz[2];
       nMany++;
-      if (nMany >= 2000) break;
+      if (nMany >= 2500) break;
     }
     manyGeo.attributes.position.needsUpdate = true;
     manyGeo.setDrawRange(0, nMany);
 
-    // Valgt satellitt
-    if (selected) {
-      const pos = getSatPosition(selected, now);
-      if (pos) {
-        const xyz = lla2xyz(pos.lat, pos.lon, pos.alt, gmst);
-        satMesh.position.set(xyz[0], xyz[1], xyz[2]);
-        satMesh.visible = true;
-
-        // Link-linje
-        const lp = linkGeo.attributes.position.array;
-        lp[0] = stXYZ[0]; lp[1] = stXYZ[1]; lp[2] = stXYZ[2];
-        lp[3] = xyz[0];   lp[4] = xyz[1];   lp[5] = xyz[2];
-        linkGeo.attributes.position.needsUpdate = true;
-        const la = lookAngles(selected, now);
-        if (la) {
-          linkLine.visible = la.elevation > 0;
-          linkLine.material.color.setHex(la.elevation > 5 ? 0x66bb88 : 0xb8552e);
-        }
-
-        // Orbit-bane (forutsi 90 minutter framover)
-        if (showOrbit) {
-          const op = orbitGeo.attributes.position.array;
-          for (let i = 0; i < 720; i++) {
-            const t = new Date(now.getTime() + i * 8 * 1000);
-            const p = getSatPosition(selected, t);
-            if (!p) {
-              op[i*3] = 0; op[i*3+1] = 0; op[i*3+2] = 0;
-              continue;
-            }
-            const gm = satelliteJS.gstime(t);
-            // Vi tegner banen i ECI; men jorden roterer i scenen, så vi må
-            // konvertere posisjonen til scene-koordinater som tar hensyn til
-            // forskjellen mellom GMST(now) og GMST(t).
-            const dGmst = gm - gmst;
-            const cosD = Math.cos(dGmst), sinD = Math.sin(dGmst);
-            const Re = 6.378;
-            const lat = p.lat * Math.PI / 180;
-            const lon = p.lon * Math.PI / 180;
-            const r = Re + p.alt / 1000;
-            // Først plasser i nåværende GMST-aligned ramme:
-            const x0 = r * Math.cos(lat) * Math.cos(lon);
-            const y0 = r * Math.sin(lat);
-            const z0 = -r * Math.cos(lat) * Math.sin(lon);
-            // Roter framover med dGmst (banen forblir i ECI, jorden har rotert):
-            op[i*3]   = x0 * cosD - z0 * sinD;
-            op[i*3+1] = y0;
-            op[i*3+2] = x0 * sinD + z0 * cosD;
-          }
-          orbitGeo.attributes.position.needsUpdate = true;
-        }
-
-        if (followSelected) {
-          // Pek kameraet mot sat
-          const target = new THREE.Vector3(xyz[0], xyz[1], xyz[2]);
-          controls.target.lerp(target, 0.05);
-        }
-
-        // Stats overlay
-        const la2 = lookAngles(selected, now);
-        document.getElementById('globe-stats').innerHTML = `
-          ${selected.name}<br>
-          lat ${pos.lat.toFixed(2)}° / lon ${pos.lon.toFixed(2)}°<br>
-          alt ${pos.alt.toFixed(0)} km<br>
-          ${la2 ? `el ${la2.elevation.toFixed(1)}° / az ${la2.azimuth.toFixed(0)}°<br>${la2.rangeKm.toFixed(0)} km` : ''}
-        `;
-      }
-    } else {
-      satMesh.visible = false;
-      linkLine.visible = false;
-      orbitGeo.setDrawRange(0, 0);
+    // Følg primær
+    if (followPrimary && primPos) {
+      const target = new THREE.Vector3(primPos.xyz[0], primPos.xyz[1], primPos.xyz[2]);
+      controls.target.lerp(target, 0.05);
     }
 
-    if (autoSpin) {
-      controls.azimuthAngle = (controls.getAzimuthalAngle ? controls.getAzimuthalAngle() : 0) + 0.001;
+    // Stats overlay
+    const overlay = document.getElementById('globe-stats');
+    if (primary && primPos) {
+      const la = primPos.la;
+      overlay.innerHTML = `
+        ${primary.name}<br>
+        lat ${primPos.pos.lat.toFixed(2)}° / lon ${primPos.pos.lon.toFixed(2)}°<br>
+        alt ${primPos.pos.alt.toFixed(0)} km<br>
+        ${la ? `el ${la.elevation.toFixed(1)}° / az ${la.azimuth.toFixed(0)}°<br>${la.rangeKm.toFixed(0)} km` : ''}
+      `;
+    } else {
+      overlay.innerHTML = '';
     }
 
     controls.update();
@@ -974,14 +1589,65 @@ function initGlobe() {
   }
   update();
 
-  return { scene, camera, renderer };
+  return { scene, camera, renderer, controls };
 }
-
-/* ═══ GROUND TRACK ═══ */
+/* ═══ GROUND TRACK ═══════════════════════════════════════════════════ */
 function refreshGroundTrack() {
   const svg = document.getElementById('gt-svg');
-  if (!selected) {
-    svg.innerHTML = '<text x="400" y="200" text-anchor="middle" fill="#9a9087" font-family="JetBrains Mono" font-size="14">Velg en satellitt fra Live tracker-fanen</text>';
+  const sats = selectedSats();
+
+  const W = 800, H = 400;
+  const x = lon => (lon + 180) / 360 * W;
+  const y = lat => (90 - lat) / 180 * H;
+
+  // Bakgrunn
+  let s = `<rect x="0" y="0" width="${W}" height="${H}" fill="#0d1822"/>`;
+
+  // Lat/lon-grid
+  for (let lon = -180; lon <= 180; lon += 30) {
+    s += `<line class="grid" x1="${x(lon)}" y1="0" x2="${x(lon)}" y2="${H}"/>`;
+  }
+  for (let lat = -60; lat <= 60; lat += 30) {
+    s += `<line class="grid" x1="0" y1="${y(lat)}" x2="${W}" y2="${y(lat)}"/>`;
+  }
+  // Ekvator
+  s += `<line class="equator" x1="0" y1="${y(0)}" x2="${W}" y2="${y(0)}"/>`;
+
+  // Kontinent-omriss fra inline-data
+  try {
+    const landData = JSON.parse(document.getElementById('land-data').textContent);
+    for (const ring of landData) {
+      // Bygg path; håndter dateline ved å splitte
+      let d = '';
+      let lastLon = null;
+      let started = false;
+      for (const [lon, lat] of ring) {
+        if (lastLon !== null && Math.abs(lon - lastLon) > 180) {
+          // Dateline-krysning: avbryt og starte på ny
+          started = false;
+        }
+        if (!started) {
+          d += `M${x(lon).toFixed(1)},${y(lat).toFixed(1)} `;
+          started = true;
+        } else {
+          d += `L${x(lon).toFixed(1)},${y(lat).toFixed(1)} `;
+        }
+        lastLon = lon;
+      }
+      if (d) s += `<path class="land" d="${d}Z"/>`;
+    }
+  } catch (e) { /* hopp over hvis land-data mangler */ }
+
+  // Bakkestasjon
+  const sx = x(STATION.lon), sy = y(STATION.lat);
+  s += `<g transform="translate(${sx},${sy})">
+    <line x1="-7" y1="-7" x2="7" y2="7" stroke="#ffaa44" stroke-width="2"/>
+    <line x1="7" y1="-7" x2="-7" y2="7" stroke="#ffaa44" stroke-width="2"/>
+    <text x="10" y="3" fill="#ffaa44" font-family="JetBrains Mono" font-size="10">Trondheim</text>
+  </g>`;
+
+  if (sats.length === 0) {
+    svg.innerHTML = s + `<text x="400" y="200" text-anchor="middle" fill="#9a9087" font-family="JetBrains Mono" font-size="14">Velg en eller flere satellitter</text>`;
     document.getElementById('gt-title').textContent = 'Ground track';
     return;
   }
@@ -989,227 +1655,337 @@ function refreshGroundTrack() {
   const orbits = +document.getElementById('gt-orbits').value;
   const stepS = +document.getElementById('gt-step').value;
 
-  // Estimat for omløpstid: 2π / no_kozai (rad/min)
-  const no = selected.satrec.no;  // rad/min
-  const periodMin = (2 * Math.PI) / no;
-  const totalMin = periodMin * orbits;
-  const stepMin = stepS / 60;
-  const samples = Math.ceil(totalMin / stepMin);
+  // Tegn bane for hver valgt sat
+  sats.forEach((sat, idx) => {
+    const color = SAT_COLORS[idx % SAT_COLORS.length];
+    const isPrimary = idx === 0;
+    const strokeW = isPrimary ? 1.7 : 1.0;
 
-  const points = [];
-  const now = new Date();
-  for (let i = 0; i <= samples; i++) {
-    const t = new Date(now.getTime() + i * stepS * 1000);
-    const p = getSatPosition(selected, t);
-    if (!p) continue;
-    const la = lookAngles(selected, t);
-    points.push({
-      lat: p.lat,
-      lon: p.lon,
-      visible: la && la.elevation >= 5,
-      time: t
-    });
-  }
+    const no = sat.satrec.no;
+    const periodMin = (2 * Math.PI) / no;
+    const totalMin = periodMin * orbits;
+    const samples = Math.ceil(totalMin * 60 / stepS);
 
-  // Tegn på Mercator-aktig ekvirektangulær projeksjon
-  const W = 800, H = 400;
-  const x = lon => (lon + 180) / 360 * W;
-  const y = lat => (90 - lat) / 180 * H;
-
-  let s = '';
-
-  // Bakgrunn (hav)
-  s += `<rect x="0" y="0" width="${W}" height="${H}" fill="#dee5ea"/>`;
-  // Land — veldig stilisert (vi har ikke geo-data, men vi kan tegne et grid)
-  // Lag et lat/lon-rutenett
-  for (let lon = -180; lon <= 180; lon += 30) {
-    s += `<line x1="${x(lon)}" y1="0" x2="${x(lon)}" y2="${H}" stroke="#c4cbd0" stroke-width="0.5"/>`;
-  }
-  for (let lat = -60; lat <= 60; lat += 30) {
-    s += `<line x1="0" y1="${y(lat)}" x2="${W}" y2="${y(lat)}" stroke="#c4cbd0" stroke-width="0.5"/>`;
-  }
-  // Ekvator
-  s += `<line x1="0" y1="${y(0)}" x2="${W}" y2="${y(0)}" stroke="#9a9087" stroke-width="0.8" stroke-dasharray="4,4"/>`;
-
-  // Bakkestasjon
-  const sx = x(STATION.lon), sy = y(STATION.lat);
-  s += `<g transform="translate(${sx},${sy})">
-    <line x1="-7" y1="-7" x2="7" y2="7" stroke="#b8552e" stroke-width="2"/>
-    <line x1="7" y1="-7" x2="-7" y2="7" stroke="#b8552e" stroke-width="2"/>
-    <text x="10" y="3" fill="#b8552e" font-family="JetBrains Mono" font-size="10">Trondheim</text>
-  </g>`;
-
-  // Trekk bane med dateline-håndtering
-  let path = '', currentlyDrawing = false;
-  for (let i = 0; i < points.length; i++) {
-    const p = points[i];
-    if (i > 0 && Math.abs(p.lon - points[i-1].lon) > 180) {
-      // Dateline-krysning: avbryt
-      currentlyDrawing = false;
-      continue;
+    const points = [];
+    const now = new Date();
+    for (let i = 0; i <= samples; i++) {
+      const t = new Date(now.getTime() + i * stepS * 1000);
+      const p = getSatPosition(sat, t);
+      if (!p) continue;
+      const la = lookAngles(sat, t);
+      points.push({ lat: p.lat, lon: p.lon, visible: la && la.elevation >= 5 });
     }
-    if (!currentlyDrawing) {
-      path += `M${x(p.lon).toFixed(1)},${y(p.lat).toFixed(1)} `;
-      currentlyDrawing = true;
-    } else {
-      path += `L${x(p.lon).toFixed(1)},${y(p.lat).toFixed(1)} `;
+
+    let path = '';
+    let drawing = false;
+    for (let i = 0; i < points.length; i++) {
+      const p = points[i];
+      if (i > 0 && Math.abs(p.lon - points[i-1].lon) > 180) {
+        drawing = false;
+        continue;
+      }
+      if (!drawing) {
+        path += `M${x(p.lon).toFixed(1)},${y(p.lat).toFixed(1)} `;
+        drawing = true;
+      } else {
+        path += `L${x(p.lon).toFixed(1)},${y(p.lat).toFixed(1)} `;
+      }
     }
-  }
-  s += `<path d="${path}" fill="none" stroke="#b8552e" stroke-width="1.5" opacity="0.85"/>`;
+    s += `<path d="${path}" fill="none" stroke="${color}" stroke-width="${strokeW}" opacity="0.9"/>`;
 
-  // Synlige punkter
-  for (const p of points) {
-    if (!p.visible) continue;
-    s += `<circle cx="${x(p.lon).toFixed(1)}" cy="${y(p.lat).toFixed(1)}" r="2.5" fill="#5a6b3e"/>`;
-  }
+    // Synlige punkter
+    for (const p of points) {
+      if (!p.visible) continue;
+      s += `<circle cx="${x(p.lon).toFixed(1)}" cy="${y(p.lat).toFixed(1)}" r="${isPrimary ? 2.5 : 1.8}" fill="${color}"/>`;
+    }
 
-  // Start/slutt
-  if (points.length > 0) {
-    s += `<circle cx="${x(points[0].lon).toFixed(1)}" cy="${y(points[0].lat).toFixed(1)}" r="4" fill="#1a1814"/>`;
-    s += `<circle cx="${x(points[points.length-1].lon).toFixed(1)}" cy="${y(points[points.length-1].lat).toFixed(1)}" r="4" fill="none" stroke="#1a1814" stroke-width="2"/>`;
-  }
+    // Start/slutt for primær
+    if (isPrimary && points.length > 0) {
+      s += `<circle cx="${x(points[0].lon).toFixed(1)}" cy="${y(points[0].lat).toFixed(1)}" r="4" fill="#fff"/>`;
+      s += `<circle cx="${x(points[points.length-1].lon).toFixed(1)}" cy="${y(points[points.length-1].lat).toFixed(1)}" r="4" fill="none" stroke="#fff" stroke-width="2"/>`;
+    }
+  });
 
   svg.innerHTML = s;
-  document.getElementById('gt-title').textContent =
-    `Ground track — ${selected.name} (${orbits} omløp ≈ ${(totalMin/60).toFixed(1)} t)`;
+  const titleSats = sats.length === 1
+    ? sats[0].name
+    : `${sats.length} satellitter (primær: ${sats[0].name})`;
+  document.getElementById('gt-title').textContent = `Ground track — ${titleSats} (${orbits} omløp)`;
 }
 
-/* ═══ PASS-PREDIKSJONER ═══ */
+/* ═══ PASS-PREDIKSJONER MED PEAK REFINEMENT ═════════════════════════ */
+
+/* Gylden-snitt-søk for å finne maks elevasjon innenfor [a, b] */
+function refinePeak(sat, tA, tB, iter = 18) {
+  const phi = (Math.sqrt(5) - 1) / 2; // 0.618
+  let a = tA, b = tB;
+  let c = b - phi * (b - a);
+  let d = a + phi * (b - a);
+  function elAt(t) {
+    const la = lookAngles(sat, new Date(t));
+    return la ? la.elevation : -90;
+  }
+  let fc = elAt(c), fd = elAt(d);
+  for (let i = 0; i < iter; i++) {
+    if (fc < fd) {
+      a = c; c = d; fc = fd;
+      d = a + phi * (b - a);
+      fd = elAt(d);
+    } else {
+      b = d; d = c; fd = fc;
+      c = b - phi * (b - a);
+      fc = elAt(c);
+    }
+  }
+  const tPeak = (a + b) / 2;
+  const la = lookAngles(sat, new Date(tPeak));
+  return { time: new Date(tPeak), la };
+}
+
+/* Bisection for å finne nøyaktig AOS/LOS (når elevation = minElev) */
+function refineCrossing(sat, tBefore, tAfter, minElev) {
+  function el(t) {
+    const la = lookAngles(sat, new Date(t));
+    return la ? la.elevation - minElev : -90;
+  }
+  let a = tBefore, b = tAfter;
+  for (let i = 0; i < 30; i++) {
+    const m = (a + b) / 2;
+    const fm = el(m);
+    if (Math.abs(b - a) < 100) break; // 100ms presisjon nok
+    const fa = el(a);
+    if ((fa < 0) === (fm < 0)) a = m;
+    else b = m;
+  }
+  return new Date((a + b) / 2);
+}
+
+/* Beregner passes for én satellitt */
+function calculatePassesFor(sat, minElev, days) {
+  const passes = [];
+  const stepS = 60; // grov-skanning
+  const start = new Date();
+  const end = new Date(start.getTime() + days * 86400 * 1000);
+
+  let prevEl = null;
+  let prevTime = start.getTime();
+  let inPass = false;
+  let aosTime = null;
+  let aosAz = null;
+  let bracketStart = null; // for å finne peak: tid med start-vinduet
+
+  for (let t = start.getTime(); t <= end.getTime(); t += stepS * 1000) {
+    const date = new Date(t);
+    const la = lookAngles(sat, date);
+    if (!la) { prevEl = null; continue; }
+
+    if (prevEl !== null) {
+      // Crossing oppover (AOS)
+      if (prevEl < minElev && la.elevation >= minElev && !inPass) {
+        const aos = refineCrossing(sat, prevTime, t, minElev);
+        const laAOS = lookAngles(sat, aos);
+        aosTime = aos;
+        aosAz = laAOS ? laAOS.azimuth : la.azimuth;
+        inPass = true;
+        bracketStart = aos.getTime();
+      }
+      // Crossing nedover (LOS)
+      else if (prevEl >= minElev && la.elevation < minElev && inPass) {
+        const los = refineCrossing(sat, prevTime, t, minElev);
+        const laLOS = lookAngles(sat, los);
+
+        // Finn peak ved å søke i [aos, los]
+        const peak = refinePeak(sat, aosTime.getTime(), los.getTime());
+
+        // Sunlit ved peak
+        const peakPv = satelliteJS.propagate(sat.satrec, peak.time);
+        const sunlit = peakPv.position ? isSunlit(peakPv.position, peak.time) : false;
+
+        // Retning: stigende eller synkende node?
+        // Sjekk fortegn på lat-derivert ved peak (eller sammenlign aos.lat og los.lat).
+        const aosPos = getSatPosition(sat, aosTime);
+        const losPos = getSatPosition(sat, los);
+        const ascending = aosPos && losPos ? (losPos.lat > aosPos.lat) : null;
+
+        // Klokkeretning (CW/CCW) i azimuth: går azimut opp eller ned over passet?
+        // Northbound (ascending) på vår nordlige halvkule = vanligvis sør→nord = az dropper fra ~120° til ~60° via 0°? Avhenger.
+        // Mer robust: ta tre azimut-prøver (start, midt, slutt) og sjekk vinkelendringen.
+        const samples = [];
+        for (let frac = 0; frac <= 1; frac += 0.5) {
+          const tt = aosTime.getTime() + frac * (los.getTime() - aosTime.getTime());
+          const lala = lookAngles(sat, new Date(tt));
+          if (lala) samples.push(lala.azimuth);
+        }
+        // Diff håndtering med wrap rundt 360°
+        function angDiff(a, b) {
+          let d = b - a;
+          while (d > 180) d -= 360;
+          while (d < -180) d += 360;
+          return d;
+        }
+        let totalAngChange = 0;
+        for (let i = 1; i < samples.length; i++) totalAngChange += angDiff(samples[i-1], samples[i]);
+        // totalAngChange > 0 = med klokka (CW), < 0 = mot klokka (CCW)
+        const clockwise = totalAngChange > 0;
+
+        passes.push({
+          sat,
+          aos: aosTime,
+          los,
+          aosAz,
+          losAz: laLOS ? laLOS.azimuth : la.azimuth,
+          maxEl: peak.la ? peak.la.elevation : 0,
+          maxElAz: peak.la ? peak.la.azimuth : 0,
+          maxElTime: peak.time,
+          duration: (los.getTime() - aosTime.getTime()) / 1000,
+          minRange: peak.la ? peak.la.rangeKm : 0,
+          sunlit,
+          ascending,
+          clockwise
+        });
+
+        inPass = false;
+        aosTime = null;
+        aosAz = null;
+      }
+    }
+    prevEl = la.elevation;
+    prevTime = t;
+  }
+  return passes;
+}
+
 function calculatePasses() {
   const result = document.getElementById('pass-results');
-  if (!selected) {
-    result.innerHTML = '<p class="muted">Velg en satellitt først.</p>';
+  const sats = selectedSats();
+  if (sats.length === 0) {
+    result.innerHTML = '<p class="muted">Velg minst én satellitt først.</p>';
+    return;
+  }
+  const activeSats = sats.filter(s => passActiveSet.has(s.noradId));
+  if (activeSats.length === 0) {
+    result.innerHTML = '<p class="muted">Ingen satellitter er aktive i pass-prediksjonen. Klikk på chipsene over for å aktivere.</p>';
     return;
   }
 
   const minElev = +document.getElementById('pass-elev').value;
   const days = +document.getElementById('pass-days').value;
 
-  result.innerHTML = '<p class="muted">Beregner...</p>';
+  result.innerHTML = '<p class="muted">Beregner passes...</p>';
 
-  setTimeout(() => {  // gi UI tid til å oppdatere
-    const passes = [];
-    const stepS = 30;  // 30s skanning
-    const start = new Date();
-    const end = new Date(start.getTime() + days * 86400 * 1000);
-
-    let inPass = false;
-    let passData = null;
-
-    for (let t = start.getTime(); t < end.getTime(); t += stepS * 1000) {
-      const date = new Date(t);
-      const la = lookAngles(selected, date);
-      if (!la) continue;
-
-      if (la.elevation >= minElev && !inPass) {
-        // Pass starter
-        passData = {
-          aos: date,
-          aosAz: la.azimuth,
-          maxEl: la.elevation,
-          maxElAz: la.azimuth,
-          maxElTime: date,
-          maxRange: la.rangeKm,
-          minRange: la.rangeKm,
-        };
-        inPass = true;
-      } else if (la.elevation >= minElev && inPass) {
-        if (la.elevation > passData.maxEl) {
-          passData.maxEl = la.elevation;
-          passData.maxElAz = la.azimuth;
-          passData.maxElTime = date;
-          // Lagre ECI-pos for sunlit-sjekk ved TCA
-          const pv = satelliteJS.propagate(selected.satrec, date);
-          passData.tcaEci = pv.position;
-        }
-        if (la.rangeKm < passData.minRange) passData.minRange = la.rangeKm;
-        if (la.rangeKm > passData.maxRange) passData.maxRange = la.rangeKm;
-      } else if (la.elevation < minElev && inPass) {
-        // Pass slutter
-        passData.los = date;
-        passData.losAz = la.azimuth;
-        passData.duration = (passData.los - passData.aos) / 1000;
-        passData.sunlit = isSunlit(passData.tcaEci, passData.maxElTime);
-        passes.push(passData);
-        inPass = false;
-        passData = null;
-      }
+  setTimeout(() => {
+    let allPasses = [];
+    for (const sat of activeSats) {
+      const ps = calculatePassesFor(sat, minElev, days);
+      allPasses = allPasses.concat(ps);
     }
+    // Sorter etter AOS
+    allPasses.sort((a, b) => a.aos - b.aos);
 
-    if (passes.length === 0) {
-      result.innerHTML = `<p class="muted small">Ingen passes med min. ${minElev}° elevasjon over Trondheim de neste ${days} dagene. Sjekk om TLE er fersk eller prøv lavere elevasjonskrav.</p>`;
+    if (allPasses.length === 0) {
+      result.innerHTML = `<p class="muted small">Ingen passes med min. ${minElev}° elevasjon over Trondheim de neste ${days} dagene. Sjekk om TLE er fersk.</p>`;
       return;
     }
 
-    // Hint: hvis det er en frekvensoppføring, vis hva som er mottakbart
-    const fr = FREQUENCIES[selected.noradId];
-    const rxFreqs = fr ? fr.freqs.filter(f => f.rx) : [];
+    // Frekvens-hint for primær (om aktiv)
     let freqHint = '';
-    if (rxFreqs.length > 0) {
-      freqHint = `<p class="small">Mottakbare frekvenser: ${rxFreqs.map(f => `<span class="mono">${f.mhz.toFixed(3)} MHz</span> (${f.mode.split(' ')[0]})`).join(', ')}.</p>`;
+    const primary = primarySat();
+    if (primary && passActiveSet.has(primary.noradId)) {
+      const fr = FREQUENCIES[primary.noradId];
+      const rxFreqs = fr ? fr.freqs.filter(f => f.rx) : [];
+      if (rxFreqs.length > 0) {
+        freqHint = `<p class="small">Primær (${primary.name}) — mottakbare frekvenser: ${rxFreqs.map(f => `<span class="mono">${f.mhz.toFixed(3)} MHz</span>`).join(', ')}.</p>`;
+      }
     }
 
+    const rows = allPasses.map(p => {
+      const dirArrow = p.ascending === null ? '—' : (p.ascending ? '↑ N-bound' : '↓ S-bound');
+      const cwArrow = p.clockwise ? '↻' : '↺';
+      const cwLabel = p.clockwise ? 'CW' : 'CCW';
+      const idx = selectedIds.indexOf(p.sat.noradId);
+      const color = SAT_COLORS[idx % SAT_COLORS.length];
+
+      return `
+        <tr>
+          <td>
+            <span class="sat-color-dot" style="background:${color}"></span>
+            <span class="pass-row-name">${p.sat.name}</span>
+          </td>
+          <td>${HW.fmt.dt(p.aos)}</td>
+          <td class="num">${(p.duration / 60).toFixed(1)} min</td>
+          <td class="num">${p.maxEl.toFixed(1)}°</td>
+          <td>
+            <span class="muted tiny">start</span> ${p.aosAz.toFixed(0)}°
+            → <span class="muted tiny">peak</span> ${p.maxElAz.toFixed(0)}°
+            → <span class="muted tiny">slutt</span> ${p.losAz.toFixed(0)}°
+          </td>
+          <td>
+            <span class="pass-direction" title="${cwLabel} = retning satellitten beveger seg i azimut">
+              ${dirArrow} <span class="arrow">${cwArrow}</span>
+            </span>
+          </td>
+          <td class="num">${p.minRange.toFixed(0)} km</td>
+          <td>${p.sunlit ? '<span class="tag green" style="font-size:0.65rem;">sol</span>' : '<span class="tag" style="font-size:0.65rem;">skygge</span>'}</td>
+        </tr>
+      `;
+    }).join('');
+
     result.innerHTML = `
-      <p class="muted small">Fant ${passes.length} pass med min. ${minElev}° elevasjon de neste ${days} dagene.</p>
+      <p class="muted small">Fant ${allPasses.length} passes med min. ${minElev}° elevasjon de neste ${days} dagene${activeSats.length > 1 ? ` for ${activeSats.length} satellitter` : ''}.</p>
       ${freqHint}
       <table class="data-table">
         <thead>
           <tr>
+            <th>Satellitt</th>
             <th>Start (lokal)</th>
             <th>Varighet</th>
-            <th>Maks elev.</th>
+            <th class="num">Maks elev.</th>
             <th>Az start → maks → slutt</th>
+            <th>Retning</th>
             <th class="num">Maks slant</th>
-            <th>Sollys</th>
+            <th>Sol</th>
           </tr>
         </thead>
         <tbody>
-          ${passes.map(p => `
-            <tr>
-              <td>${HW.fmt.dt(p.aos)}</td>
-              <td class="num">${(p.duration / 60).toFixed(1)} min</td>
-              <td class="num">${p.maxEl.toFixed(0)}°</td>
-              <td>${p.aosAz.toFixed(0)}° → ${p.maxElAz.toFixed(0)}° → ${p.losAz.toFixed(0)}°</td>
-              <td class="num">${p.minRange.toFixed(0)} km</td>
-              <td>${p.sunlit ? '<span class="tag green" style="font-size:0.65rem;">sol</span>' : '<span class="tag" style="font-size:0.65rem;">skygge</span>'}</td>
-            </tr>
-          `).join('')}
+          ${rows}
         </tbody>
       </table>
       <p class="muted tiny" style="margin-top: 0.5rem;">
-        AOS = "Acquisition of Signal" (signal kommer over horisonten).
-        Az = peilingsvinkel målt fra nord, med klokka. El = vinkel over horisonten.
-        Sol = satellitten er i sollys ved TCA og kan ses visuelt om himmelen er mørk.
+        AOS = signal kommer over horisonten. Az = peilingsvinkel målt fra nord, med klokka.
+        El = vinkel over horisonten. <strong>Retning</strong>: ↑/↓ er om satellitten er på vei
+        nordover (ascending) eller sørover (descending) i sin bane. ↻ = azimut beveger seg med klokka
+        (peilingsvinkelen øker), ↺ = mot klokka. Brukbart for å vite hvilken side av himmelen den
+        kommer fra og hvor den drar. Peak finjustert med gylden-snitt-søk.
       </p>
     `;
-  }, 50);
+  }, 30);
 }
-
-/* ═══ DOPPLER ═══ */
+/* ═══ DOPPLER ════════════════════════════════════════════════════════ */
 function calculateDoppler() {
   const svg = document.getElementById('dop-svg');
   const fMHz = +document.getElementById('dop-freq').value;
-  const window = +document.getElementById('dop-window').value;
+  const windowSec = +document.getElementById('dop-window').value;
 
-  if (!selected) {
-    svg.innerHTML = '<text x="400" y="140" text-anchor="middle" fill="#9a9087" font-family="JetBrains Mono" font-size="14">Velg en satellitt</text>';
+  const sat = primarySat();
+  if (!sat) {
+    svg.innerHTML = '<text x="400" y="140" text-anchor="middle" fill="#9a9087" font-family="JetBrains Mono" font-size="14">Velg en primær satellitt</text>';
     return;
   }
   if (!fMHz || fMHz <= 0) return;
 
-  const c = 299792.458;  // km/s
+  const c = 299792.458;
   const fHz = fMHz * 1e6;
-  const samples = 200;
-  const stepS = window / samples;
+  const samples = 400; // høyere oppløsning enn før
+  const stepS = windowSec / samples;
   const start = new Date();
 
   const data = [];
   let maxAbsShift = 0;
+  let maxShiftIdx = -1;
   for (let i = 0; i <= samples; i++) {
     const t = new Date(start.getTime() + i * stepS * 1000);
-    const la = lookAngles(selected, t);
+    const la = lookAngles(sat, t);
     if (!la) continue;
-    // Doppler-skift: Δf = -f * v_radial / c (negativt v = mot oss = positiv skift)
     const shiftHz = -fHz * la.radialVelKmS / c;
     const shiftKHz = shiftHz / 1000;
     const observed = fMHz + shiftKHz / 1000;
@@ -1220,7 +1996,10 @@ function calculateDoppler() {
       vRad: la.radialVelKmS,
       el: la.elevation
     });
-    if (Math.abs(shiftKHz) > maxAbsShift) maxAbsShift = Math.abs(shiftKHz);
+    if (Math.abs(shiftKHz) > maxAbsShift) {
+      maxAbsShift = Math.abs(shiftKHz);
+      maxShiftIdx = data.length - 1;
+    }
   }
 
   // Stats
@@ -1250,18 +2029,34 @@ function calculateDoppler() {
   let s = '';
   // Y-grid
   for (let v = -Math.ceil(max); v <= Math.ceil(max); v += Math.max(1, Math.round(max / 4))) {
-    const y = yS(v);
-    s += `<line x1="${m.l}" y1="${y}" x2="${W-m.r}" y2="${y}" stroke="#e6e0d2"/>`;
-    s += `<text x="${m.l-6}" y="${y+4}" text-anchor="end" fill="#9a9087" font-family="JetBrains Mono" font-size="10">${v >= 0 ? '+' : ''}${v.toFixed(1)}</text>`;
+    const yp = yS(v);
+    s += `<line x1="${m.l}" y1="${yp}" x2="${W-m.r}" y2="${yp}" stroke="#e6e0d2"/>`;
+    s += `<text x="${m.l-6}" y="${yp+4}" text-anchor="end" fill="#9a9087" font-family="JetBrains Mono" font-size="10">${v >= 0 ? '+' : ''}${v.toFixed(1)}</text>`;
   }
   s += `<line x1="${m.l}" y1="${yS(0)}" x2="${W-m.r}" y2="${yS(0)}" stroke="#6b645b" stroke-dasharray="3,3"/>`;
 
-  // Tidstikker (5)
+  // Tidstikker
   for (let i = 0; i <= 5; i++) {
     const tt = t0 + (t1 - t0) * i / 5;
-    const x = xS(tt);
-    s += `<line x1="${x}" y1="${m.t}" x2="${x}" y2="${m.t+h}" stroke="#e6e0d2"/>`;
-    s += `<text x="${x}" y="${H-m.b+14}" text-anchor="middle" fill="#6b645b" font-family="JetBrains Mono" font-size="10">${HW.fmt.time(new Date(tt))}</text>`;
+    const xp = xS(tt);
+    s += `<line x1="${xp}" y1="${m.t}" x2="${xp}" y2="${m.t+h}" stroke="#e6e0d2"/>`;
+    s += `<text x="${xp}" y="${H-m.b+14}" text-anchor="middle" fill="#6b645b" font-family="JetBrains Mono" font-size="10">${HW.fmt.time(new Date(tt))}</text>`;
+  }
+
+  // Synlig-skraver (over horisonten)
+  let visStart = null;
+  let shading = '';
+  for (let i = 0; i < data.length; i++) {
+    if (data[i].el >= 0 && visStart == null) visStart = data[i].t.getTime();
+    else if (data[i].el < 0 && visStart != null) {
+      const x1 = xS(visStart), x2 = xS(data[i].t.getTime());
+      shading += `<rect x="${x1}" y="${m.t}" width="${x2-x1}" height="${h}" fill="#5a6b3e" opacity="0.1"/>`;
+      visStart = null;
+    }
+  }
+  if (visStart != null) {
+    const x1 = xS(visStart), x2 = xS(data[data.length-1].t.getTime());
+    shading += `<rect x="${x1}" y="${m.t}" width="${x2-x1}" height="${h}" fill="#5a6b3e" opacity="0.1"/>`;
   }
 
   // Doppler-kurve
@@ -1269,29 +2064,13 @@ function calculateDoppler() {
   data.forEach((d, i) => {
     path += (i === 0 ? 'M' : 'L') + xS(d.t.getTime()).toFixed(1) + ',' + yS(d.shift).toFixed(1) + ' ';
   });
-  s += `<path d="${path}" fill="none" stroke="var(--accent)" stroke-width="2"/>`;
 
-  // Synlig-skraver (elevasjon > 0)
-  let visStart = null;
-  for (let i = 0; i < data.length; i++) {
-    if (data[i].el >= 0 && visStart == null) visStart = data[i].t.getTime();
-    else if (data[i].el < 0 && visStart != null) {
-      const x1 = xS(visStart), x2 = xS(data[i].t.getTime());
-      s = `<rect x="${x1}" y="${m.t}" width="${x2-x1}" height="${h}" fill="#5a6b3e" opacity="0.08"/>` + s;
-      visStart = null;
-    }
-  }
-  if (visStart != null) {
-    const x1 = xS(visStart), x2 = xS(data[data.length-1].t.getTime());
-    s = `<rect x="${x1}" y="${m.t}" width="${x2-x1}" height="${h}" fill="#5a6b3e" opacity="0.08"/>` + s;
-  }
-
-  svg.innerHTML = s;
+  svg.innerHTML = shading + s + `<path d="${path}" fill="none" stroke="var(--accent)" stroke-width="2"/>`;
   document.getElementById('dop-title').textContent =
-    `Doppler-skift for ${selected.name} på ${fMHz} MHz — kHz`;
+    `Doppler-skift for ${sat.name} på ${fMHz} MHz — kHz`;
 }
 
-/* ═══ LINK BUDGET ═══ */
+/* ═══ LINK BUDGET ════════════════════════════════════════════════════ */
 function calculateLinkBudget() {
   const f = +document.getElementById('lb-freq').value;
   const Pw = +document.getElementById('lb-power').value;
@@ -1307,7 +2086,6 @@ function calculateLinkBudget() {
   const EIRP = PdBm + Gtx;
   const FSPL = 20 * Math.log10(d) + 20 * Math.log10(f) + 32.45;
   const Prx = EIRP - FSPL + Grx - loss;
-  // Støygulv: -174 dBm/Hz + 10log10(BW) + NF
   const Noise = -174 + 10 * Math.log10(bwKHz * 1000) + NF;
   const SNR = Prx - Noise;
   const margin = SNR - reqSNR;
@@ -1322,42 +2100,25 @@ function calculateLinkBudget() {
   if (margin >= 10) verdict = `<span class="tag green">Robust</span> — Margin på ${margin.toFixed(1)} dB gir god feiltoleranse.`;
   else if (margin >= 3) verdict = `<span class="tag warn">Marginal</span> — Margin på ${margin.toFixed(1)} dB. Kan fungere, men sårbart for fading og pekefeil.`;
   else if (margin >= 0) verdict = `<span class="tag warn">På grensen</span> — Margin ${margin.toFixed(1)} dB. Forvent dropouts.`;
-  else verdict = `<span class="tag accent">For svakt</span> — Mangler ${(-margin).toFixed(1)} dB for å oppnå krav. Øk antenne-gain, effekt eller reduser båndbredde.`;
+  else verdict = `<span class="tag accent">For svakt</span> — Mangler ${(-margin).toFixed(1)} dB. Øk antenne-gain, effekt eller reduser båndbredde.`;
   document.getElementById('lb-verdict').innerHTML = verdict;
 }
 
-document.getElementById('lb-from-sat').addEventListener('click', () => {
-  if (!selected) {
-    alert('Velg en satellitt først.');
-    return;
-  }
-  const la = lookAngles(selected);
-  if (la) {
-    document.getElementById('lb-dist').value = la.rangeKm.toFixed(0);
-    calculateLinkBudget();
-  }
-});
-
-// Auto-update link budget når noe endres
-['lb-freq','lb-power','lb-gtx','lb-grx','lb-loss','lb-dist','lb-bw','lb-nf','lb-snr'].forEach(id => {
-  document.getElementById(id).addEventListener('input', calculateLinkBudget);
-});
-
-/* ═══ ANTENNE ═══ */
+/* ═══ ANTENNE ════════════════════════════════════════════════════════ */
 function calculateAntenna() {
   const type = document.getElementById('ant-type').value;
   const f = +document.getElementById('ant-freq').value;
   if (!f || f <= 0) return;
 
-  const c = 299.792458; // m·MHz
-  const lambda = c / f;  // meter
+  const c = 299.792458;
+  const lambda = c / f;
 
   let len, gain, bw, detail;
   switch (type) {
     case 'dipole':
-      len = lambda / 2 * 0.95;  // velocity factor
+      len = lambda / 2 * 0.95;
       gain = 2.15;
-      bw = 78;  // ca. 78° elev-aperatur, 360° azimuth
+      bw = 78;
       detail = `
         <p>Halvbølgedipol — den klassiske antennen. Lengde 0,475·λ (95% velocity factor).
         Beam-mønster er omnidireksjonal i azimuth, ca. 78° i elevasjon.</p>
@@ -1370,30 +2131,30 @@ function calculateAntenna() {
       break;
     case 'ground':
       len = lambda / 4;
-      gain = 5.15;  // ~3 dB over dipol pga. jordplan
+      gain = 5.15;
       bw = 45;
       detail = `
-        <p>Vertikal kvartbølge med 4 radielle jordplan-elementer. Brukes ofte i basestasjon-rigg.</p>
+        <p>Vertikal kvartbølge med 4 radielle jordplan-elementer.</p>
         <ul>
           <li>Vertikal: ${(len*100).toFixed(1)} cm</li>
-          <li>Jordplan-elementer: ${(len*1.05*100).toFixed(1)} cm (slightly longer)</li>
+          <li>Jordplan-elementer: ${(len*1.05*100).toFixed(1)} cm</li>
           <li>Impedans: ~36 Ω (50 Ω om jordplanet helles 30°)</li>
         </ul>
       `;
       break;
     case 'yagi3':
     case 'yagi5':
-    case 'yagi7':
+    case 'yagi7': {
       const N = type === 'yagi3' ? 3 : type === 'yagi5' ? 5 : 7;
-      gain = 10 * Math.log10(N + 1) + 1.5;  // tommelfingerregel
-      len = lambda / 2 * 0.95;  // driver
-      bw = 90 - 8 * N;  // mindre med flere elementer
+      gain = 10 * Math.log10(N + 1) + 1.5;
+      len = lambda / 2 * 0.95;
+      bw = 90 - 8 * N;
       const boom = (N - 1) * lambda * 0.25;
       const refl = lambda * 0.5 * 1.05;
       const dirA = lambda * 0.5 * 0.92;
       detail = `
         <p>Yagi med ${N} elementer (1 reflektor + 1 driver + ${N-2} direktorer).
-        Bommen er ca. ${boom.toFixed(2)} m lang for optimalt design.</p>
+        Bom ca. ${boom.toFixed(2)} m for optimalt design.</p>
         <ul>
           <li>Driver (halvbølgedipol): ${(len*100).toFixed(1)} cm</li>
           <li>Reflektor: ${(refl*100).toFixed(1)} cm</li>
@@ -1402,17 +2163,41 @@ function calculateAntenna() {
         </ul>
       `;
       break;
-    case 'helix':
+    }
+    case 'qfh': {
+      // Quadrifilar Helix — 1/2-turn, sirk. polarisert
+      const D = lambda * 0.173;  // diameter
+      const H = lambda * 0.260;  // height (axial)
+      const small = lambda * 0.1645;  // smaller loop circumference factor
+      const big = lambda * 0.1810;
+      gain = 4.5;  // typisk 4-5 dBi for 1/2-turn QFH
+      len = H;
+      bw = 120;  // bred åpning, nesten halvkule-dekning
+      detail = `
+        <p>QFH (Quadrifilar Helix) — sirkulært polarisert antenne med veldig bred
+        åpning, nær halvkule-dekning. Spesielt populær for NOAA APT og Meteor LRPT.
+        Ingen rotor nødvendig.</p>
+        <ul>
+          <li>Diameter: ${(D*100).toFixed(1)} cm</li>
+          <li>Høyde: ${(H*100).toFixed(1)} cm</li>
+          <li>4 helix-tråder, 1/2 omdreining hver</li>
+          <li>Impedans: ~50 Ω (ved riktig dimensjonering)</li>
+          <li>Polarisering: høyre-håndet sirkulær (RHCP)</li>
+        </ul>
+      `;
+      break;
+    }
+    case 'helix': {
       const turns = 8;
-      const C = lambda;  // omkrets ≈ λ for axial mode
+      const C = lambda;
       const D = C / Math.PI;
-      const S = lambda * 0.25;  // spacing per turn
+      const S = lambda * 0.25;
       const L = turns * S;
       gain = 10 * Math.log10(15 * turns * S / lambda * (C/lambda)*(C/lambda));
       len = L;
       bw = 52 / Math.sqrt(turns * S / lambda * (C/lambda));
       detail = `
-        <p>Helix-antenne i axial mode — sirkulært polarisert. Veldig god for satellitt-kommunikasjon (kompenserer Faraday-rotasjon).</p>
+        <p>Aksial helix-antenne — sirkulært polarisert. Veldig god for satellitt-kommunikasjon.</p>
         <ul>
           <li>Diameter: ${(D*100).toFixed(1)} cm</li>
           <li>Steg per omdreining: ${(S*100).toFixed(1)} cm</li>
@@ -1422,6 +2207,7 @@ function calculateAntenna() {
         </ul>
       `;
       break;
+    }
   }
 
   document.getElementById('ant-lambda').innerHTML = `${(lambda*100).toFixed(1)}<span class="stat-unit">cm</span>`;
@@ -1431,10 +2217,7 @@ function calculateAntenna() {
   document.getElementById('ant-detail').innerHTML = detail;
 }
 
-document.getElementById('ant-type').addEventListener('change', calculateAntenna);
-document.getElementById('ant-freq').addEventListener('input', calculateAntenna);
-
-/* ═══ TLE-LESER ═══ */
+/* ═══ TLE-LESER ══════════════════════════════════════════════════════ */
 function parseTLEManual() {
   const text = document.getElementById('tle-input').value.trim();
   const lines = text.split(/\r?\n/).map(l => l.trim()).filter(l => l.length);
@@ -1466,15 +2249,12 @@ function parseTLEManual() {
     return;
   }
 
-  // Parse felter manuelt for forklaring
   const noradId = line1.substring(2, 7).trim();
   const classification = line1.substring(7, 8);
   const intlDesignator = line1.substring(9, 17).trim();
   const epochYear = +line1.substring(18, 20);
   const epochDay = +line1.substring(20, 32);
-  const meanMotion1 = parseFloat('0.' + line1.substring(34, 43).replace(/^[+\-]/, '').replace(/\s/g, ''));
   const bstar = line1.substring(53, 61).trim();
-  const setNum = line1.substring(64, 68).trim();
 
   const incl = +line2.substring(8, 16);
   const raan = +line2.substring(17, 25);
@@ -1484,16 +2264,13 @@ function parseTLEManual() {
   const meanMotion = +line2.substring(52, 63);
   const revs = +line2.substring(63, 68);
 
-  // Beregn avledede størrelser
   const periodMin = 1440 / meanMotion;
-  // Semi-major axis (Kepler 3): a^3 = μ / n²
   const mu = 398600.4418;
   const nRadS = (meanMotion * 2 * Math.PI) / 86400;
   const a = Math.pow(mu / (nRadS * nRadS), 1/3);
   const apogee = a * (1 + ecc) - 6378.137;
   const perigee = a * (1 - ecc) - 6378.137;
 
-  // Epoch -> Date
   const yr = epochYear < 57 ? 2000 + epochYear : 1900 + epochYear;
   const epoch = new Date(Date.UTC(yr, 0, 1) + (epochDay - 1) * 86400 * 1000);
 
@@ -1510,7 +2287,7 @@ function parseTLEManual() {
         <tr><td>Eksentrisitet</td><td class="num">${ecc.toFixed(7)}</td><td class="muted small">0 = sirkulær, &lt;1 = ellipse</td></tr>
         <tr><td>Argument of perigee</td><td class="num">${argp.toFixed(4)}°</td><td class="muted small">Vinkel fra node til perigeum</td></tr>
         <tr><td>Mean anomaly</td><td class="num">${meanAnom.toFixed(4)}°</td><td class="muted small">Posisjon i banen ved epoch</td></tr>
-        <tr><td>Mean motion</td><td class="num">${meanMotion.toFixed(8)} rev/dag</td><td class="muted small">Hvor mange omløp per døgn</td></tr>
+        <tr><td>Mean motion</td><td class="num">${meanMotion.toFixed(8)} rev/dag</td><td class="muted small">Antall omløp per døgn</td></tr>
         <tr><td>BSTAR drag</td><td class="num">${bstar}</td><td class="muted small">Drag-koeff. (1/Earth radii)</td></tr>
         <tr><td>Antall omløp</td><td class="num">${revs}</td><td class="muted small">Tall siden oppskytning</td></tr>
       </tbody>
@@ -1521,27 +2298,20 @@ function parseTLEManual() {
       <tbody>
         <tr><td>Omløpstid</td><td class="num">${periodMin.toFixed(2)} min</td></tr>
         <tr><td>Semi-major axis</td><td class="num">${a.toFixed(2)} km</td></tr>
-        <tr><td>Apogeum (høyeste punkt)</td><td class="num">${apogee.toFixed(0)} km</td></tr>
-        <tr><td>Perigeum (laveste punkt)</td><td class="num">${perigee.toFixed(0)} km</td></tr>
+        <tr><td>Apogeum (høyeste)</td><td class="num">${apogee.toFixed(0)} km</td></tr>
+        <tr><td>Perigeum (laveste)</td><td class="num">${perigee.toFixed(0)} km</td></tr>
       </tbody>
     </table>
   `;
 }
 
-document.getElementById('tle-parse').addEventListener('click', parseTLEManual);
-document.getElementById('tle-from-selected').addEventListener('click', () => {
-  if (!selected) { alert('Velg en sat først'); return; }
-  document.getElementById('tle-input').value = `${selected.name}\n${selected.line1}\n${selected.line2}`;
-  parseTLEManual();
-});
-
-/* ═══ FANE-OPPDATERING ═══ */
+/* ═══ FANE-OPPDATERING ═══════════════════════════════════════════════ */
 function refreshTab(tab) {
   if (tab === 'ground') refreshGroundTrack();
   if (tab === 'doppler') {
-    // Forhåndsutfyll Doppler med valgt sats hovedfrekvens
-    if (selected) {
-      const fr = FREQUENCIES[selected.noradId];
+    const sat = primarySat();
+    if (sat) {
+      const fr = FREQUENCIES[sat.noradId];
       if (fr && fr.freqs) {
         const rxFreq = fr.freqs.find(f => f.rx) || fr.freqs[0];
         if (rxFreq) document.getElementById('dop-freq').value = rxFreq.mhz;
@@ -1550,11 +2320,12 @@ function refreshTab(tab) {
   }
   if (tab === 'antenna') calculateAntenna();
   if (tab === 'link') calculateLinkBudget();
+  if (tab === 'passes') renderPassPicker();
 }
 
 window.addEventListener('tabchange', e => refreshTab(e.detail.tab));
 
-/* ═══ EVENT-WIRING ═══ */
+/* ═══ EVENT-WIRING ═══════════════════════════════════════════════════ */
 document.getElementById('sat-search').addEventListener('input', e => renderSatList(e.target.value));
 document.getElementById('sat-group').addEventListener('change', e => {
   currentGroup = e.target.value;
@@ -1565,11 +2336,88 @@ document.getElementById('gt-step').addEventListener('change', refreshGroundTrack
 document.getElementById('pass-calc').addEventListener('click', calculatePasses);
 document.getElementById('dop-calc').addEventListener('click', calculateDoppler);
 
-/* ═══ START ═══ */
+// Auto-update link budget
+['lb-freq','lb-power','lb-gtx','lb-grx','lb-loss','lb-dist','lb-bw','lb-nf','lb-snr'].forEach(id => {
+  document.getElementById(id).addEventListener('input', calculateLinkBudget);
+});
+document.getElementById('lb-from-sat').addEventListener('click', () => {
+  const sat = primarySat();
+  if (!sat) { alert('Velg en primær satellitt først.'); return; }
+  const la = lookAngles(sat);
+  if (la) {
+    document.getElementById('lb-dist').value = la.rangeKm.toFixed(0);
+    calculateLinkBudget();
+  }
+});
+
+document.getElementById('ant-type').addEventListener('change', calculateAntenna);
+document.getElementById('ant-freq').addEventListener('input', calculateAntenna);
+
+document.getElementById('tle-parse').addEventListener('click', parseTLEManual);
+document.getElementById('tle-from-selected').addEventListener('click', () => {
+  const sat = primarySat();
+  if (!sat) { alert('Velg en primær satellitt først.'); return; }
+  document.getElementById('tle-input').value = `${sat.name}\n${sat.line1}\n${sat.line2}`;
+  parseTLEManual();
+});
+document.getElementById('tle-from-norad').addEventListener('click', async () => {
+  const id = document.getElementById('tle-norad-input').value.trim();
+  if (!id) { alert('Skriv inn en NORAD-ID.'); return; }
+  document.getElementById('tle-result').innerHTML = '<p class="muted">Henter...</p>';
+  try {
+    const sat = await fetchTLEByNorad(id);
+    document.getElementById('tle-input').value = `${sat.name}\n${sat.line1}\n${sat.line2}`;
+    parseTLEManual();
+  } catch (e) {
+    document.getElementById('tle-result').innerHTML = `<p class="muted">Klarte ikke hente NORAD ${id}: ${e.message}</p>`;
+  }
+});
+
+/* NORAD-loader i hovedlisten */
+async function loadCustomNorad() {
+  const input = document.getElementById('norad-input');
+  const status = document.getElementById('norad-status');
+  const id = input.value.trim();
+  if (!id || !/^\d+$/.test(id)) {
+    status.className = 'norad-status error';
+    status.textContent = 'Skriv en numerisk NORAD-ID';
+    return;
+  }
+  status.className = 'norad-status';
+  status.textContent = `Henter NORAD ${id}...`;
+  try {
+    const sat = await fetchTLEByNorad(id);
+    customSats.set(sat.noradId, sat);
+    status.className = 'norad-status success';
+    status.textContent = `Lastet ${sat.name} (NORAD ${sat.noradId})`;
+    input.value = '';
+    // Velg som primær automatisk
+    if (!selectedIds.includes(sat.noradId)) {
+      selectedIds.unshift(sat.noradId);
+    } else {
+      const idx = selectedIds.indexOf(sat.noradId);
+      selectedIds.splice(idx, 1);
+      selectedIds.unshift(sat.noradId);
+    }
+    document.getElementById('sat-count').textContent =
+      `${satellites.length} + ${customSats.size} egne sat. lastet`;
+    onSelectionChange();
+  } catch (e) {
+    status.className = 'norad-status error';
+    status.textContent = `Feil: ${e.message}`;
+  }
+}
+document.getElementById('norad-load').addEventListener('click', loadCustomNorad);
+document.getElementById('norad-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') { e.preventDefault(); loadCustomNorad(); }
+});
+
+/* ═══ START ══════════════════════════════════════════════════════════ */
 initGlobe();
 calculateAntenna();
 calculateLinkBudget();
 loadSatGroup(currentGroup);
+
 </script>
 </body>
 </html>

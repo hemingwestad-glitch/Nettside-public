@@ -1,0 +1,651 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Meteor-guide — Heming Westad</title>
+<meta name="description" content="Guide for å motta og dekode værbilder fra Meteor M2-3 og M2-4 med RTL-SDR V3, dipolantenne og SatDump.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..700;1,9..144,400&family=Inter+Tight:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/style.css">
+<style>
+  /* Bildekarusell */
+  .carousel {
+    position: relative;
+    margin: 1.5rem 0;
+    background: var(--bg-card);
+    border: 1px solid var(--rule);
+  }
+  .carousel-track {
+    display: flex;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+  }
+  .carousel-slide {
+    flex: 0 0 100%;
+    scroll-snap-align: start;
+    aspect-ratio: 4/3;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #0a0d14;
+    color: var(--ink-faint);
+    position: relative;
+  }
+  .carousel-slide img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+  .carousel-slide .placeholder {
+    text-align: center;
+    padding: 1rem;
+    font-family: var(--font-mono);
+    font-size: 0.85rem;
+    line-height: 1.6;
+  }
+  .carousel-slide .placeholder strong {
+    display: block;
+    color: var(--accent-soft);
+    margin-bottom: 0.4rem;
+    font-family: var(--font-body);
+    font-weight: 500;
+    font-size: 1rem;
+  }
+  .carousel-caption {
+    padding: 0.6rem 0.9rem;
+    font-size: 0.85rem;
+    color: var(--ink-soft);
+    border-top: 1px solid var(--rule-soft);
+  }
+  .carousel-caption .step {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    color: var(--accent);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-right: 0.5rem;
+  }
+  .carousel-nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.4rem 0.6rem;
+    border-top: 1px solid var(--rule-soft);
+    background: var(--bg-soft);
+  }
+  .carousel-dots {
+    display: flex;
+    gap: 0.4rem;
+  }
+  .carousel-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--rule);
+    cursor: pointer;
+    border: none;
+    padding: 0;
+    transition: background 0.15s;
+  }
+  .carousel-dot.active { background: var(--accent); }
+  .carousel-arrow {
+    background: transparent;
+    border: 1px solid var(--rule);
+    padding: 0.3rem 0.7rem;
+    cursor: pointer;
+    font-family: var(--font-mono);
+    font-size: 0.85rem;
+    color: var(--ink-soft);
+  }
+  .carousel-arrow:hover { color: var(--accent); border-color: var(--accent); }
+  .carousel-arrow:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  /* Tabeller med tighere styling */
+  .params-table {
+    width: 100%;
+    margin: 1rem 0;
+    font-family: var(--font-mono);
+    font-size: 0.85rem;
+    border-collapse: collapse;
+  }
+  .params-table th, .params-table td {
+    padding: 0.5rem 0.7rem;
+    border-bottom: 1px solid var(--rule-soft);
+    text-align: left;
+  }
+  .params-table th {
+    color: var(--ink-faint);
+    font-weight: 500;
+    text-transform: uppercase;
+    font-size: 0.7rem;
+    letter-spacing: 0.06em;
+  }
+  .params-table .key { color: var(--ink-soft); }
+  .params-table .val { color: var(--accent); font-weight: 500; }
+
+  /* Sjekkliste */
+  .checklist {
+    background: var(--bg-card);
+    border: 1px solid var(--rule);
+    padding: 1rem 1.2rem;
+    margin: 1rem 0;
+  }
+  .checklist h4 { margin-top: 0; }
+  .checklist ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+  .checklist li {
+    padding: 0.3rem 0 0.3rem 1.6rem;
+    position: relative;
+    font-family: var(--font-mono);
+    font-size: 0.85rem;
+  }
+  .checklist li::before {
+    content: '☐';
+    position: absolute;
+    left: 0;
+    color: var(--accent);
+    font-size: 1.1rem;
+  }
+
+  /* Tips-boks */
+  .tip-box {
+    background: var(--bg-soft);
+    border-left: 3px solid var(--blue);
+    padding: 0.8rem 1rem;
+    margin: 1rem 0;
+  }
+  .tip-box.warn { border-left-color: var(--warn); }
+  .tip-box.danger { border-left-color: var(--accent); }
+  .tip-box strong { color: var(--blue-deep); }
+  .tip-box.warn strong { color: #8a6a18; }
+  .tip-box.danger strong { color: var(--accent-deep); }
+
+  /* Seksjons-anker for innholdsfortegnelse */
+  .toc {
+    background: var(--bg-card);
+    border: 1px solid var(--rule);
+    padding: 0.8rem 1.2rem;
+    margin: 1.5rem 0;
+    font-size: 0.88rem;
+  }
+  .toc h4 { margin: 0 0 0.5rem; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--ink-faint); }
+  .toc ol { margin: 0; padding-left: 1.4rem; }
+  .toc li { margin: 0.15rem 0; }
+  .toc a { color: var(--ink-soft); text-decoration: none; }
+  .toc a:hover { color: var(--accent); }
+
+  h2[id] { scroll-margin-top: 1rem; }
+</style>
+</head>
+<body>
+<header>
+  <div class="logo"><a href="/">Heming Westad<span class="dot">.</span></a></div>
+  <nav>
+    <ul>
+      <li><a href="/">heim</a></li>
+      <li><a href="/tools.html" class="current">verktøy</a></li>
+      <li><a href="/projects.html">prosjekter</a></li>
+      <li><a href="/now.html">nå</a></li>
+      <li><a href="/about.html">om</a></li>
+    </ul>
+  </nav>
+</header>
+
+<main>
+  <div class="page-meta fade-up">
+    <span>Guide</span>
+    <span>RTL-SDR · SatDump · Meteor M2-3/M2-4</span>
+    <span>137.900 MHz</span>
+  </div>
+
+  <h1 class="fade-up">Værbilder fra <em>Meteor M2-3 og M2-4</em>.</h1>
+  <p class="lede fade-up">
+    Praktisk guide for å motta og dekode LRPT-bilder fra de russiske Meteor-værsatellittene
+    med en RTL-SDR V3, en dipolantenne og SatDump. Dette er måten jeg gjør det på i Trondheim
+    — fungerer like greit andre steder, så lenge du har fri sikt mot himmelen.
+  </p>
+  <p class="fade-up" style="margin-top: -0.5rem;">
+    <a href="/tools/space.html">← tilbake til satellitt-arbeidsbordet</a>
+  </p>
+
+  <div class="toc">
+    <h4>Innhold</h4>
+    <ol>
+      <li><a href="#utstyr">Utstyr og kostnader</a></li>
+      <li><a href="#oppsett">Førstegangs-oppsett (Zadig + SatDump)</a></li>
+      <li><a href="#prosess">Min prosess — fra oppsett til ferdig bilde</a></li>
+      <li><a href="#passering">Før hver passering</a></li>
+      <li><a href="#satdump">SatDump-innstillinger</a></li>
+      <li><a href="#under">Under passeringen</a></li>
+      <li><a href="#feilsoeking">Feilsøking</a></li>
+      <li><a href="#etterbehandling">Etter passeringen</a></li>
+      <li><a href="#tips">Tips for bedre resultater</a></li>
+      <li><a href="#frekvenser">Frekvenser og symbol rates</a></li>
+      <li><a href="#sjekkliste">Kjapp sjekkliste</a></li>
+    </ol>
+  </div>
+
+  <h2 id="utstyr">Utstyr og kostnader</h2>
+  <p>
+    Jeg kjøpte alt fra <a href="https://www.rtl-sdr.com/" target="_blank" rel="noopener">RTL-SDR Blog</a>'s
+    egen butikk. Pakka koster ca. <strong>$40 + gratis frakt</strong> og er et godt utgangspunkt:
+  </p>
+  <ul>
+    <li><strong>RTL-SDR V3-dongel</strong> — USB-mottaker med 0,5 ppm TCXO, R820T2-tuner, bias-T (av som default)</li>
+    <li><strong>Dipolantenne med stativ</strong> — justerbare armer fra 5 til 100 cm, magnetfot</li>
+    <li><strong>USB-skjøtekabel</strong> — for å holde dongelen vekk fra PC-en (mindre støy)</li>
+  </ul>
+  <p>I tillegg til pakka:</p>
+  <ul>
+    <li><strong>SatDump</strong> (gratis, Windows/Linux/macOS) — dekoder LRPT-signalet og produserer bildene</li>
+    <li><strong>Zadig</strong> (gratis, Windows) — installerer riktig USB-driver første gangen</li>
+    <li><strong>Heavens-Above</strong> eller en annen pass-prediktor — for å vite når satellittene flyr over</li>
+  </ul>
+
+  <p>Valgfritt men anbefalt for bedre resultater:</p>
+  <ul>
+    <li><strong>LNA (forforsterker)</strong> — montert ved antennen, hjelper på lavere passes (~$30)</li>
+    <li><strong>FM-bandstop-filter</strong> — demper FM-stasjoner (88-108 MHz) som ellers overstrømmer mottakeren (~$15)</li>
+    <li><strong>QFH-antenne</strong> — kvadrifilar helix gir dramatisk bedre signal enn dipol, hjemmebygd for ~150 kr</li>
+  </ul>
+
+  <h2 id="oppsett">Førstegangs-oppsett</h2>
+
+  <h3>1. Driver med Zadig</h3>
+  <p>
+    Plugg inn RTL-SDR-dongelen. Last ned Zadig fra <a href="https://zadig.akeo.ie/" target="_blank" rel="noopener">zadig.akeo.ie</a>.
+    Åpne Zadig, velg <code>Options → List All Devices</code>, finn "Bulk-In, Interface (Interface 0)" eller
+    "RTL2838UHIDIR", og installer <strong>WinUSB</strong>-driveren. Dette tar ca. 30 sekunder
+    og er kun nødvendig én gang.
+  </p>
+
+  <h3>2. SatDump</h3>
+  <p>
+    Last ned siste SatDump fra <a href="https://www.satdump.org/" target="_blank" rel="noopener">satdump.org</a>.
+    For Windows er det en zip — pakk ut og kjør <code>satdump-ui.exe</code>. Ingen installasjon trengs.
+  </p>
+
+  <h3>3. Oppdater TLE</h3>
+  <p>
+    I SatDump: <code>Settings → Update TLEs</code>. Gjør dette daglig hvis du følger satellittene aktivt
+    — TLE-er aldres raskt og en uke gamle data kan gi 30-60 sekunder feil i pass-tid.
+  </p>
+
+  <h2 id="prosess">Min prosess — fra oppsett til ferdig bilde</h2>
+  <p>
+    Karusellen under viser hvordan en typisk Meteor-mottak ser ut hos meg, fra
+    antennen ute på balkongen til ferdig bilde i SatDump. Plassholderne her er klare —
+    bytt ut <code>src</code>-attributtet i HTML-en med dine egne bilder, eller send meg lenker
+    så legger jeg dem inn.
+  </p>
+
+  <div class="carousel" id="carousel">
+    <div class="carousel-track" id="carousel-track">
+      <div class="carousel-slide">
+        <!-- BILDE 1 — bytt ut denne diven med <img src="..." alt="..."> -->
+        <div class="placeholder">
+          <strong>Bilde 1 — Antenne-oppsett</strong>
+          Dipolantenne i V-form ute på balkongen, pekt mot der<br>
+          satellitten har høyest elevasjon midtveis i passet.<br><br>
+          <em>plassholder · legg inn ditt eget bilde</em>
+        </div>
+      </div>
+      <div class="carousel-slide">
+        <div class="placeholder">
+          <strong>Bilde 2 — RTL-SDR-dongel og kabling</strong>
+          USB-dongelen med skjøtekabel ut til antenna,<br>
+          unna PC-en for mindre interferens.<br><br>
+          <em>plassholder · legg inn ditt eget bilde</em>
+        </div>
+      </div>
+      <div class="carousel-slide">
+        <div class="placeholder">
+          <strong>Bilde 3 — Heavens-Above pass-info</strong>
+          Skjermbilde av neste passering: tidspunkt,<br>
+          maks elevasjon, retning.<br><br>
+          <em>plassholder · legg inn ditt eget bilde</em>
+        </div>
+      </div>
+      <div class="carousel-slide">
+        <div class="placeholder">
+          <strong>Bilde 4 — SatDump waterfall ved AOS</strong>
+          LRPT-signalet som en bred stripe rundt 137,9 MHz<br>
+          som vandrer sidelengs (Doppler).<br><br>
+          <em>plassholder · legg inn ditt eget bilde</em>
+        </div>
+      </div>
+      <div class="carousel-slide">
+        <div class="placeholder">
+          <strong>Bilde 5 — Konstellasjonsdiagram med lås</strong>
+          Fire tydelige klynger i firkant betyr<br>
+          QPSK-lås — bilder kommer.<br><br>
+          <em>plassholder · legg inn ditt eget bilde</em>
+        </div>
+      </div>
+      <div class="carousel-slide">
+        <div class="placeholder">
+          <strong>Bilde 6 — Decoder-status</strong>
+          Viterbi SYNC, BER under 0,15, Reed-Solomon<br>
+          grønne tall = ren data.<br><br>
+          <em>plassholder · legg inn ditt eget bilde</em>
+        </div>
+      </div>
+      <div class="carousel-slide">
+        <div class="placeholder">
+          <strong>Bilde 7 — Ferdig værbilde</strong>
+          MSU-MR fargekompositt med kystlinje-overlay,<br>
+          geometrisk korrigert.<br><br>
+          <em>plassholder · legg inn ditt eget bilde</em>
+        </div>
+      </div>
+    </div>
+    <div class="carousel-caption" id="carousel-caption">
+      <span class="step">Steg 1 / 7</span>
+      Antenne-oppsett ute, før første passering.
+    </div>
+    <div class="carousel-nav">
+      <button class="carousel-arrow" id="car-prev" aria-label="Forrige">←  forrige</button>
+      <div class="carousel-dots" id="carousel-dots"></div>
+      <button class="carousel-arrow" id="car-next" aria-label="Neste">neste  →</button>
+    </div>
+  </div>
+
+  <p class="muted small">
+    Captions per bilde kan endres i kildekoden — søk etter <code>SLIDES</code> i HTML-en
+    nederst på siden.
+  </p>
+
+  <h2 id="passering">Før hver passering</h2>
+
+  <h3>Finn neste passering</h3>
+  <p>
+    Sjekk <a href="https://heavens-above.com/" target="_blank" rel="noopener">Heavens-Above</a>
+    eller bruk <a href="/tools/space.html">satellitt-arbeidsbordet</a> her — søk på
+    <strong>METEOR-M 2-3</strong> (NORAD 57166) eller <strong>METEOR-M 2-4</strong> (NORAD 59051),
+    eller hent dem direkte med NORAD-ID.
+  </p>
+  <p>Noter:</p>
+  <ul>
+    <li>Tidspunkt for AOS (Acquisition of Signal — start)</li>
+    <li>Maks elevasjon (over 30° gir best resultat, over 50° gir <em>veldig</em> bra resultat)</li>
+    <li>Retning: start-azimut, midt, slutt</li>
+    <li>Varighet (~10-12 min)</li>
+  </ul>
+
+  <h3>Antenne</h3>
+  <table class="params-table">
+    <tbody>
+      <tr><td class="key">Armlengde</td><td class="val">53-54 cm hver</td><td class="muted small">halvbølge ved 137 MHz</td></tr>
+      <tr><td class="key">Form</td><td class="val">V-form, horisontal</td><td class="muted small">ca. 120° mellom armene</td></tr>
+      <tr><td class="key">Retning</td><td class="val">peker mot peak</td><td class="muted small">der satellitten har høyest elevasjon</td></tr>
+      <tr><td class="key">Plassering</td><td class="val">ut av vinduet eller utendørs</td><td class="muted small">fri sikt mot himmelen</td></tr>
+    </tbody>
+  </table>
+
+  <div class="tip-box">
+    <strong>Tips:</strong> Bruker du QFH-antenne, slipper du å peke — den dekker hele halvkulen
+    omtrent jevnt. Ikke noe magisk, bare at de fire heliske trådene gir sirkulær polarisering
+    og en åpning på rundt 120°.
+  </div>
+
+  <h3>Oppdater TLE</h3>
+  <p><code>Settings → Update TLEs</code> i SatDump (eller "Pull TLEs"). Daglig hvis du følger aktivt.</p>
+
+  <h2 id="satdump">SatDump-innstillinger</h2>
+
+  <h3>Recorder-vindu (Add → Recorder)</h3>
+  <p><strong>Source:</strong></p>
+  <table class="params-table">
+    <thead><tr><th>Innstilling</th><th>Verdi</th></tr></thead>
+    <tbody>
+      <tr><td class="key">Source</td><td class="val">RTL-SDR</td></tr>
+      <tr><td class="key">Sample rate</td><td class="val">1.024 MSPS</td></tr>
+      <tr><td class="key">Frequency</td><td class="val">137.900 MHz</td></tr>
+      <tr><td class="key">Gain</td><td class="val">38-45 dB</td></tr>
+      <tr><td class="key">Bias-T</td><td class="val">AV (med mindre du har LNA)</td></tr>
+      <tr><td class="key">PPM</td><td class="val">0</td></tr>
+    </tbody>
+  </table>
+
+  <p><strong>Recording:</strong></p>
+  <table class="params-table">
+    <thead><tr><th>Innstilling</th><th>Verdi</th></tr></thead>
+    <tbody>
+      <tr><td class="key">Format</td><td class="val">ZIQ</td></tr>
+      <tr><td class="key">Sample format</td><td class="val">s16 (eller s8 for mindre filer)</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Pipeline (Live Processing)</h3>
+  <p><strong>Pipeline:</strong> <code>Meteor M2-x LRPT 72k</code></p>
+
+  <div class="tip-box warn">
+    <strong>VIKTIG:</strong> Symbol rate kan variere mellom <strong>72k og 80k</strong>. Hvis 72k
+    ikke gir lås, prøv 80k og omvendt. Russerne bytter modus uten varsel — sjekk
+    <a href="https://www.reddit.com/r/RTLSDR/" target="_blank" rel="noopener">r/RTLSDR</a> for
+    siste status hvis du er i tvil.
+  </div>
+
+  <p><strong>Tracking:</strong></p>
+  <ul>
+    <li>Aktiver <strong>doppler-korreksjon</strong></li>
+    <li>Velg riktig satellitt (METEOR-M 2-3 eller METEOR-M 2-4)</li>
+  </ul>
+
+  <h2 id="under">Under passeringen</h2>
+
+  <h3>Tidsplan</h3>
+  <table class="params-table">
+    <thead><tr><th>Tid</th><th>Handling</th></tr></thead>
+    <tbody>
+      <tr><td class="val">T-2 min</td><td>Start Recorder + Live Processing</td></tr>
+      <tr><td class="val">T+0 (AOS)</td><td>Signal kan være svakt fortsatt</td></tr>
+      <tr><td class="val">T+midt (peak)</td><td>Sterkest signal, beste lås</td></tr>
+      <tr><td class="val">T+slutt (LOS)</td><td>Signal forsvinner</td></tr>
+      <tr><td class="val">T+1 min</td><td>Stopp opptaket</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Hva du skal se etter</h3>
+  <p><strong>I waterfall:</strong></p>
+  <ul>
+    <li>Bred stripe (~120-150 kHz) sentrert på 137.900 MHz</li>
+    <li>Stripen "vandrer" sidelengs (Doppler-effekt) — bevis på satellitt</li>
+  </ul>
+
+  <p><strong>I konstellasjonsdiagram:</strong></p>
+  <ul>
+    <li>❌ <strong>Sky av prikker</strong> = ingen lås (for svakt signal)</li>
+    <li>✅ <strong>4 tydelige klynger i firkant</strong> = lås, bilder kommer!</li>
+  </ul>
+
+  <p><strong>I decoder-status:</strong></p>
+  <ul>
+    <li>Viterbi: <code>SYNC</code> (grønn) = bra</li>
+    <li>BER: under <code>0.15</code> = god lås</li>
+    <li>Deframer: <code>SYNC</code> = får frames</li>
+    <li>Reed-Solomon: grønne tall = ren data</li>
+  </ul>
+
+  <h2 id="feilsoeking">Feilsøking</h2>
+
+  <h3>Får ikke lås (NOSYNC, BER over 0,3)</h3>
+  <ol>
+    <li><strong>Prøv andre symbol rate</strong> — 72k ↔ 80k</li>
+    <li><strong>Skru opp gain</strong> til 45-49 dB</li>
+    <li><strong>Roter antennen</strong> mens passeringen pågår — vinklen kan være feil</li>
+    <li><strong>Slå av Wi-Fi og forstyrrelser</strong> (telefoner, USB-hubs nær dongelen)</li>
+    <li><strong>Reposisjoner antennen</strong> lenger fra PC og elektronikk</li>
+  </ol>
+
+  <h3>"Analog telemetry is missing"</h3>
+  <ul>
+    <li>Som regel betyr det at signalet var for svakt for komplett dekoding</li>
+    <li>Lagre baseband-filen og prøv reprosessering offline med andre innstillinger</li>
+    <li>Eller vent på neste passering med høyere elevasjon</li>
+  </ul>
+
+  <h3>Ingen signal på 137.900 i det hele tatt</h3>
+  <ul>
+    <li>Sjekk om satellitten faktisk sender (kan være i stille modus — sjekk Reddit)</li>
+    <li>Verifiser frekvens (M2-3 og M2-4 sender begge på 137.900)</li>
+    <li>Sjekk antennen og kablene</li>
+  </ul>
+
+  <h2 id="etterbehandling">Etter passeringen</h2>
+
+  <h3>Output-mappe</h3>
+  <p>SatDump lagrer i <code>Default Output Directory</code>. Du finner:</p>
+  <ul>
+    <li><code>MSU-MR-1.png</code>, <code>MSU-MR-2.png</code>, <code>MSU-MR-3.png</code> — rå kanaler</li>
+    <li><code>msu_mr_rgb_*.png</code> — fargekompositter</li>
+    <li><code>*_corrected.png</code> — geometrisk korrigert</li>
+    <li><code>*_map.png</code> — med kystlinje-overlay</li>
+    <li><code>product.cbor</code> — metadata (kan reprosesseres)</li>
+  </ul>
+
+  <h3>Reprosessering offline</h3>
+  <p>Hvis du har baseband-filen (.ziq):</p>
+  <ol>
+    <li><code>File → Offline Processing</code></li>
+    <li>Pipeline: <code>Meteor M2-x LRPT 72k</code> (eller 80k)</li>
+    <li>Input level: <code>Baseband</code></li>
+    <li>Velg .ziq-filen</li>
+    <li>Sample rate: matche opptak (1024000)</li>
+    <li>Start</li>
+  </ol>
+
+  <h2 id="tips">Tips for bedre resultater</h2>
+  <ul>
+    <li><strong>Ikke bruk OneDrive-mapper</strong> for opptak — synkronisering kan ødelegge filer</li>
+    <li>Pause OneDrive før opptak hvis mappa er synkronisert</li>
+    <li><strong>Kveldspasseringer</strong> har ofte mindre interferens enn dagspasseringer</li>
+    <li><strong>Høy elevasjon (over 50°)</strong> gir betydelig bedre resultater enn lave passeringer</li>
+    <li><strong>QFH-antenne</strong> gir dramatisk bedre signal enn dipol — vurder å bygge en (helgeprosjekt, ~150 kr i materialer)</li>
+    <li><strong>LNA og FM-bandstop-filter</strong> hjelper hvis du bor nær FM-sendere</li>
+  </ul>
+
+  <h2 id="frekvenser">Frekvenser og symbol rates</h2>
+  <p>Oppdatert mai 2026:</p>
+  <table class="data-table">
+    <thead>
+      <tr><th>Satellitt</th><th>NORAD</th><th>Frekvens</th><th>Symbol rate</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>METEOR-M 2-3</td><td class="num">57166</td><td class="num">137.900 MHz</td><td>72k eller 80k</td></tr>
+      <tr><td>METEOR-M 2-4</td><td class="num">59051</td><td class="num">137.900 MHz</td><td>72k eller 80k</td></tr>
+    </tbody>
+  </table>
+
+  <p>Hold deg oppdatert via:</p>
+  <ul>
+    <li><a href="https://www.reddit.com/r/RTLSDR/" target="_blank" rel="noopener">r/RTLSDR</a></li>
+    <li><a href="https://www.reddit.com/r/amateursatellites/" target="_blank" rel="noopener">r/amateursatellites</a></li>
+    <li><a href="https://tinygs.com/" target="_blank" rel="noopener">tinygs.com</a></li>
+    <li><a href="https://db.satnogs.org/" target="_blank" rel="noopener">SatNOGS DB</a></li>
+  </ul>
+
+  <h2 id="sjekkliste">Kjapp sjekkliste før hver passering</h2>
+  <div class="checklist">
+    <ul>
+      <li>TLE oppdatert</li>
+      <li>Frekvens: 137.900 MHz</li>
+      <li>Sample rate: 1.024 MSPS</li>
+      <li>Pipeline: Meteor M2-x LRPT 72k (prøv 80k hvis det feiler)</li>
+      <li>Doppler tracking aktiv, riktig satellitt valgt</li>
+      <li>Gain: 38-45 dB</li>
+      <li>Bias-T: AV (med mindre LNA er tilkoblet)</li>
+      <li>Antenne: 53-54 cm armer, V-form, horisontal, fri sikt</li>
+      <li>Output-mappe ikke i OneDrive</li>
+      <li>Wi-Fi/forstyrrelser minimert</li>
+    </ul>
+  </div>
+
+  <hr>
+  <p class="muted small">
+    Spørsmål eller forbedringer? <a href="https://github.com/hemingwestad-glitch/Nettside-public">Send PR på GitHub</a>
+    eller send meg en melding. Lykke til!
+  </p>
+</main>
+
+<footer>
+  <div class="footer-content">
+    <div>© 2026 — Heming Westad</div>
+    <div>Trondheim · <a href="https://github.com/hemingwestad-glitch/Nettside-public">kildekode</a></div>
+  </div>
+</footer>
+
+<script src="/common.js"></script>
+<script>
+/* ─── Bildekarusell ─── */
+(function () {
+  const SLIDES = [
+    'Antenne-oppsett ute, før første passering.',
+    'RTL-SDR-dongel og kabling — unna PC-en for mindre støy.',
+    'Heavens-Above-pass-info: tid, elevasjon, retning.',
+    'SatDump waterfall ved AOS: bred stripe rundt 137,9 MHz.',
+    'Konstellasjonsdiagram: fire tydelige klynger = QPSK-lås.',
+    'Decoder-status: Viterbi SYNC, BER under 0,15, RS grønn.',
+    'Ferdig MSU-MR-fargekompositt med kystlinje-overlay.',
+  ];
+
+  const track = document.getElementById('carousel-track');
+  const caption = document.getElementById('carousel-caption');
+  const dotsCont = document.getElementById('carousel-dots');
+  const prev = document.getElementById('car-prev');
+  const next = document.getElementById('car-next');
+  const slides = track.querySelectorAll('.carousel-slide');
+  const total = slides.length;
+  let current = 0;
+
+  // Bygg dots
+  for (let i = 0; i < total; i++) {
+    const b = document.createElement('button');
+    b.className = 'carousel-dot' + (i === 0 ? ' active' : '');
+    b.setAttribute('aria-label', `Bilde ${i + 1}`);
+    b.addEventListener('click', () => goTo(i));
+    dotsCont.appendChild(b);
+  }
+
+  function goTo(i) {
+    current = Math.max(0, Math.min(total - 1, i));
+    slides[current].scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'start' });
+    update();
+  }
+  function update() {
+    caption.innerHTML = `<span class="step">Steg ${current + 1} / ${total}</span>${SLIDES[current]}`;
+    dotsCont.querySelectorAll('.carousel-dot').forEach((d, i) => {
+      d.classList.toggle('active', i === current);
+    });
+    prev.disabled = current === 0;
+    next.disabled = current === total - 1;
+  }
+  prev.addEventListener('click', () => goTo(current - 1));
+  next.addEventListener('click', () => goTo(current + 1));
+
+  // Sync når brukeren scroller manuelt
+  let scrollTimeout;
+  track.addEventListener('scroll', () => {
+    clearTimeout(scrollTimeout);
+    scrollTimeout = setTimeout(() => {
+      const w = track.clientWidth;
+      const i = Math.round(track.scrollLeft / w);
+      if (i !== current) {
+        current = i;
+        update();
+      }
+    }, 80);
+  });
+
+  update();
+})();
+</script>
+</body>
+</html>
