@@ -286,63 +286,61 @@
     så legger jeg dem inn.
   </p>
 
-  <div class="carousel" id="carousel">
-    <div class="carousel-track" id="carousel-track">
+ <div class="carousel-track" id="carousel-track">
+      <!-- Bilde 1: msu_mr_rgb_AVHRR_3a21_False_Color.jpg -->
       <div class="carousel-slide">
-        <!-- BILDE 1 — bytt ut denne diven med <img src="..." alt="..."> -->
         <div class="placeholder">
-          <strong>Bilde 1 — Antenne-oppsett</strong>
-          Dipolantenne i V-form ute på balkongen, pekt mot der<br>
-          satellitten har høyest elevasjon midtveis i passet.<br><br>
-          <em>plassholder · legg inn ditt eget bilde</em>
+          <img src="bilder/meteor/msu_mr_rgb_AVHRR_3a21_False_Color.jpg" alt="Mørkt bilde med lite detaljer">
+          <strong>Bilde 1 — Nattpassering eller lav belysning</strong>
+          Det jeg tror har skjedd her er at dette er en nattpassering (infrarød kanal), fordi bildet er veldig mørkt med lite detaljer utenom noen termiske sky-konturer nede til høyre. Mottaket i seg selv ser ut til å ha gått rett.
         </div>
       </div>
+      <!-- Bilde 2: msu_mr_rgb_AVHRR_3a21_False_Color_corrected1 (2).jpg -->
       <div class="carousel-slide">
         <div class="placeholder">
-          <strong>Bilde 2 — RTL-SDR-dongel og kabling</strong>
-          USB-dongelen med skjøtekabel ut til antenna,<br>
-          unna PC-en for mindre interferens.<br><br>
-          <em>plassholder · legg inn ditt eget bilde</em>
+          <img src="bilder/meteor/msu_mr_rgb_AVHRR_3a21_False_Color_corrected1 (2).jpg" alt="Mørkt bilde med svarte striper">
+          <strong>Bilde 2 — Signaltap i mørket</strong>
+          Det jeg tror gikk galt her var midlertidig signaltap (loss of lock), fordi vi ser tykke svarte horisontale striper og digitale farge-glitches ("fargestøy") i det som ellers er et mørkt bilde.
         </div>
       </div>
+      <!-- Bilde 3: msu_mr_rgb_AVHRR_3a21_False_Color_corrected1.jpg -->
       <div class="carousel-slide">
         <div class="placeholder">
-          <strong>Bilde 3 — Heavens-Above pass-info</strong>
-          Skjermbilde av neste passering: tidspunkt,<br>
-          maks elevasjon, retning.<br><br>
-          <em>plassholder · legg inn ditt eget bilde</em>
+          <img src="bilder/meteor/msu_mr_rgb_AVHRR_3a21_False_Color_corrected1.jpg" alt="Klare skyer, store svarte felt">
+          <strong>Bilde 3 — Fysiske hindringer</strong>
+          Det jeg tror gikk delvis rett var et sterkt signal i deler av passeringen, men det jeg tror gikk galt her var at bygninger, trær eller terreng blokkerte siktlinjen til satellitten. Dette fordi bildet har krystallklare partier (kjempefin sky-virvel!) som brått avbrytes av massive, svarte soner med RGB-støy der signalet har forsvunnet helt.
         </div>
       </div>
+      <!-- Bilde 4: msu_mr_rgb_AVHRR_221_False_Color_corrected.jpg -->
       <div class="carousel-slide">
         <div class="placeholder">
-          <strong>Bilde 4 — SatDump waterfall ved AOS</strong>
-          LRPT-signalet som en bred stripe rundt 137,9 MHz<br>
-          som vandrer sidelengs (Doppler).<br><br>
-          <em>plassholder · legg inn ditt eget bilde</em>
+          <img src="bilder/meteor/msu_mr_rgb_AVHRR_221_False_Color_corrected.jpg" alt="Mye støy og fargerike linjer">
+          <strong>Bilde 4 — Generelt lavt signal (SNR)</strong>
+          Det jeg tror gikk galt her var et vedvarende lavt signal-til-støy-forhold, fordi bildet er sterkt preget av grå støy ("snø") og fargerike, tynne linjer gjennom hele passeringen. Kanskje satellitten var veldig lavt på horisonten, eller at antennen var feilvinklet.
         </div>
       </div>
+      <!-- Bilde 5: msu_mr_rgb_AVHRR_221_False_Color_corrected1.jpg -->
       <div class="carousel-slide">
         <div class="placeholder">
-          <strong>Bilde 5 — Konstellasjonsdiagram med lås</strong>
-          Fire tydelige klynger i firkant betyr<br>
-          QPSK-lås — bilder kommer.<br><br>
-          <em>plassholder · legg inn ditt eget bilde</em>
+          <img src="bilder/meteor/msu_mr_rgb_AVHRR_221_False_Color_corrected1.jpg" alt="Nesten helt svart bilde">
+          <strong>Bilde 5 — Manglende datalås</strong>
+          Det jeg tror gikk galt her var at dekoderen kun klarte å låse på signalet i et lite brøkdel av et sekund, fordi nesten hele bildet er helt svart, med kun et bittelite glimt av faktiske bildedata i midten.
         </div>
       </div>
+      <!-- Bilde 6: msu_mr_rgb_MSA_corrected_map.jpg -->
       <div class="carousel-slide">
         <div class="placeholder">
-          <strong>Bilde 6 — Decoder-status</strong>
-          Viterbi SYNC, BER under 0,15, Reed-Solomon<br>
-          grønne tall = ren data.<br><br>
-          <em>plassholder · legg inn ditt eget bilde</em>
+          <img src="bilder/meteor/msu_mr_rgb_MSA_corrected_map.jpg" alt="Kart-overlay med hvit støy">
+          <strong>Bilde 6 — Kraftig lokal interferens eller hardware-glipp</strong>
+          Det jeg tror gikk galt her var veldig kraftig lokal radiostøy eller at antennekabelen var løs, fordi kystlinje-overlayet ble generert riktig (SatDump visste *hvor* satellitten var over Skandinavia), men selve bildedataen mangler fullstendig og har blitt overstyrt av hvit støy og statiske striper.
         </div>
       </div>
+      <!-- Bilde 7: msu_mr_rgb_MSA_corrected_map1.jpg -->
       <div class="carousel-slide">
         <div class="placeholder">
-          <strong>Bilde 7 — Ferdig værbilde</strong>
-          MSU-MR fargekompositt med kystlinje-overlay,<br>
-          geometrisk korrigert.<br><br>
-          <em>plassholder · legg inn ditt eget bilde</em>
+          <img src="bilder/meteor/msu_mr_rgb_MSA_corrected_map1.jpg" alt="Kart over Skandinavia med grå støy-bånd">
+          <strong>Bilde 7 — Svakt og ustabilt signal</strong>
+          Det jeg tror gikk galt her var ujevnt signalmottak, fordi vi ser at bildet veksler mellom å vise svake, reelle geografiske detaljer (hvor kystlinjene til Skandinavia og Storbritannia passer sånn noenlunde overens med dataen) og store felt med total utvasking og grå støy. Dette er typisk for bruk av dipol-antenne uten fri sikt, der signalet svinger inn og ut.
         </div>
       </div>
     </div>
