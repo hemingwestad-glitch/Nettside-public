@@ -27,19 +27,21 @@
   .carousel-slide {
     flex: 0 0 100%;
     scroll-snap-align: start;
-    aspect-ratio: 4/3;
+    aspect-ratio: 16/9;
     display: flex;
     align-items: center;
     justify-content: center;
     background: #0a0d14;
     color: var(--ink-faint);
     position: relative;
+    overflow: hidden;
   }
   .carousel-slide img {
     width: 100%;
     height: 100%;
-    object-fit: cover;
+    object-fit: contain;
     display: block;
+    background: #0a0d14;
   }
   .carousel-slide .placeholder {
     text-align: center;
@@ -57,10 +59,11 @@
     font-size: 1rem;
   }
   .carousel-caption {
-    padding: 0.6rem 0.9rem;
-    font-size: 0.85rem;
+    padding: 0.75rem 0.9rem;
+    font-size: 0.88rem;
     color: var(--ink-soft);
     border-top: 1px solid var(--rule-soft);
+    line-height: 1.5;
   }
   .carousel-caption .step {
     font-family: var(--font-mono);
@@ -68,6 +71,11 @@
     color: var(--accent);
     text-transform: uppercase;
     letter-spacing: 0.06em;
+    margin-right: 0.5rem;
+  }
+  .carousel-caption .cap-title {
+    font-weight: 500;
+    color: var(--ink);
     margin-right: 0.5rem;
   }
   .carousel-nav {
@@ -167,7 +175,7 @@
   .tip-box.warn strong { color: #8a6a18; }
   .tip-box.danger strong { color: var(--accent-deep); }
 
-  /* Seksjons-anker for innholdsfortegnelse */
+  /* Innholdsfortegnelse */
   .toc {
     background: var(--bg-card);
     border: 1px solid var(--rule);
@@ -218,9 +226,9 @@
   <div class="toc">
     <h4>Innhold</h4>
     <ol>
+      <li><a href="#mine-bilder">Mine bilder — hva som har gått bra og galt</a></li>
       <li><a href="#utstyr">Utstyr og kostnader</a></li>
       <li><a href="#oppsett">Førstegangs-oppsett (Zadig + SatDump)</a></li>
-      <li><a href="#prosess">Min prosess — fra oppsett til ferdig bilde</a></li>
       <li><a href="#passering">Før hver passering</a></li>
       <li><a href="#satdump">SatDump-innstillinger</a></li>
       <li><a href="#under">Under passeringen</a></li>
@@ -231,6 +239,53 @@
       <li><a href="#sjekkliste">Kjapp sjekkliste</a></li>
     </ol>
   </div>
+
+  <h2 id="mine-bilder">Mine bilder — hva som har gått bra og galt</h2>
+  <p>
+    Karusellen under viser et utvalg av mine egne mottak — fra det beste jeg har klart
+    til de som har gått skikkelig galt. For hvert bilde har jeg notert hva jeg tror skjedde.
+    God måte å lære å lese signalkvalitet på.
+  </p>
+
+  <div class="carousel">
+    <div class="carousel-track" id="carousel-track">
+      <div class="carousel-slide">
+        <img src="/bilder/meteor/msu_mr_rgb_AVHRR_3a21_False_Color_corrected1.png" alt="Storm-virvel over Nordsjøen, Skandinavia synlig">
+      </div>
+      <div class="carousel-slide">
+        <img src="/bilder/meteor/msu_mr_rgb_AVHRR_221_False_Color_corrected.png" alt="Skandinavia tydelig med periodiske svarte signaltap-bånd">
+      </div>
+      <div class="carousel-slide">
+        <img src="/bilder/meteor/msu_mr_rgb_MSA_corrected_map1.png" alt="Skandinavia med kystlinje-overlay og periodisk signaltap">
+      </div>
+      <div class="carousel-slide">
+        <img src="/bilder/meteor/msu_mr_rgb_AVHRR_3a21_False_Color.png" alt="Mørkt IR-bilde med fargestriper øverst">
+      </div>
+      <div class="carousel-slide">
+        <img src="/bilder/meteor/msu_mr_rgb_MSA_corrected_map.png" alt="Kart-overlay med kraftig støy">
+      </div>
+      <div class="carousel-slide">
+        <img src="/bilder/meteor/msu_mr_rgb_AVHRR_3a21_False_Color_corrected1%20(2).png" alt="Mørkt bilde med tykke svarte signaltap-bånd">
+      </div>
+      <div class="carousel-slide">
+        <img src="/bilder/meteor/msu_mr_rgb_AVHRR_221_False_Color_corrected1.png" alt="Nesten helt svart bilde med kort glimt av data">
+      </div>
+    </div>
+    <div class="carousel-caption" id="carousel-caption">
+      <!-- Fylles av JS -->
+    </div>
+    <div class="carousel-nav">
+      <button class="carousel-arrow" id="car-prev" aria-label="Forrige">←  forrige</button>
+      <div class="carousel-dots" id="carousel-dots"></div>
+      <button class="carousel-arrow" id="car-next" aria-label="Neste">neste  →</button>
+    </div>
+  </div>
+
+  <p class="muted small">
+    Bildene er hentet fra MSU-MR-instrumentet ombord på Meteor-satellittene, prosessert
+    av SatDump. False color RGB betyr at kanaler er kombinert for å fremheve skyer,
+    landområder og hav. Selv "feilete" mottak gir ofte vakker geografi.
+  </p>
 
   <h2 id="utstyr">Utstyr og kostnader</h2>
   <p>
@@ -278,83 +333,6 @@
     — TLE-er aldres raskt og en uke gamle data kan gi 30-60 sekunder feil i pass-tid.
   </p>
 
-  <h2 id="prosess">Mine bilder</h2>
-  <p>
-    Karusellen under viser hvordan en typisk Meteor-mottak ser ut hos meg.  </p>
-
- <div class="carousel-track" id="carousel-track">
-      <!-- Bilde 1: msu_mr_rgb_AVHRR_3a21_False_Color.jpg -->
-      <div class="carousel-slide">
-        <div class="placeholder">
-          <img src="bilder/meteor/msu_mr_rgb_AVHRR_3a21_False_Color.jpg" alt="Mørkt bilde med lite detaljer">
-          <strong>Bilde 1 — Nattpassering eller lav belysning</strong>
-          Det jeg tror har skjedd her er at dette er en nattpassering (infrarød kanal), fordi bildet er veldig mørkt med lite detaljer utenom noen termiske sky-konturer nede til høyre. Mottaket i seg selv ser ut til å ha gått rett.
-        </div>
-      </div>
-      <!-- Bilde 2: msu_mr_rgb_AVHRR_3a21_False_Color_corrected1 (2).jpg -->
-      <div class="carousel-slide">
-        <div class="placeholder">
-          <img src="bilder/meteor/msu_mr_rgb_AVHRR_3a21_False_Color_corrected1 (2).jpg" alt="Mørkt bilde med svarte striper">
-          <strong>Bilde 2 — Signaltap i mørket</strong>
-          Det jeg tror gikk galt her var midlertidig signaltap (loss of lock), fordi vi ser tykke svarte horisontale striper og digitale farge-glitches ("fargestøy") i det som ellers er et mørkt bilde.
-        </div>
-      </div>
-      <!-- Bilde 3: msu_mr_rgb_AVHRR_3a21_False_Color_corrected1.jpg -->
-      <div class="carousel-slide">
-        <div class="placeholder">
-          <img src="bilder/meteor/msu_mr_rgb_AVHRR_3a21_False_Color_corrected1.jpg" alt="Klare skyer, store svarte felt">
-          <strong>Bilde 3 — Fysiske hindringer</strong>
-          Det jeg tror gikk delvis rett var et sterkt signal i deler av passeringen, men det jeg tror gikk galt her var at bygninger, trær eller terreng blokkerte siktlinjen til satellitten. Dette fordi bildet har krystallklare partier (kjempefin sky-virvel!) som brått avbrytes av massive, svarte soner med RGB-støy der signalet har forsvunnet helt.
-        </div>
-      </div>
-      <!-- Bilde 4: msu_mr_rgb_AVHRR_221_False_Color_corrected.jpg -->
-      <div class="carousel-slide">
-        <div class="placeholder">
-          <img src="bilder/meteor/msu_mr_rgb_AVHRR_221_False_Color_corrected.jpg" alt="Mye støy og fargerike linjer">
-          <strong>Bilde 4 — Generelt lavt signal (SNR)</strong>
-          Det jeg tror gikk galt her var et vedvarende lavt signal-til-støy-forhold, fordi bildet er sterkt preget av grå støy ("snø") og fargerike, tynne linjer gjennom hele passeringen. Kanskje satellitten var veldig lavt på horisonten, eller at antennen var feilvinklet.
-        </div>
-      </div>
-      <!-- Bilde 5: msu_mr_rgb_AVHRR_221_False_Color_corrected1.jpg -->
-      <div class="carousel-slide">
-        <div class="placeholder">
-          <img src="bilder/meteor/msu_mr_rgb_AVHRR_221_False_Color_corrected1.jpg" alt="Nesten helt svart bilde">
-          <strong>Bilde 5 — Manglende datalås</strong>
-          Det jeg tror gikk galt her var at dekoderen kun klarte å låse på signalet i et lite brøkdel av et sekund, fordi nesten hele bildet er helt svart, med kun et bittelite glimt av faktiske bildedata i midten.
-        </div>
-      </div>
-      <!-- Bilde 6: msu_mr_rgb_MSA_corrected_map.jpg -->
-      <div class="carousel-slide">
-        <div class="placeholder">
-          <img src="bilder/meteor/msu_mr_rgb_MSA_corrected_map.jpg" alt="Kart-overlay med hvit støy">
-          <strong>Bilde 6 — Kraftig lokal interferens eller hardware-glipp</strong>
-          Det jeg tror gikk galt her var veldig kraftig lokal radiostøy eller at antennekabelen var løs, fordi kystlinje-overlayet ble generert riktig (SatDump visste *hvor* satellitten var over Skandinavia), men selve bildedataen mangler fullstendig og har blitt overstyrt av hvit støy og statiske striper.
-        </div>
-      </div>
-      <!-- Bilde 7: msu_mr_rgb_MSA_corrected_map1.jpg -->
-      <div class="carousel-slide">
-        <div class="placeholder">
-          <img src="bilder/meteor/msu_mr_rgb_MSA_corrected_map1.jpg" alt="Kart over Skandinavia med grå støy-bånd">
-          <strong>Bilde 7 — Svakt og ustabilt signal</strong>
-          Det jeg tror gikk galt her var ujevnt signalmottak, fordi vi ser at bildet veksler mellom å vise svake, reelle geografiske detaljer (hvor kystlinjene til Skandinavia og Storbritannia passer sånn noenlunde overens med dataen) og store felt med total utvasking og grå støy. Dette er typisk for bruk av dipol-antenne uten fri sikt, der signalet svinger inn og ut.
-        </div>
-      </div>
-    </div>
-    <div class="carousel-caption" id="carousel-caption">
-      <span class="step">Steg 1 / 7</span>
-      Antenne-oppsett ute, før første passering.
-    </div>
-    <div class="carousel-nav">
-      <button class="carousel-arrow" id="car-prev" aria-label="Forrige">←  forrige</button>
-      <div class="carousel-dots" id="carousel-dots"></div>
-      <button class="carousel-arrow" id="car-next" aria-label="Neste">neste  →</button>
-    </div>
-  </div>
-
-  <p class="muted small">
-    bla bla ukeblad
-  </p>
-
   <h2 id="passering">Før hver passering</h2>
 
   <h3>Finn neste passering</h3>
@@ -399,7 +377,7 @@
     <thead><tr><th>Innstilling</th><th>Verdi</th></tr></thead>
     <tbody>
       <tr><td class="key">Source</td><td class="val">RTL-SDR</td></tr>
-      <tr><td class="key">Sample rate</td><td class="val">1.024/1.536 MSPS</td></tr>
+      <tr><td class="key">Sample rate</td><td class="val">1.024 MSPS (eller 2.048 for mer margin)</td></tr>
       <tr><td class="key">Frequency</td><td class="val">137.900 MHz</td></tr>
       <tr><td class="key">Gain</td><td class="val">38-48 dB</td></tr>
       <tr><td class="key">Bias-T</td><td class="val">AV (med mindre du har LNA)</td></tr>
@@ -476,8 +454,7 @@
     <li><strong>Roter antennen</strong> mens passeringen pågår — vinklen kan være feil</li>
     <li><strong>Slå av Wi-Fi og forstyrrelser</strong> (telefoner, USB-hubs nær dongelen)</li>
     <li><strong>Reposisjoner antennen</strong> lenger fra PC og elektronikk</li>
-    <li><strong>Ikke lad PCen</strong> mens du prøver å motta signaler</li>
-
+    <li><strong>Ikke lad PC-en under mottak</strong> — billige USB-C-ladere kan gi switching-noise på VHF</li>
   </ol>
 
   <h3>"Analog telemetry is missing"</h3>
@@ -490,7 +467,7 @@
   <h3>Ingen signal på 137.900 i det hele tatt</h3>
   <ul>
     <li>Sjekk om satellitten faktisk sender (kan være i stille modus — sjekk Reddit)</li>
-    <li>Verifiser frekvens (M2-3 og M2-4 sender begge på 137.900)</li>
+    <li>Verifiser frekvens (137.900 MHz)</li>
     <li>Sjekk antennen og kablene</li>
   </ul>
 
@@ -552,10 +529,10 @@
     <ul>
       <li>TLE oppdatert</li>
       <li>Frekvens: 137.900 MHz</li>
-      <li>Sample rate: 1.024 MSPS</li>
+      <li>Sample rate: 1.024 MSPS (eller 2.048 for mer margin)</li>
       <li>Pipeline: Meteor M2-x LRPT 72k (prøv 80k hvis det feiler)</li>
       <li>Doppler tracking aktiv, riktig satellitt valgt</li>
-      <li>Gain: 38-45 dB</li>
+      <li>Gain: 38-48 dB</li>
       <li>Bias-T: AV (med mindre LNA er tilkoblet)</li>
       <li>Antenne: 53-54 cm armer, V-form, horisontal, fri sikt</li>
       <li>Output-mappe ikke i OneDrive</li>
@@ -581,14 +558,37 @@
 <script>
 /* ─── Bildekarusell ─── */
 (function () {
+  // Rekkefølge matcher rekkefølgen til <img>-elementene over.
+  // Best først, deretter avtagende kvalitet.
   const SLIDES = [
-    'Nattpassering: Infrarøde data mottatt uten problemer.',
-    'Signaltap: Svarte striper indikerer at mottakeren mistet lock.',
-    'Hindringer: Sterkt signal som brått blokkeres av terreng/bygninger.',
-    'Lavt SNR: Mye støy og fargefeil gjennom hele sendingen.',
-    'Ingen lock: SatDump klarte knapt å hente ut noen data.',
-    'Kraftig støy: Kartet genereres fra banedata, men bildedata er bare støy.',
-    'Ustabilt signal: Veksler mellom svake bildedata og utvasket støy.'
+    {
+      title: 'Best — kraftig lavtrykk over Nordsjøen',
+      text: 'Storm-virvel midt i bildet, Skandinavia og De britiske øyer tydelig synlig. Litt lock-glitches på sidene, men hovedinnholdet er rent. Høy elevasjon, lite forstyrrelser.'
+    },
+    {
+      title: 'Bra — Skandinavia tydelig, periodisk signaltap',
+      text: 'Hoveddelen av bildet er rent og viser skyer og land tydelig, men noen tykke svarte bånd der mottakeren mistet lock i korte øyeblikk. Sannsynligvis kortvarig blokkering eller fading.'
+    },
+    {
+      title: 'Med kystlinje-overlay — Skandinavia og Storbritannia',
+      text: 'SatDump har lagt på kystlinjer fra banedata. Noen striper med signaltap, men bildet er greit lesbart. Typisk når dipol-antenne ikke har helt fri sikt.'
+    },
+    {
+      title: 'Mørkt IR-bilde — nattpassering',
+      text: 'Infrarød kanal som dominerer fordi passeringen var i mørke. Litt fargestriper øverst tyder på tidlig lock-issue, men resten er stabilt mottatt.'
+    },
+    {
+      title: 'Kraftig lokal støy eller hardware-glipp',
+      text: 'Kystlinje-overlayet er riktig (SatDump visste hvor satellitten var), men selve bildedataen er overstyrt av hvit støy og striper. Sjekk antennekabel og lokal interferens.'
+    },
+    {
+      title: 'Massivt signaltap',
+      text: 'Tre-fire tykke svarte bånd der dekoderen mistet lock helt. Bare litt data øverst og helt til høyre. Sannsynligvis lav elevasjon eller kraftig blokkering.'
+    },
+    {
+      title: 'Verste tilfelle — kun et glimt',
+      text: 'Nesten hele bildet er svart med bare et bittelite glimt av faktiske bildedata. Dekoderen klarte aldri å låse seg ordentlig. Vent på neste passering med høyere elevasjon.'
+    }
   ];
 
   const track = document.getElementById('carousel-track');
@@ -600,6 +600,11 @@
   const total = slides.length;
   let current = 0;
 
+  // Sanity-check: antall slides skal matche SLIDES-arrayet
+  if (total !== SLIDES.length) {
+    console.warn(`Carousel mismatch: ${total} slides vs ${SLIDES.length} captions`);
+  }
+
   // Bygg dots
   for (let i = 0; i < total; i++) {
     const b = document.createElement('button');
@@ -609,34 +614,50 @@
     dotsCont.appendChild(b);
   }
 
+  let isProgScrolling = false;
+
   function goTo(i) {
     current = Math.max(0, Math.min(total - 1, i));
-    slides[current].scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'start' });
+    isProgScrolling = true;
+    track.scrollTo({
+      left: current * track.clientWidth,
+      behavior: 'smooth'
+    });
     update();
+    // Ignorer scroll-events i 600ms mens smooth scroll pågår
+    setTimeout(() => { isProgScrolling = false; }, 600);
   }
+
   function update() {
-    caption.innerHTML = `<span class="step">Steg ${current + 1} / ${total}</span>${SLIDES[current]}`;
+    const s = SLIDES[current] || { title: '', text: '' };
+    caption.innerHTML =
+      `<span class="step">Bilde ${current + 1} / ${total}</span>` +
+      `<span class="cap-title">${s.title}</span>` +
+      `${s.text}`;
     dotsCont.querySelectorAll('.carousel-dot').forEach((d, i) => {
       d.classList.toggle('active', i === current);
     });
     prev.disabled = current === 0;
     next.disabled = current === total - 1;
   }
+
   prev.addEventListener('click', () => goTo(current - 1));
   next.addEventListener('click', () => goTo(current + 1));
 
-  // Sync når brukeren scroller manuelt
+  // Sync når brukeren scroller manuelt (men ikke når vi nettopp har programmert scroll)
   let scrollTimeout;
   track.addEventListener('scroll', () => {
+    if (isProgScrolling) return;
     clearTimeout(scrollTimeout);
     scrollTimeout = setTimeout(() => {
       const w = track.clientWidth;
+      if (w === 0) return;
       const i = Math.round(track.scrollLeft / w);
-      if (i !== current) {
+      if (i !== current && i >= 0 && i < total) {
         current = i;
         update();
       }
-    }, 80);
+    }, 100);
   });
 
   update();
