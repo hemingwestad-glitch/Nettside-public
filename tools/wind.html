@@ -3,14 +3,175 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Ballistikk — Heming Westad</title>
-<meta name="description" content="Vindavdrift og ballistikk for jaktladninger. RK4-integrasjon med G1/G7 drag-modell.">
+<title>Ballistikk-kalkulator — Heming Westad</title>
+<meta name="description" content="Avansert eksternballistikk: RK4-integrasjon med G1/G7 drag, sidevind, lufttetthet, høyde, helning, Coriolis og spin drift. Norske jaktladninger og mer.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..700;1,9..144,400&family=Inter+Tight:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/style.css">
+<style>
+  /* Banediagram */
+  .ballistic-chart {
+    background: #fbf8f2;
+    border: 1px solid var(--rule);
+    margin: 1rem 0;
+  }
+  .ballistic-chart .chart-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    padding: 0.5rem 0.9rem;
+    border-bottom: 1px solid var(--rule-soft);
+    background: var(--bg-soft);
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+  .ballistic-chart .chart-head .title {
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--ink-soft);
+  }
+  .ballistic-chart .chart-head .legend {
+    display: flex;
+    gap: 0.8rem;
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    flex-wrap: wrap;
+  }
+  .ballistic-chart .legend-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    color: var(--ink-soft);
+  }
+  .ballistic-chart .legend-swatch {
+    width: 14px; height: 2px;
+    display: inline-block;
+  }
+  .ballistic-chart svg {
+    width: 100%;
+    height: auto;
+    display: block;
+  }
+  .ballistic-chart svg .axis-text {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    fill: var(--ink-faint);
+  }
+  .ballistic-chart svg .axis-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    fill: var(--ink-soft);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+  .ballistic-chart svg .grid { stroke: var(--rule-soft); stroke-width: 0.5; }
+  .ballistic-chart svg .traj-trajectory {
+    fill: none;
+    stroke: var(--accent);
+    stroke-width: 1.8;
+  }
+  .ballistic-chart svg .traj-no-wind {
+    fill: none;
+    stroke: var(--ink-faint);
+    stroke-width: 1;
+    stroke-dasharray: 4,3;
+  }
+  .ballistic-chart svg .traj-sightline {
+    stroke: var(--blue);
+    stroke-width: 0.8;
+    stroke-dasharray: 2,3;
+    fill: none;
+  }
+  .ballistic-chart svg .traj-zero-marker { fill: var(--green); }
+  .ballistic-chart svg .traj-supersonic-marker { fill: var(--warn); }
+  .ballistic-chart svg .marker-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+  }
+
+  /* Felt-grupper */
+  .field-row-3 {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
+    gap: 1rem;
+    margin-bottom: 1rem;
+  }
+  .field-row-3 .field { margin-bottom: 0; }
+  .field-hint {
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    color: var(--ink-faint);
+    margin-top: 0.2rem;
+    line-height: 1.3;
+  }
+
+  /* Avansert-toggle */
+  details.advanced {
+    border-top: 1px solid var(--rule-soft);
+    padding-top: 0.8rem;
+    margin-top: 0.8rem;
+  }
+  details.advanced summary {
+    cursor: pointer;
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--ink-faint);
+    list-style: none;
+    user-select: none;
+  }
+  details.advanced summary::before {
+    content: '▸ ';
+    display: inline-block;
+    transition: transform 0.15s;
+  }
+  details.advanced[open] summary::before { transform: rotate(90deg); }
+  details.advanced summary:hover { color: var(--accent); }
+  details.advanced[open] summary { color: var(--ink-soft); margin-bottom: 1rem; }
+
+  /* Stat-sub */
+  .stat .sub {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    color: var(--ink-faint);
+    margin-top: 0.15rem;
+  }
+
+  /* Energi-status */
+  .energy-status.good { color: var(--green); font-weight: 500; }
+  .energy-status.bad { color: var(--accent-deep); }
+
+  /* "Hvordan virker det?" */
+  details.help {
+    background: var(--bg-card);
+    border: 1px solid var(--rule);
+    padding: 0.8rem 1.2rem;
+    margin: 1rem 0;
+  }
+  details.help summary {
+    cursor: pointer;
+    font-weight: 500;
+    list-style: none;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  details.help summary::after {
+    content: '+';
+    font-family: var(--font-mono);
+    color: var(--ink-faint);
+    font-size: 1.2rem;
+  }
+  details.help[open] summary::after { content: '−'; }
+  details.help h3 { margin-top: 1rem; }
+</style>
 </head>
 <body>
+
 <header>
   <div class="logo"><a href="/">Heming Westad<span class="dot">.</span></a></div>
   <nav>
@@ -28,118 +189,377 @@
   <div class="page-meta fade-up">
     <span>Ballistikk</span>
     <span>RK4 · G1/G7 drag</span>
+    <span>Bane · vind · miljø · energi</span>
   </div>
 
   <h1 class="fade-up">Ballistikk-<em>kalkulator</em>.</h1>
+
   <p class="lede fade-up">
-    Numerisk integrasjon av kuleflukten med G1- eller G7-drag-modell.
-    Sidevind, lufttetthet, høyde over havet. Norske jaktladninger forhåndsvalgt.
+    Avansert eksternballistikk: numerisk integrasjon (RK4) av kulebanen
+    med full G1/G7-drag, sidevind, lufttetthet, helning, Coriolis og
+    spin-drift. Norske jaktladninger eller egne tall — og en faktisk
+    plottet bane opp til 3000 m.
   </p>
 
+  <details class="help">
+    <summary><h3 style="margin:0; display:inline;">Hvordan virker det?</h3></summary>
+    <p>Kalkulatoren bruker numerisk integrasjon (RK4) av bevegelsesligningene med tre primære krefter: gravitasjon, luftmotstand og sidevind. Det gir vesentlig mer nøyaktige tall enn enkle tabeller for skudd over 200 m. På lange skudd (over 600 m) kan du slå på Coriolis og spin-drift i avanserte innstillinger.</p>
+
+    <h3>Hva trenger du å vite?</h3>
+    <table class="data-table">
+      <tr>
+        <td style="vertical-align:top; width:11rem;"><strong>BC (ballistic coefficient)</strong></td>
+        <td>Et tall som beskriver hvor godt kula skjærer gjennom lufta. Høyere = mindre dragtap. Vanligvis G1 (eldre standard, butt-formet referansekule) eller G7 (modernere, mer presis for spisse jaktkuler). Står på pakken eller produsentens nettsider.</td>
+      </tr>
+      <tr>
+        <td style="vertical-align:top;"><strong>Munningshastighet (V₀)</strong></td>
+        <td>Hvor fort kula går idet den forlater løpet. Måles med kronograf eller hentes fra ladedata. Endres litt med løpslengde og temperatur.</td>
+      </tr>
+      <tr>
+        <td style="vertical-align:top;"><strong>Innskyting (zero)</strong></td>
+        <td>Avstanden hvor kula treffer akkurat der du sikter. Vanligvis 100 m for jakt, men noen bruker «maximum point blank range» — den lengste avstanden du kan sikte rett på uten å bomme over/under en bestemt målstørrelse.</td>
+      </tr>
+      <tr>
+        <td style="vertical-align:top;"><strong>Sikthøyde</strong></td>
+        <td>Avstanden fra senter av løpet til senter av siktet. Cirka 4 cm på de fleste jaktrifler med kikkert.</td>
+      </tr>
+      <tr>
+        <td style="vertical-align:top;"><strong>Sidevind</strong></td>
+        <td>Komponenten av vinden vinkelrett på skuddretningen. 5 m/s rein side gir mye drift på 300 m. Husk: vind på 3 og 9 har full effekt, vind på 12 og 6 har null effekt.</td>
+      </tr>
+      <tr>
+        <td style="vertical-align:top;"><strong>Lufttetthet</strong></td>
+        <td>Lavere lufttetthet (varmt vær, høyt over havet) = mindre drag = flatere bane. Verktøyet regner det ut for deg fra temperatur, trykk, høyde og fuktighet.</td>
+      </tr>
+      <tr>
+        <td style="vertical-align:top;"><strong>Helning (cos θ-effekt)</strong></td>
+        <td>Skudd opp- eller nedover gir mindre faktisk drop fordi gravitasjonen virker vinkelrett på linjen, ikke langs den. Ved 30° helning oppover treffer kula ca. 14 % høyere enn flat skyting på samme avstand.</td>
+      </tr>
+      <tr>
+        <td style="vertical-align:top;"><strong>Coriolis &amp; spin drift</strong></td>
+        <td>På lange skudd avbøyer kula sidelengs av jordrotasjonen (Coriolis) og av spin (Magnus-effekt fra rifling). Begge er typisk under 5 cm på 600 m, men teller fra rundt 800 m.</td>
+      </tr>
+    </table>
+
+    <h3>Hva er MOA og MIL?</h3>
+    <p><strong>MOA</strong> (Minute of Angle): Vinkel-enhet hvor 1 MOA ≈ 2,9 cm på 100 m. De fleste amerikanske kikkerter justerer i 1/4 MOA-klikk.</p>
+    <p style="margin: 0;"><strong>MIL/MRAD</strong>: 1 mil = 10 cm på 100 m. Vanlig på europeiske kikkerter, og enklere matte: drop i cm / 10 = mil.</p>
+  </details>
+
+  <h2 class="section-header">Kuledata</h2>
   <div class="panel">
-    <div class="panel-title">Forhåndsvalg / ladning</div>
-    <div class="field-row">
+    <div class="field-row-3">
       <div class="field">
-        <label>Ladning</label>
-        <select id="preset">
-          <option value="65cm,3000,140,0.508,G7">6.5 Creedmoor — 140gr (BC 0.508 G7)</option>
-          <option value="308,2700,150,0.262,G7">.308 Win — 150gr (BC 0.262 G7)</option>
-          <option value="3006,2820,180,0.249,G7">.30-06 — 180gr (BC 0.249 G7)</option>
-          <option value="270,3050,140,0.262,G7">.270 Win — 140gr (BC 0.262 G7)</option>
-          <option value="68lp,2750,144,0.255,G7">6.8 PRC — 144gr (BC 0.255 G7)</option>
-          <option value="custom">Egen ladning</option>
+        <label>Forhåndsvalg</label>
+        <select id="loadPreset">
+          <option value="">— Egne tall —</option>
+          <optgroup label=".17 / .22 / småvilt">
+            <option value="17hmr_17_vmax">.17 HMR Hornady V-Max 17gr</option>
+            <option value="22mag_40_vmax">.22 WMR Hornady V-Max 40gr</option>
+            <option value="222_50_blitz">.222 Rem Sierra BlitzKing 50gr</option>
+            <option value="222_55_vmax">.222 Rem Hornady V-Max 55gr</option>
+            <option value="223_55_vmax">.223 Rem Hornady V-Max 55gr</option>
+            <option value="223_75_eldm">.223 Rem Hornady ELD-M 75gr</option>
+            <option value="22250_55_vmax">.22-250 Hornady V-Max 55gr</option>
+          </optgroup>
+          <optgroup label="6 / 6.5 mm">
+            <option value="243_87_vmax">.243 Win Hornady V-Max 87gr</option>
+            <option value="243_95_eldx">.243 Win Hornady ELD-X 95gr</option>
+            <option value="243_100_intl">.243 Win Norma Oryx 100gr</option>
+            <option value="6cm_108_eldm">6 mm Creedmoor Hornady ELD-M 108gr</option>
+            <option value="65grendel_123_eldm">6.5 Grendel Hornady ELD-M 123gr</option>
+            <option value="6.5cm_140_eldm">6.5 Creedmoor Hornady ELD-M 140gr</option>
+            <option value="6.5cm_143_eldx">6.5 Creedmoor Hornady ELD-X 143gr</option>
+            <option value="65x55_130_scirocco">6.5x55 SE Swift Scirocco 130gr</option>
+            <option value="65x55_140_norma">6.5x55 SE Norma Vulkan 156gr</option>
+            <option value="65x55_120_eldm">6.5x55 SE Hornady ELD-M 120gr</option>
+            <option value="260rem_140_eldm">.260 Rem Hornady ELD-M 140gr</option>
+            <option value="65prc_147_eldm">6.5 PRC Hornady ELD-M 147gr</option>
+            <option value="68west_165_eldx">6.8 Western Hornady ELD-X 165gr</option>
+          </optgroup>
+          <optgroup label=".270 / 7 mm">
+            <option value="270_130_eldx">.270 Win Hornady ELD-X 130gr</option>
+            <option value="270_150_partition">.270 Win Nosler Partition 150gr</option>
+            <option value="7mm08_140_eldx">7mm-08 Rem Hornady ELD-X 150gr</option>
+            <option value="7x64_154_oryx">7×64 Norma Oryx 154gr</option>
+            <option value="280rem_162_eldx">.280 Rem Hornady ELD-X 162gr</option>
+            <option value="7rm_162_eldx">7mm Rem Mag Hornady ELD-X 162gr</option>
+            <option value="7prc_175_eldx">7mm PRC Hornady ELD-X 175gr</option>
+          </optgroup>
+          <optgroup label=".308 / .30-06 / 7.62 mm">
+            <option value="3030_150_intl">.30-30 Win Hornady InterLock 150gr</option>
+            <option value="308_180_norma" selected>.308 Win Norma Oryx 180gr</option>
+            <option value="308_165_sst">.308 Win Hornady SST 165gr</option>
+            <option value="308_150_eldm">.308 Win Hornady ELD-M 150gr</option>
+            <option value="308_178_eldx">.308 Win Hornady ELD-X 178gr</option>
+            <option value="3006_180_oryx">.30-06 Norma Oryx 180gr</option>
+            <option value="3006_180_eldx">.30-06 Hornady ELD-X 178gr</option>
+            <option value="3006_220_oryx">.30-06 Norma Oryx 220gr</option>
+            <option value="3006_165_sst">.30-06 Hornady SST 165gr</option>
+          </optgroup>
+          <optgroup label=".300-magnumer">
+            <option value="300wm_180_eldx">.300 Win Mag Hornady ELD-X 200gr</option>
+            <option value="300wm_180_oryx">.300 Win Mag Norma Oryx 180gr</option>
+            <option value="300wby_180_eldx">.300 Wby Mag Hornady ELD-X 200gr</option>
+            <option value="300prc_212_eldx">.300 PRC Hornady ELD-X 212gr</option>
+          </optgroup>
+          <optgroup label="8 mm / 9.3 mm / storkalibrer">
+            <option value="8x57_196_oryx">8×57 IS Norma Oryx 196gr</option>
+            <option value="9.3x62_232_oryx">9.3x62 Norma Oryx 232gr</option>
+            <option value="9.3x62_286_oryx">9.3x62 Norma Oryx 286gr</option>
+            <option value="9.3x74r_286_oryx">9.3x74R Norma Oryx 286gr</option>
+            <option value="375hh_300_solid">.375 H&amp;H Norma Solid 300gr</option>
+            <option value="4570_405_intl">.45-70 Govt Hornady InterLock 405gr</option>
+          </optgroup>
+          <optgroup label="Long-range / spesial">
+            <option value="338lm_300_eldm">.338 Lapua Magnum Hornady ELD-M 300gr</option>
+            <option value="338lm_250_scenar">.338 Lapua Magnum Lapua Scenar 250gr</option>
+            <option value="50bmg_750_amax">.50 BMG Hornady A-Max 750gr</option>
+          </optgroup>
         </select>
-      </div>
-      <div class="field">
-        <label>Munningsfart (m/s)</label>
-        <input type="number" id="v0" value="853" step="1">
-      </div>
-      <div class="field">
-        <label>Kulevekt (gr)</label>
-        <input type="number" id="weight" value="140" step="1">
-      </div>
-      <div class="field">
-        <label>BC</label>
-        <input type="number" id="bc" value="0.508" step="0.001">
       </div>
       <div class="field">
         <label>Drag-modell</label>
-        <select id="drag">
-          <option value="G7">G7 (boattail)</option>
-          <option value="G1">G1 (flat-base)</option>
+        <select id="dragModel">
+          <option value="G1">G1 (gammel standard, flat-base)</option>
+          <option value="G7" selected>G7 (jaktkuler/spiss boattail)</option>
         </select>
       </div>
+      <div class="field">
+        <label>Diameter (mm)</label>
+        <input type="number" id="diameter" value="7.82" step="0.01">
+        <div class="field-hint">For spin-drift på lange skudd</div>
+      </div>
     </div>
+
+    <div class="field-row-3">
+      <div class="field">
+        <label>BC (ballistic coefficient)</label>
+        <input type="number" id="bc" value="0.235" step="0.001">
+        <div class="field-hint">For valgt drag-modell</div>
+      </div>
+      <div class="field">
+        <label>Munningshastighet (m/s)</label>
+        <input type="number" id="muzzle" value="770" step="1">
+      </div>
+      <div class="field">
+        <label>Kulevekt (gr)</label>
+        <input type="number" id="weight" value="180" step="1">
+        <div class="field-hint">grain — 1 gr = 0,0648 g</div>
+      </div>
+    </div>
+
+    <details class="advanced">
+      <summary>Avanserte kuleparametre (twist og lengde)</summary>
+      <div class="field-row-3">
+        <div class="field">
+          <label>Twist rate (1:N tommer)</label>
+          <input type="number" id="twist" value="11" step="0.5">
+          <div class="field-hint">Vanlig: 1:10 til 1:12 for .308</div>
+        </div>
+        <div class="field">
+          <label>Twist-retning</label>
+          <select id="twistDir">
+            <option value="right" selected>Høyre (vanlig)</option>
+            <option value="left">Venstre</option>
+          </select>
+          <div class="field-hint">Påvirker spin-drift retning</div>
+        </div>
+        <div class="field">
+          <label>Kulelengde (mm)</label>
+          <input type="number" id="bulletLength" value="32" step="0.5">
+          <div class="field-hint">For Miller stability factor</div>
+        </div>
+      </div>
+    </details>
   </div>
 
-  <div class="panel" style="margin-top: 1rem;">
-    <div class="panel-title">Skuddforhold</div>
-    <div class="field-row">
+  <h2 class="section-header">Innskyting og målet</h2>
+  <div class="panel">
+    <div class="field-row-3">
       <div class="field">
-        <label>Distanse (m)</label>
-        <input type="number" id="dist" value="300" step="10">
-      </div>
-      <div class="field">
-        <label>Vind (m/s)</label>
-        <input type="number" id="wind" value="3" step="0.5">
-      </div>
-      <div class="field">
-        <label>Vindvinkel (°)</label>
-        <input type="number" id="wind-angle" value="90" step="15">
-      </div>
-      <div class="field">
-        <label>Innskyting på (m)</label>
+        <label>Innskutt på (m)</label>
         <input type="number" id="zero" value="100" step="10">
       </div>
       <div class="field">
-        <label>Sikthøyde (cm)</label>
-        <input type="number" id="sight" value="4.5" step="0.1">
+        <label>Sikthøyde over løp (cm)</label>
+        <input type="number" id="sightHeight" value="4.0" step="0.1">
+        <div class="field-hint">~3-5 cm med kikkert</div>
       </div>
       <div class="field">
-        <label>Høyde m.o.h.</label>
-        <input type="number" id="alt" value="200" step="50">
+        <label>Maks avstand å regne (m)</label>
+        <input type="number" id="maxRange" value="800" step="50" min="100" max="3000">
+        <div class="field-hint">Opp til 3000 m</div>
+      </div>
+    </div>
+    <div class="field-row-3">
+      <div class="field">
+        <label>Helning til mål (°)</label>
+        <input type="number" id="incline" value="0" step="5" min="-60" max="60">
+        <div class="field-hint">+ oppover, − nedover</div>
+      </div>
+      <div class="field">
+        <label>Tabell-steg (m)</label>
+        <select id="tableStep">
+          <option value="25">25 m</option>
+          <option value="50" selected>50 m</option>
+          <option value="100">100 m</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Skuddretning (azimut °)</label>
+        <input type="number" id="azimuth" value="0" step="15" min="0" max="360">
+        <div class="field-hint">For Coriolis: 0=N, 90=Ø</div>
+      </div>
+    </div>
+  </div>
+
+  <h2 class="section-header">Vind og miljø</h2>
+  <div class="panel">
+    <div class="field-row-3">
+      <div class="field">
+        <label>Vindstyrke (m/s)</label>
+        <input type="number" id="windSpeed" value="3" step="0.5">
+        <div class="field-hint">Snitt langs banen</div>
+      </div>
+      <div class="field">
+        <label>Vindretning (°)</label>
+        <input type="number" id="windDir" value="90" step="15">
+        <div class="field-hint">90° = full venstre, 270° = full høyre</div>
       </div>
       <div class="field">
         <label>Temperatur (°C)</label>
-        <input type="number" id="temp" value="10" step="1">
+        <input type="number" id="temp" value="5" step="1">
       </div>
     </div>
-    <button id="calc">Beregn</button>
-  </div>
-
-  <div id="results" style="display: none; margin-top: 1.5rem;">
-    <div class="stat-grid">
-      <div class="stat accent"><div class="stat-label">Kulefall</div><div class="stat-value" id="r-drop">—</div></div>
-      <div class="stat blue"><div class="stat-label">Vindavdrift</div><div class="stat-value" id="r-wind">—</div></div>
-      <div class="stat"><div class="stat-label">Treff-fart</div><div class="stat-value" id="r-vel">—</div></div>
-      <div class="stat"><div class="stat-label">Treff-energi</div><div class="stat-value" id="r-e">—</div></div>
-      <div class="stat"><div class="stat-label">Flytid</div><div class="stat-value" id="r-tof">—</div></div>
+    <div class="field-row-3">
+      <div class="field">
+        <label>Trykk (hPa)</label>
+        <input type="number" id="pressure" value="1013" step="1">
+        <div class="field-hint">Standard 1013 hPa havnivå</div>
+      </div>
+      <div class="field">
+        <label>Høyde over havet (m)</label>
+        <input type="number" id="altitude" value="200" step="50">
+      </div>
+      <div class="field">
+        <label>Luftfuktighet (%)</label>
+        <input type="number" id="humidity" value="60" step="5">
+      </div>
     </div>
 
-    <h2 class="section-header">Avlivningskrav (norsk standard)</h2>
-    <div id="kill"></div>
+    <details class="advanced">
+      <summary>Coriolis og spin-drift (lange skudd)</summary>
+      <div class="field-row-3">
+        <div class="field">
+          <label>Breddegrad (°)</label>
+          <input type="number" id="latitude" value="63.4" step="0.1" min="-90" max="90">
+          <div class="field-hint">Trondheim: 63.4°. Pos = nord</div>
+        </div>
+        <div class="field">
+          <label>Inkluder Coriolis</label>
+          <select id="useCoriolis">
+            <option value="0" selected>Av (relevant fra ~800 m)</option>
+            <option value="1">På</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Inkluder spin-drift</label>
+          <select id="useSpin">
+            <option value="0" selected>Av (relevant fra ~600 m)</option>
+            <option value="1">På</option>
+          </select>
+        </div>
+      </div>
+    </details>
 
-    <h2 class="section-header">Tabell</h2>
-    <table class="data-table" id="trajectory-table">
+    <button id="calcBtn" type="button" style="margin-top: 0.5rem;">Beregn</button>
+  </div>
+
+  <div id="results" style="display:none;">
+    <h2 class="section-header">Sammendrag</h2>
+    <div class="stat-grid" id="summary"></div>
+
+    <h2 class="section-header">Banediagram</h2>
+    <div class="ballistic-chart" id="trajChart">
+      <div class="chart-head">
+        <span class="title">Vertikal bane vs. avstand</span>
+        <span class="legend">
+          <span class="legend-item"><span class="legend-swatch" style="background: var(--accent);"></span>kulebane</span>
+          <span class="legend-item"><span class="legend-swatch" style="background: var(--blue);"></span>siktelinje</span>
+          <span class="legend-item"><span class="legend-swatch" style="background: var(--ink-faint);"></span>uten vind</span>
+        </span>
+      </div>
+      <svg id="trajSvg" viewBox="0 0 800 320" preserveAspectRatio="none"></svg>
+    </div>
+
+    <h2 class="section-header">Drift fra vind og spin</h2>
+    <div class="ballistic-chart" id="driftChart">
+      <div class="chart-head">
+        <span class="title">Sideveis avvik vs. avstand</span>
+        <span class="legend">
+          <span class="legend-item"><span class="legend-swatch" style="background: var(--accent);"></span>total drift (vind + spin + Coriolis)</span>
+        </span>
+      </div>
+      <svg id="driftSvg" viewBox="0 0 800 220" preserveAspectRatio="none"></svg>
+    </div>
+
+    <h2 class="section-header">Skuddtabell</h2>
+    <p class="muted small">
+      <strong>Drop</strong> er hvor mye kula faller under sikt-linjen. <strong>Drift</strong> er sideforflytning.
+      Negativ drop betyr at kula er <em>over</em> sikt-linjen (typisk mellom 0 og innskytingsavstand).
+      <strong>Mach</strong> &lt; 1.0 = kula er subsonisk; supersonisk-cutoff er ofte praktisk maks for treffsikkerhet.
+    </p>
+    <div style="overflow-x: auto;">
+    <table class="data-table" id="trajectory">
       <thead>
         <tr>
-          <th class="num">m</th>
-          <th class="num">fall (cm)</th>
-          <th class="num">avdrift (cm)</th>
-          <th class="num">v (m/s)</th>
-          <th class="num">E (J)</th>
-          <th class="num">tid (s)</th>
+          <th>Avstand</th>
+          <th class="num">Drop (cm)</th>
+          <th class="num">Drop (MOA)</th>
+          <th class="num">Drop (MIL)</th>
+          <th class="num">Drift (cm)</th>
+          <th class="num">Drift (MOA)</th>
+          <th class="num">Hast. (m/s)</th>
+          <th class="num">Mach</th>
+          <th class="num">Energi (J)</th>
+          <th class="num">Flytid (s)</th>
         </tr>
       </thead>
       <tbody></tbody>
     </table>
+    </div>
+
+    <h2 class="section-header">Avlivningsenergi</h2>
+    <div class="panel">
+      <p>Vanlige norske krav for storviltjakt (NJFFs anbefalinger og forskrift om utøvelse av jakt):</p>
+      <table class="data-table" id="energyCheck">
+        <thead><tr><th>Vilt</th><th class="num">Krav (J, 100 m)</th><th class="num">Maks effektiv avstand</th></tr></thead>
+        <tbody></tbody>
+      </table>
+      <p class="muted small" style="margin-top: 1rem;">
+        Maks effektiv avstand = avstanden hvor kula fortsatt har nok energi for human avlivning.
+        Kun et tall &mdash; reell maksavstand begrenses også av treffsannsynlighet, vind, og din egen treningstilstand.
+      </p>
+    </div>
+
+    <h2 class="section-header">Stabilitet (Miller)</h2>
+    <div class="panel">
+      <p class="small" style="margin-top: 0;">
+        Miller stability factor (SG) viser om twist-rate i løpet ditt
+        er rask nok til å stabilisere kula. SG &gt; 1.4 anbefales for jakt;
+        &gt; 1.5 for konsistens på lange skudd.
+      </p>
+      <div id="stability"></div>
+    </div>
   </div>
 
   <hr>
+
   <p class="muted small">
-    Bruker forenklet drag-modell og standardatmosfære. For matchskyting på lange
-    distanser anbefales et mer presist program (f.eks. Hornady 4DOF). For
-    norsk jakt på vanlige distanser (under 300 m) er beregningene gode nok.
+    Numerisk integrasjon (RK4) med G1/G7 standarddragfunksjoner. Inkluderer Coriolis og
+    spin-drift som valgfritt påslag — relevant fra hhv. ~800 m og ~600 m. Resultater er
+    tilnærminger; verifiser alltid på skytebane før jakt.
   </p>
 </main>
 
@@ -152,173 +572,547 @@
 
 <script src="/common.js"></script>
 <script>
-// G1 og G7 standard tabeller (Mach -> Cd) — forenklet
-const G1_TABLE = [
-  [0.0, 0.2629], [0.5, 0.2079], [0.7, 0.1746], [0.85, 0.2018], [0.95, 0.3829],
-  [1.0, 0.4230], [1.05, 0.4275], [1.20, 0.3834], [1.50, 0.3035], [2.00, 0.2283],
-  [2.50, 0.1923], [3.00, 0.1707], [4.00, 0.1490], [5.00, 0.1392]
-];
-const G7_TABLE = [
-  [0.0, 0.1198], [0.5, 0.0928], [0.8, 0.0900], [0.9, 0.0973], [0.95, 0.1311],
-  [1.0, 0.2002], [1.05, 0.2364], [1.20, 0.2316], [1.50, 0.1957], [2.00, 0.1539],
-  [2.50, 0.1322], [3.00, 0.1177], [4.00, 0.0982], [5.00, 0.0840]
-];
+const $ = (id) => document.getElementById(id);
 
-function cdAtMach(mach, table) {
-  if (mach <= table[0][0]) return table[0][1];
-  if (mach >= table[table.length - 1][0]) return table[table.length - 1][1];
-  for (let i = 0; i < table.length - 1; i++) {
-    if (table[i][0] <= mach && mach <= table[i+1][0]) {
-      const t = (mach - table[i][0]) / (table[i+1][0] - table[i][0]);
-      return table[i][1] + t * (table[i+1][1] - table[i][1]);
-    }
-  }
-  return 0.3;
+/* ═══ FORHÅNDSDEFINERTE LADNINGER ═══════════════════════════════════ */
+const PRESETS = {
+  // .17 / .22 / småvilt
+  '17hmr_17_vmax':     { bc: 0.125, muzzle: 775, weight: 17,  drag: 'G1', d: 4.39, len: 14 },
+  '22mag_40_vmax':     { bc: 0.108, muzzle: 580, weight: 40,  drag: 'G1', d: 5.66, len: 14 },
+  '222_50_blitz':      { bc: 0.135, muzzle: 1010, weight: 50, drag: 'G7', d: 5.69, len: 18.5 },
+  '222_55_vmax':       { bc: 0.140, muzzle: 970,  weight: 55, drag: 'G7', d: 5.69, len: 19.5 },
+  '223_55_vmax':       { bc: 0.142, muzzle: 990,  weight: 55, drag: 'G7', d: 5.69, len: 19.5 },
+  '223_75_eldm':       { bc: 0.230, muzzle: 800,  weight: 75, drag: 'G7', d: 5.69, len: 23 },
+  '22250_55_vmax':     { bc: 0.142, muzzle: 1130, weight: 55, drag: 'G7', d: 5.69, len: 19.5 },
+  // 6 / 6.5 mm
+  '243_87_vmax':       { bc: 0.182, muzzle: 1010, weight: 87, drag: 'G7', d: 6.17, len: 24 },
+  '243_95_eldx':       { bc: 0.236, muzzle: 920,  weight: 95, drag: 'G7', d: 6.17, len: 26 },
+  '243_100_intl':      { bc: 0.184, muzzle: 870,  weight: 100, drag: 'G7', d: 6.17, len: 26 },
+  '6cm_108_eldm':      { bc: 0.275, muzzle: 915,  weight: 108, drag: 'G7', d: 6.17, len: 30 },
+  '65grendel_123_eldm':{ bc: 0.281, muzzle: 800,  weight: 123, drag: 'G7', d: 6.71, len: 30 },
+  '6.5cm_140_eldm':    { bc: 0.326, muzzle: 820,  weight: 140, drag: 'G7', d: 6.71, len: 33 },
+  '6.5cm_143_eldx':    { bc: 0.315, muzzle: 805,  weight: 143, drag: 'G7', d: 6.71, len: 33.5 },
+  '65x55_130_scirocco':{ bc: 0.244, muzzle: 850,  weight: 130, drag: 'G7', d: 6.71, len: 30 },
+  '65x55_140_norma':   { bc: 0.231, muzzle: 740,  weight: 156, drag: 'G7', d: 6.71, len: 32 },
+  '65x55_120_eldm':    { bc: 0.255, muzzle: 850,  weight: 120, drag: 'G7', d: 6.71, len: 30 },
+  '260rem_140_eldm':   { bc: 0.326, muzzle: 830,  weight: 140, drag: 'G7', d: 6.71, len: 33 },
+  '65prc_147_eldm':    { bc: 0.351, muzzle: 880,  weight: 147, drag: 'G7', d: 6.71, len: 34.5 },
+  '68west_165_eldx':   { bc: 0.349, muzzle: 880,  weight: 165, drag: 'G7', d: 7.04, len: 35 },
+  // .270 / 7 mm
+  '270_130_eldx':      { bc: 0.281, muzzle: 920,  weight: 130, drag: 'G7', d: 7.04, len: 32 },
+  '270_150_partition': { bc: 0.205, muzzle: 880,  weight: 150, drag: 'G7', d: 7.04, len: 31 },
+  '7mm08_140_eldx':    { bc: 0.305, muzzle: 825,  weight: 150, drag: 'G7', d: 7.21, len: 33 },
+  '7x64_154_oryx':     { bc: 0.244, muzzle: 825,  weight: 154, drag: 'G7', d: 7.21, len: 32 },
+  '280rem_162_eldx':   { bc: 0.331, muzzle: 855,  weight: 162, drag: 'G7', d: 7.21, len: 35 },
+  '7rm_162_eldx':      { bc: 0.334, muzzle: 905,  weight: 162, drag: 'G7', d: 7.21, len: 35 },
+  '7prc_175_eldx':     { bc: 0.378, muzzle: 915,  weight: 175, drag: 'G7', d: 7.21, len: 37 },
+  // .308 / .30-06
+  '3030_150_intl':     { bc: 0.186, muzzle: 720,  weight: 150, drag: 'G1', d: 7.82, len: 26 },
+  '308_180_norma':     { bc: 0.235, muzzle: 770,  weight: 180, drag: 'G7', d: 7.82, len: 32 },
+  '308_165_sst':       { bc: 0.224, muzzle: 815,  weight: 165, drag: 'G7', d: 7.82, len: 31 },
+  '308_150_eldm':      { bc: 0.261, muzzle: 850,  weight: 150, drag: 'G7', d: 7.82, len: 30 },
+  '308_178_eldx':      { bc: 0.265, muzzle: 800,  weight: 178, drag: 'G7', d: 7.82, len: 33 },
+  '3006_180_oryx':     { bc: 0.232, muzzle: 805,  weight: 180, drag: 'G7', d: 7.82, len: 32 },
+  '3006_180_eldx':     { bc: 0.265, muzzle: 815,  weight: 178, drag: 'G7', d: 7.82, len: 33 },
+  '3006_220_oryx':     { bc: 0.230, muzzle: 720,  weight: 220, drag: 'G7', d: 7.82, len: 35 },
+  '3006_165_sst':      { bc: 0.224, muzzle: 850,  weight: 165, drag: 'G7', d: 7.82, len: 31 },
+  // .300 magnums
+  '300wm_180_eldx':    { bc: 0.297, muzzle: 920,  weight: 200, drag: 'G7', d: 7.82, len: 35 },
+  '300wm_180_oryx':    { bc: 0.232, muzzle: 925,  weight: 180, drag: 'G7', d: 7.82, len: 32 },
+  '300wby_180_eldx':   { bc: 0.297, muzzle: 945,  weight: 200, drag: 'G7', d: 7.82, len: 35 },
+  '300prc_212_eldx':   { bc: 0.336, muzzle: 880,  weight: 212, drag: 'G7', d: 7.82, len: 36 },
+  // 8mm / 9.3mm / storkalibrer
+  '8x57_196_oryx':     { bc: 0.225, muzzle: 760,  weight: 196, drag: 'G7', d: 8.20, len: 32 },
+  '9.3x62_232_oryx':   { bc: 0.214, muzzle: 740,  weight: 232, drag: 'G7', d: 9.3,  len: 28 },
+  '9.3x62_286_oryx':   { bc: 0.225, muzzle: 660,  weight: 286, drag: 'G7', d: 9.3,  len: 32 },
+  '9.3x74r_286_oryx':  { bc: 0.225, muzzle: 660,  weight: 286, drag: 'G7', d: 9.3,  len: 32 },
+  '375hh_300_solid':   { bc: 0.235, muzzle: 770,  weight: 300, drag: 'G7', d: 9.53, len: 33 },
+  '4570_405_intl':     { bc: 0.193, muzzle: 480,  weight: 405, drag: 'G1', d: 11.6, len: 28 },
+  // Long-range / spesial
+  '338lm_300_eldm':    { bc: 0.422, muzzle: 800,  weight: 300, drag: 'G7', d: 8.59, len: 41.5 },
+  '338lm_250_scenar':  { bc: 0.348, muzzle: 905,  weight: 250, drag: 'G7', d: 8.59, len: 38 },
+  '50bmg_750_amax':    { bc: 0.520, muzzle: 855,  weight: 750, drag: 'G7', d: 12.95, len: 65 },
+};
+
+/* ═══ DRAG-FUNKSJONER ═══════════════════════════════════════════════ */
+function dragG7(mach) {
+  if (mach < 0.6) return 0.117;
+  if (mach < 0.8) return 0.118;
+  if (mach < 0.95) return 0.131 + (mach - 0.8) * 0.61;
+  if (mach < 1.0) return 0.226 + (mach - 0.95) * 1.02;
+  if (mach < 1.1) return 0.293 + (mach - 1.0) * 0.05;
+  if (mach < 1.5) return 0.398 - (mach - 1.1) * 0.13;
+  if (mach < 2.0) return 0.346 - (mach - 1.5) * 0.064;
+  if (mach < 3.0) return 0.314 - (mach - 2.0) * 0.041;
+  return 0.273;
+}
+function dragG1(mach) {
+  if (mach < 0.5) return 0.184;
+  if (mach < 0.8) return 0.183 + (mach - 0.5) * 0.04;
+  if (mach < 0.95) return 0.195 + (mach - 0.8) * 1.0;
+  if (mach < 1.0) return 0.345 + (mach - 0.95) * 1.5;
+  if (mach < 1.05) return 0.42 + (mach - 1.0) * 0.4;
+  if (mach < 1.5) return 0.44 - (mach - 1.05) * 0.13;
+  if (mach < 2.0) return 0.381 - (mach - 1.5) * 0.07;
+  if (mach < 3.0) return 0.346 - (mach - 2.0) * 0.04;
+  return 0.306;
 }
 
-function airDensity(altM, tempC) {
+/* ═══ ATMOSFÆRE ════════════════════════════════════════════════════ */
+function airDensity(tempC, pressureHPa, humidityPct, altM) {
   const T = tempC + 273.15;
-  const p0 = 101325, T0 = 288.15, L = 0.0065, R = 287.05, g = 9.80665;
-  const T_h = T0 - L * altM;
-  const p = p0 * Math.pow(T_h / T0, g / (L * R));
-  return p / (R * T);
+  const Pcorr = pressureHPa * Math.exp(-altM / 8434);
+  const es = 6.1078 * Math.exp((17.27 * tempC) / (tempC + 237.3));
+  const e = es * (humidityPct / 100);
+  const Pd = (Pcorr - e) * 100;
+  const Pv = e * 100;
+  return (Pd / (287.058 * T)) + (Pv / (461.495 * T));
+}
+function speedOfSound(tempC, humidityPct) {
+  const T = tempC + 273.15;
+  return 331.3 * Math.sqrt(T / 273.15) * (1 + 0.0017 * humidityPct / 100);
 }
 
-function speedOfSound(tempC) {
-  return 331.3 + 0.606 * tempC;
+/* ═══ MILLER STABILITET ═══════════════════════════════════════════ */
+function millerSG(massGr, twistInchPerTurn, diameterMM, lengthMM, muzzleMS, tempC, pressureHPa) {
+  const dInch = diameterMM / 25.4;
+  const lInch = lengthMM / 25.4;
+  const L = lInch / dInch;
+  const t = twistInchPerTurn / dInch;
+  const sg0 = 30 * massGr / (t * t * Math.pow(dInch, 3) * L * (1 + L * L));
+  const fpsVel = muzzleMS * 3.281;
+  const fv = Math.pow(fpsVel / 2800, 1/3);
+  const tempF = tempC * 9/5 + 32;
+  const fAtm = (1013.25 / pressureHPa) * ((tempF + 460) / 519);
+  return sg0 * fv * fAtm;
 }
 
+/* ═══ SIMULERING ═══════════════════════════════════════════════════ */
 function simulate(opts) {
-  // 2D trajectory: x = forward, y = up, z = sideways
-  const { v0, mass_g, bc, drag, dist, wind, windAngle, zero, sight, alt, temp } = opts;
-  const mass = mass_g / 1000 * 0.06479891 / 1000; // gr -> kg
-  const A = 7.62e-3 ** 2 * Math.PI / 4; // anslag på kaliber-areal (uvesentlig pga. BC)
-  const rho = airDensity(alt, temp);
-  const c = speedOfSound(temp);
-  const table = drag === 'G7' ? G7_TABLE : G1_TABLE;
-  const stdRho = 1.225;
+  const {
+    bc, muzzle, weight, drag, sightHeight, zero, maxRange,
+    windSpeed, windDir, tempC, pressureHPa, humidityPct, altM,
+    inclineDeg, azimuthDeg, latDeg,
+    useCoriolis, useSpin, twistInch, twistDir, diameterMM, bulletLengthMM
+  } = opts;
 
-  // Modifisert BC for tetthet
-  const effBC = bc * (rho / stdRho);
+  const g = 9.81;
+  const dragFn = drag === 'G1' ? dragG1 : dragG7;
+  const rho = airDensity(tempC, pressureHPa, humidityPct, altM);
+  const rho0 = 1.2266;
+  const a = speedOfSound(tempC, humidityPct);
+  const massKg = weight * 0.0648 / 1000;
 
-  const dt = 0.001;
-  const sightM = sight / 100;
-  const wx = -wind * Math.cos(windAngle * Math.PI / 180);
-  const wz = wind * Math.sin(windAngle * Math.PI / 180);
+  const dragFactor = (vRel) => {
+    const mach = vRel / a;
+    const cdF = dragFn(mach);
+    return (rho / rho0) * cdF * vRel * vRel / bc * 0.5144 / 1000;
+  };
 
-  // Vi finner nødvendig oppsiktsvinkel for innskyting på "zero"
-  function fly(angle) {
-    let x = 0, y = -sightM, z = 0;
-    let vx = v0 * Math.cos(angle);
-    let vy = v0 * Math.sin(angle);
+  const windRad = windDir * Math.PI / 180;
+  const windCross = windSpeed * Math.sin(windRad);
+  const windHead = -windSpeed * Math.cos(windRad);
+
+  // Coriolis
+  const omegaE = 7.2921e-5;
+  const latRad = latDeg * Math.PI / 180;
+  const azRad = azimuthDeg * Math.PI / 180;
+  // ENU → skytter-system: forward = (sin Az, cos Az, 0) (E,N,U), left = (-cos Az, sin Az, 0), up = (0,0,1)
+  const omegaENU = { e: 0, n: Math.cos(latRad) * omegaE, u: Math.sin(latRad) * omegaE };
+  const fwdE = Math.sin(azRad), fwdN = Math.cos(azRad);
+  const leftE = -Math.cos(azRad), leftN = Math.sin(azRad);
+  const omSx = omegaENU.e * fwdE + omegaENU.n * fwdN;          // langs forward
+  const omSy = omegaENU.u;                                     // up
+  const omSz = omegaENU.e * leftE + omegaENU.n * leftN;        // venstre
+
+  const inclRad = inclineDeg * Math.PI / 180;
+  const cosIncl = Math.cos(inclRad);
+
+  // Spin-drift (Litz empirical)
+  const sg = millerSG(weight, twistInch, diameterMM, bulletLengthMM, muzzle, tempC, pressureHPa);
+  const spinSign = twistDir === 'left' ? -1 : 1;
+  function spinDriftMeters(tofSec) {
+    if (!useSpin || sg <= 0) return 0;
+    const driftInch = 1.25 * (sg + 1.2) * Math.pow(tofSec, 1.83);
+    return spinSign * driftInch * 0.0254;
+  }
+
+  function fly(angle, range, opts2 = {}) {
+    const noWind = opts2.noWind || false;
+    const h = sightHeight / 100;
+    let x = 0, y = -h, z = 0;
+    let vx = muzzle * Math.cos(angle);
+    let vy = muzzle * Math.sin(angle);
     let vz = 0;
     let t = 0;
+    const dt = 0.0008;
     const traj = [];
-    while (x < dist + 50 && t < 5) {
-      const vrelx = vx + wx;
-      const vrely = vy;
-      const vrelz = vz - wz;
-      const v = Math.sqrt(vrelx*vrelx + vrely*vrely + vrelz*vrelz);
-      const mach = v / c;
-      const cd = cdAtMach(mach, table);
-      const drag_a = (rho * v * cd) / (2 * effBC * 1000); // forenkling
-      const ax = -drag_a * vrelx / v;
-      const ay = -drag_a * vrely / v - 9.80665;
-      const az = -drag_a * vrelz / v;
-      vx += ax * dt; vy += ay * dt; vz += az * dt;
-      x += vx * dt; y += vy * dt; z += vz * dt;
+
+    while (x < range && t < 30) {
+      const wH = noWind ? 0 : windHead;
+      const wC = noWind ? 0 : windCross;
+      const vRelX = vx - wH;
+      const vRelZ = vz - wC;
+      const vRel = Math.sqrt(vRelX*vRelX + vy*vy + vRelZ*vRelZ);
+      const v = Math.sqrt(vx*vx + vy*vy + vz*vz);
+
+      const dragA = dragFactor(vRel);
+      const dragX = -dragA * vRelX / vRel;
+      const dragY = -dragA * vy / vRel;
+      const dragZ = -dragA * vRelZ / vRel;
+
+      // "Rifleman's rule": effektiv gravitasjon vinkelrett på siktelinjen
+      const gPerp = g * cosIncl;
+
+      let cx = 0, cy = 0, cz = 0;
+      if (useCoriolis) {
+        // ac = -2 ω × v
+        cx = -2 * (omSy * vz - omSz * vy);
+        cy = -2 * (omSz * vx - omSx * vz);
+        cz = -2 * (omSx * vy - omSy * vx);
+      }
+
+      vx += (dragX + cx) * dt;
+      vy += (dragY - gPerp + cy) * dt;
+      vz += (dragZ + cz) * dt;
+
+      x += vx * dt;
+      y += vy * dt;
+      z += vz * dt;
       t += dt;
-      if (x % 25 < vx * dt) traj.push({ x, y, z, v: Math.sqrt(vx*vx+vy*vy+vz*vz), t });
+
+      const spinZ = noWind ? 0 : spinDriftMeters(t);
+      traj.push({ x, y, z: z + spinZ, v, vRel, t });
     }
-    return { x, y, z, vy, vz, t, traj, vFinal: Math.sqrt(vx*vx+vy*vy+vz*vz) };
+    return traj;
   }
 
-  // Iterer til zero treffer
-  let angle = 0.001;
-  for (let i = 0; i < 30; i++) {
-    let x = 0, y = -sightM;
-    let vx = v0 * Math.cos(angle), vy = v0 * Math.sin(angle);
-    let t = 0;
-    while (x < zero && t < 5) {
-      const v = Math.sqrt(vx*vx + vy*vy);
-      const mach = v / c;
-      const cd = cdAtMach(mach, table);
-      const a = (rho * v * cd) / (2 * effBC * 1000);
-      vx -= (a * vx / v) * dt;
-      vy -= ((a * vy / v) + 9.80665) * dt;
-      x += vx * dt; y += vy * dt;
-      t += dt;
-    }
-    const error = y;
-    if (Math.abs(error) < 0.001) break;
+  // Finn løpvinkel som gir treff på "zero"
+  let angle = Math.atan((sightHeight / 100) / zero);
+  for (let i = 0; i < 40; i++) {
+    const traj = fly(angle, zero + 5);
+    const pt = traj.find(p => p.x >= zero);
+    if (!pt) break;
+    const error = pt.y;
     angle -= error / zero * 0.5;
+    if (Math.abs(error) < 0.0003) break;
   }
 
-  return fly(angle);
+  const trajectory = fly(angle, maxRange + 20);
+  const trajectoryNoWind = fly(angle, maxRange + 20, { noWind: true });
+
+  return { trajectory, trajectoryNoWind, angle, rho, a, massKg, sg };
 }
 
-document.getElementById('preset').addEventListener('change', e => {
-  if (e.target.value === 'custom') return;
-  const [_, v0, w, bc, drag] = e.target.value.split(',');
-  document.getElementById('v0').value = v0;
-  document.getElementById('weight').value = w;
-  document.getElementById('bc').value = bc;
-  document.getElementById('drag').value = drag;
-});
+/* ═══ PLOTTING ═══════════════════════════════════════════════════════ */
+function plotTrajectory(trajectory, trajectoryNoWind, opts) {
+  const W = 800, H = 320;
+  const m = { l: 56, r: 24, t: 16, b: 36 };
+  const w = W - m.l - m.r;
+  const h = H - m.t - m.b;
 
-document.getElementById('calc').addEventListener('click', () => {
+  const maxX = opts.maxRange;
+  const filtered = trajectory.filter(p => p.x <= maxX);
+  if (filtered.length === 0) { $('trajSvg').innerHTML = ''; return; }
+  const minY = Math.min(0, ...filtered.map(p => p.y));
+  const maxY = Math.max(0, ...filtered.map(p => p.y));
+  const span = Math.max(maxY - minY, 0.02);
+  const yLo = minY - span * 0.1;
+  const yHi = maxY + span * 0.1;
+
+  const xS = x => m.l + (x / maxX) * w;
+  const yS = y => m.t + (1 - (y - yLo) / (yHi - yLo)) * h;
+
+  let s = '';
+
+  // Y-grid (smart steg)
+  const ySpan = yHi - yLo;
+  const yStep = ySpan > 5 ? 1 : ySpan > 2 ? 0.5 : ySpan > 1 ? 0.25 : ySpan > 0.4 ? 0.1 : 0.05;
+  for (let y = Math.ceil(yLo / yStep) * yStep; y <= yHi; y += yStep) {
+    s += `<line class="grid" x1="${m.l}" y1="${yS(y).toFixed(1)}" x2="${W-m.r}" y2="${yS(y).toFixed(1)}"/>`;
+    s += `<text class="axis-text" x="${m.l - 5}" y="${(yS(y) + 3).toFixed(1)}" text-anchor="end">${(y * 100).toFixed(0)}</text>`;
+  }
+  // X-grid
+  const xGridStep = maxX <= 600 ? 100 : maxX <= 1500 ? 200 : 500;
+  for (let x = 0; x <= maxX; x += xGridStep) {
+    s += `<line class="grid" x1="${xS(x).toFixed(1)}" y1="${m.t}" x2="${xS(x).toFixed(1)}" y2="${m.t + h}"/>`;
+    s += `<text class="axis-text" x="${xS(x).toFixed(1)}" y="${m.t + h + 12}" text-anchor="middle">${x}</text>`;
+  }
+
+  s += `<text class="axis-label" x="${m.l - 40}" y="${m.t - 4}">cm</text>`;
+  s += `<text class="axis-label" x="${W - m.r}" y="${m.t + h + 28}" text-anchor="end">avstand (m)</text>`;
+
+  // Siktelinje (y = 0)
+  s += `<line class="traj-sightline" x1="${m.l}" y1="${yS(0).toFixed(1)}" x2="${W-m.r}" y2="${yS(0).toFixed(1)}"/>`;
+
+  // Bane uten vind
+  let pathNW = '';
+  trajectoryNoWind.filter(p => p.x <= maxX).forEach((p, i) => {
+    pathNW += (i === 0 ? 'M' : 'L') + xS(p.x).toFixed(1) + ',' + yS(p.y).toFixed(1) + ' ';
+  });
+  s += `<path class="traj-no-wind" d="${pathNW}"/>`;
+
+  // Bane med vind
+  let path = '';
+  filtered.forEach((p, i) => {
+    path += (i === 0 ? 'M' : 'L') + xS(p.x).toFixed(1) + ',' + yS(p.y).toFixed(1) + ' ';
+  });
+  s += `<path class="traj-trajectory" d="${path}"/>`;
+
+  // Zero-marker
+  const zeroPt = filtered.find(p => p.x >= opts.zero);
+  if (zeroPt) {
+    s += `<circle class="traj-zero-marker" cx="${xS(zeroPt.x).toFixed(1)}" cy="${yS(zeroPt.y).toFixed(1)}" r="3.5"/>`;
+    s += `<text class="marker-label" x="${xS(zeroPt.x).toFixed(1)}" y="${(yS(zeroPt.y) - 8).toFixed(1)}" text-anchor="middle" fill="var(--green)">zero ${opts.zero}m</text>`;
+  }
+
+  // Supersonisk-cutoff
+  const cutoff = filtered.find(p => p.vRel < opts.machSpeed);
+  if (cutoff && cutoff.x < maxX * 0.95) {
+    s += `<circle class="traj-supersonic-marker" cx="${xS(cutoff.x).toFixed(1)}" cy="${yS(cutoff.y).toFixed(1)}" r="3.5"/>`;
+    s += `<text class="marker-label" x="${xS(cutoff.x).toFixed(1)}" y="${(yS(cutoff.y) - 8).toFixed(1)}" text-anchor="middle" fill="var(--warn)">subsonisk @ ${cutoff.x.toFixed(0)}m</text>`;
+  }
+
+  $('trajSvg').innerHTML = s;
+}
+
+function plotDrift(trajectory, opts) {
+  const W = 800, H = 220;
+  const m = { l: 56, r: 24, t: 16, b: 36 };
+  const w = W - m.l - m.r;
+  const h = H - m.t - m.b;
+
+  const maxX = opts.maxRange;
+  const filtered = trajectory.filter(p => p.x <= maxX);
+  if (filtered.length === 0) { $('driftSvg').innerHTML = ''; return; }
+  const zVals = filtered.map(p => p.z);
+  let zMin = Math.min(0, ...zVals);
+  let zMax = Math.max(0, ...zVals);
+  const span = Math.max(zMax - zMin, 0.05);
+  zMin -= span * 0.1;
+  zMax += span * 0.1;
+
+  const xS = x => m.l + (x / maxX) * w;
+  const yS = z => m.t + (1 - (z - zMin) / (zMax - zMin)) * h;
+
+  let s = '';
+
+  const zSpan = zMax - zMin;
+  const zStep = zSpan > 4 ? 1 : zSpan > 2 ? 0.5 : zSpan > 1 ? 0.2 : zSpan > 0.4 ? 0.1 : 0.05;
+  for (let z = Math.ceil(zMin / zStep) * zStep; z <= zMax; z += zStep) {
+    s += `<line class="grid" x1="${m.l}" y1="${yS(z).toFixed(1)}" x2="${W-m.r}" y2="${yS(z).toFixed(1)}"/>`;
+    s += `<text class="axis-text" x="${m.l - 5}" y="${(yS(z) + 3).toFixed(1)}" text-anchor="end">${(z * 100).toFixed(0)}</text>`;
+  }
+  const xGridStep = maxX <= 600 ? 100 : maxX <= 1500 ? 200 : 500;
+  for (let x = 0; x <= maxX; x += xGridStep) {
+    s += `<line class="grid" x1="${xS(x).toFixed(1)}" y1="${m.t}" x2="${xS(x).toFixed(1)}" y2="${m.t + h}"/>`;
+    s += `<text class="axis-text" x="${xS(x).toFixed(1)}" y="${m.t + h + 12}" text-anchor="middle">${x}</text>`;
+  }
+
+  s += `<text class="axis-label" x="${m.l - 40}" y="${m.t - 4}">cm</text>`;
+  s += `<text class="axis-label" x="${W - m.r}" y="${m.t + h + 28}" text-anchor="end">avstand (m)</text>`;
+
+  // Null-linje
+  s += `<line class="traj-sightline" x1="${m.l}" y1="${yS(0).toFixed(1)}" x2="${W-m.r}" y2="${yS(0).toFixed(1)}"/>`;
+
+  let path = '';
+  filtered.forEach((p, i) => {
+    path += (i === 0 ? 'M' : 'L') + xS(p.x).toFixed(1) + ',' + yS(p.z).toFixed(1) + ' ';
+  });
+  s += `<path class="traj-trajectory" d="${path}"/>`;
+
+  $('driftSvg').innerHTML = s;
+}
+
+/* ═══ APPLY PRESET ═══════════════════════════════════════════════════ */
+function applyPreset(key) {
+  if (!PRESETS[key]) return;
+  const p = PRESETS[key];
+  $('bc').value = p.bc;
+  $('muzzle').value = p.muzzle;
+  $('weight').value = p.weight;
+  $('dragModel').value = p.drag;
+  $('diameter').value = p.d;
+  $('bulletLength').value = p.len;
+}
+
+$('loadPreset').addEventListener('change', (e) => applyPreset(e.target.value));
+
+/* ═══ HOVED-BEREGNING ═══════════════════════════════════════════════ */
+$('calcBtn').addEventListener('click', () => {
   const opts = {
-    v0: +document.getElementById('v0').value,
-    mass_g: +document.getElementById('weight').value,
-    bc: +document.getElementById('bc').value,
-    drag: document.getElementById('drag').value,
-    dist: +document.getElementById('dist').value,
-    wind: +document.getElementById('wind').value,
-    windAngle: +document.getElementById('wind-angle').value,
-    zero: +document.getElementById('zero').value,
-    sight: +document.getElementById('sight').value,
-    alt: +document.getElementById('alt').value,
-    temp: +document.getElementById('temp').value
+    bc: parseFloat($('bc').value),
+    muzzle: parseFloat($('muzzle').value),
+    weight: parseFloat($('weight').value),
+    drag: $('dragModel').value,
+    sightHeight: parseFloat($('sightHeight').value),
+    zero: parseFloat($('zero').value),
+    maxRange: parseFloat($('maxRange').value),
+    windSpeed: parseFloat($('windSpeed').value),
+    windDir: parseFloat($('windDir').value),
+    tempC: parseFloat($('temp').value),
+    pressureHPa: parseFloat($('pressure').value),
+    humidityPct: parseFloat($('humidity').value),
+    altM: parseFloat($('altitude').value),
+    inclineDeg: parseFloat($('incline').value),
+    azimuthDeg: parseFloat($('azimuth').value),
+    latDeg: parseFloat($('latitude').value),
+    useCoriolis: $('useCoriolis').value === '1',
+    useSpin: $('useSpin').value === '1',
+    twistInch: parseFloat($('twist').value),
+    twistDir: $('twistDir').value,
+    diameterMM: parseFloat($('diameter').value),
+    bulletLengthMM: parseFloat($('bulletLength').value),
   };
-  const r = simulate(opts);
 
-  const drop_cm = -r.y * 100;
-  const drift_cm = r.z * 100;
-  const massKg = opts.mass_g / 1000 * 0.06479891;
-  const E = 0.5 * massKg * r.vFinal * r.vFinal;
+  const { trajectory, trajectoryNoWind, rho, a, massKg, sg } = simulate(opts);
 
-  document.getElementById('r-drop').innerHTML = drop_cm.toFixed(0) + '<span class="stat-unit">cm</span>';
-  document.getElementById('r-wind').innerHTML = (drift_cm >= 0 ? '+' : '') + drift_cm.toFixed(0) + '<span class="stat-unit">cm</span>';
-  document.getElementById('r-vel').innerHTML = r.vFinal.toFixed(0) + '<span class="stat-unit">m/s</span>';
-  document.getElementById('r-e').innerHTML = E.toFixed(0) + '<span class="stat-unit">J</span>';
-  document.getElementById('r-tof').innerHTML = r.t.toFixed(2) + '<span class="stat-unit">s</span>';
+  // Sample-avstander
+  const step = parseInt($('tableStep').value);
+  const ranges = [];
+  for (let r = step; r <= opts.maxRange; r += step) ranges.push(r);
 
-  // Avlivningskrav (Norge): 200 kg klauvdyr trenger min. 980 J + 9 g kule
-  let killTxt = '';
-  if (E >= 2200) killTxt = '<span class="tag green">Storvilt OK</span> — energi over 2200 J. Egnet for elg/hjort.';
-  else if (E >= 980) killTxt = '<span class="tag warn">Småvilt OK</span> — energi over 980 J. Egnet for rådyr/villrein, men under norsk minstekrav for elg på denne distansen.';
-  else killTxt = '<span class="tag accent">Under minstekrav</span> — under 980 J. Ikke egnet for klauvdyr på denne distansen.';
-  document.getElementById('kill').innerHTML = killTxt;
+  const samples = ranges.map(r => {
+    const pt = trajectory.find(p => p.x >= r);
+    if (!pt) return null;
+    const dropM = pt.y;
+    const driftM = pt.z;
+    const dropCM = dropM * 100;
+    const driftCM = driftM * 100;
+    const v = pt.v;
+    const energy = 0.5 * massKg * v * v;
+    const moaDrop = (dropM / r) * 3437.75;
+    const milDrop = (dropM / r) * 1000;
+    const moaDrift = (driftM / r) * 3437.75;
+    const mach = pt.vRel / a;
+    return { r, dropCM, driftCM, v, mach, energy, t: pt.t, moaDrop, milDrop, moaDrift };
+  }).filter(x => x);
 
-  // Tabell
-  const tbody = document.querySelector('#trajectory-table tbody');
-  tbody.innerHTML = r.traj.filter((p, i) => i % 4 === 0 || p.x >= opts.dist - 25).slice(0, 14).map(p => {
-    const m = opts.mass_g / 1000 * 0.06479891;
-    const e = 0.5 * m * p.v * p.v;
+  // Sammendrag
+  const muzzleEnergy = 0.5 * massKg * opts.muzzle * opts.muzzle;
+  const at = (range) => {
+    const pt = trajectory.find(p => p.x >= range);
+    if (!pt) return null;
+    return { r: range, energy: 0.5 * massKg * pt.v * pt.v, v: pt.v };
+  };
+  const sample100 = at(100);
+  const sample300 = at(300);
+
+  // Supersonisk-cutoff
+  const supersonicCutoff = trajectory.find(p => p.vRel < a);
+  const supersonicLabel = supersonicCutoff
+    ? `${supersonicCutoff.x.toFixed(0)} m`
+    : 'Hele rekkevidden';
+
+  $('summary').innerHTML = `
+    <div class="stat accent">
+      <div class="stat-label">Munningsenergi</div>
+      <div class="stat-value">${muzzleEnergy.toFixed(0)}<span class="stat-unit">J</span></div>
+      <div class="sub">${(muzzleEnergy/1.356).toFixed(0)} ft-lb</div>
+    </div>
+    <div class="stat">
+      <div class="stat-label">Energi @ 100 m</div>
+      <div class="stat-value">${sample100 ? sample100.energy.toFixed(0) : '—'}<span class="stat-unit">J</span></div>
+      <div class="sub">${sample100 ? sample100.v.toFixed(0) + ' m/s' : ''}</div>
+    </div>
+    <div class="stat">
+      <div class="stat-label">Energi @ 300 m</div>
+      <div class="stat-value">${sample300 ? sample300.energy.toFixed(0) : '—'}<span class="stat-unit">J</span></div>
+      <div class="sub">${sample300 ? sample300.v.toFixed(0) + ' m/s' : ''}</div>
+    </div>
+    <div class="stat blue">
+      <div class="stat-label">Supersonisk til</div>
+      <div class="stat-value" style="font-size: 1.2rem;">${supersonicLabel}</div>
+      <div class="sub">Mach 1.0 = ${a.toFixed(0)} m/s</div>
+    </div>
+    <div class="stat">
+      <div class="stat-label">Lufttetthet</div>
+      <div class="stat-value">${rho.toFixed(3)}<span class="stat-unit">kg/m³</span></div>
+      <div class="sub">Standard: 1.225</div>
+    </div>
+    <div class="stat ${sg >= 1.4 ? 'green' : sg >= 1.0 ? '' : 'accent'}">
+      <div class="stat-label">Stabilitet (SG)</div>
+      <div class="stat-value">${sg.toFixed(2)}</div>
+      <div class="sub">${sg >= 1.5 ? 'Veldig god' : sg >= 1.4 ? 'God' : sg >= 1.0 ? 'Marginal' : 'For lav'}</div>
+    </div>
+  `;
+
+  // Plot
+  plotTrajectory(trajectory, trajectoryNoWind, { ...opts, machSpeed: a });
+  plotDrift(trajectory, opts);
+
+  // Trajectory-tabell
+  const tbody = $('trajectory').querySelector('tbody');
+  tbody.innerHTML = samples.map(s => `
+    <tr>
+      <td><strong>${s.r} m</strong></td>
+      <td class="num" style="${s.dropCM > -1 && s.dropCM < 1 ? 'color: var(--green); font-weight: 500;' : ''}">${s.dropCM.toFixed(1)}</td>
+      <td class="num">${s.moaDrop.toFixed(1)}</td>
+      <td class="num">${s.milDrop.toFixed(2)}</td>
+      <td class="num">${s.driftCM.toFixed(1)}</td>
+      <td class="num">${s.moaDrift.toFixed(1)}</td>
+      <td class="num">${s.v.toFixed(0)}</td>
+      <td class="num" style="${s.mach < 1 ? 'color: var(--accent-deep);' : ''}">${s.mach.toFixed(2)}</td>
+      <td class="num">${s.energy.toFixed(0)}</td>
+      <td class="num">${s.t.toFixed(2)}</td>
+    </tr>
+  `).join('');
+
+  // Energikrav-tabell
+  const requirements = [
+    { name: 'Rådyr', jul: 980 },
+    { name: 'Hjort, dåhjort', jul: 1700 },
+    { name: 'Elg, villrein, moskus', jul: 2200 },
+    { name: 'Bjørn', jul: 2700 },
+  ];
+  const energyTable = $('energyCheck').querySelector('tbody');
+  energyTable.innerHTML = requirements.map(req => {
+    const e100 = sample100 ? sample100.energy : 0;
+    const meetsAt100 = e100 >= req.jul;
+    let maxEffRange = '—';
+    if (meetsAt100) {
+      let last = null;
+      for (const p of trajectory) {
+        const e = 0.5 * massKg * p.v * p.v;
+        if (e >= req.jul) last = p;
+        else break;
+      }
+      if (last) maxEffRange = `${last.x.toFixed(0)} m`;
+    }
     return `<tr>
-      <td class="num">${p.x.toFixed(0)}</td>
-      <td class="num">${(-p.y * 100).toFixed(1)}</td>
-      <td class="num">${(p.z * 100).toFixed(1)}</td>
-      <td class="num">${p.v.toFixed(0)}</td>
-      <td class="num">${e.toFixed(0)}</td>
-      <td class="num">${p.t.toFixed(2)}</td>
+      <td><strong>${req.name}</strong></td>
+      <td class="num">${req.jul}</td>
+      <td class="num"><span class="energy-status ${meetsAt100 ? 'good' : 'bad'}">${maxEffRange}</span></td>
     </tr>`;
   }).join('');
 
-  document.getElementById('results').style.display = '';
+  // Stabilitet-detalj
+  $('stability').innerHTML = `
+    <div class="stat-grid">
+      <div class="stat ${sg >= 1.4 ? 'green' : sg >= 1.0 ? '' : 'accent'}">
+        <div class="stat-label">SG-verdi</div>
+        <div class="stat-value">${sg.toFixed(2)}</div>
+        <div class="sub">${sg >= 1.5 ? 'Konsistent på lange skudd' : sg >= 1.4 ? 'God — anbefalt for jakt' : sg >= 1.0 ? 'Kan tippe i kald luft' : 'For lav — bytt twist eller kortere kule'}</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">Twist</div>
+        <div class="stat-value">1:${opts.twistInch}<span class="stat-unit">″</span></div>
+        <div class="sub">${opts.twistDir === 'right' ? 'Høyre' : 'Venstre'}</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">Lengste sample</div>
+        <div class="stat-value">${samples.length ? samples[samples.length-1].r : '—'}<span class="stat-unit">m</span></div>
+        <div class="sub">tabellsteg ${step} m</div>
+      </div>
+    </div>
+  `;
+
+  $('results').style.display = 'block';
 });
 
-document.getElementById('calc').click();
+// Initial preset
+applyPreset('308_180_norma');
+$('calcBtn').click();
 </script>
 </body>
 </html>
