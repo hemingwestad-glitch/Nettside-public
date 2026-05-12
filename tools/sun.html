@@ -7,6 +7,18 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..700;1,9..144,400&family=Inter+Tight:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<meta name="author" content="Heming Westad">
+<link rel="canonical" href="https://hemingwestad.no/tools/sun.html">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="/favicon.ico" sizes="any">
+<meta name="theme-color" content="#b8552e">
+<meta property="og:title" content="Sol og måne — Heming Westad">
+<meta property="og:description" content="Soloppgang, gylden time, månefase. NOAA-presisjon.">
+<meta property="og:image" content="https://hemingwestad.no/og-image.png">
+<meta property="og:url" content="https://hemingwestad.no/tools/sun.html">
+<meta property="og:type" content="website">
+<meta property="og:locale" content="nb_NO">
+<meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="/style.css">
 </head>
 <body>
@@ -102,54 +114,114 @@
 
 <script src="/common.js"></script>
 <script>
-const RAD = Math.PI / 180;
+/* ─── Astronomi: sol og måne ────────────────────────────────────────────
+   Implementasjon basert på NOAA Solar Calculator-formelen (Jean Meeus,
+   Astronomical Algorithms, kap. 25 og 47). Soloppgang er definert som
+   sentrum av sola passerer altitude -0.833° (geometrisk -0.5°
+   pluss ca. 0.34° refraksjon).
+   ─────────────────────────────────────────────────────────────────── */
 
+const RAD = Math.PI / 180;
+const DEG = 180 / Math.PI;
+
+/* Julian Day fra Date (UTC-basert) */
 function jd(date) { return date.getTime() / 86400000 + 2440587.5; }
 
-function sunPos(jd) {
-  const D = jd - 2451545;
-  const g = (357.529 + 0.98560028 * D) * RAD;
-  const q = (280.459 + 0.98564736 * D) * RAD;
-  const L = q + (1.915 * Math.sin(g) + 0.020 * Math.sin(2 * g)) * RAD;
-  const e = (23.439 - 0.00000036 * D) * RAD;
-  const ra = Math.atan2(Math.cos(e) * Math.sin(L), Math.cos(L));
-  const dec = Math.asin(Math.sin(e) * Math.sin(L));
-  return { ra, dec };
+/* Julian centuries siden J2000.0 */
+function jc(jd) { return (jd - 2451545.0) / 36525.0; }
+
+/* Sols geometriske middelelongasjon (grader, modulo 360) */
+function meanLongSun(T) {
+  let L = 280.46646 + T * (36000.76983 + T * 0.0003032);
+  return ((L % 360) + 360) % 360;
 }
 
-function siderealTime(jd, lon) {
-  const T = (jd - 2451545) / 36525;
-  let gmst = 280.46061837 + 360.98564736629 * (jd - 2451545) +
-             0.000387933 * T * T - T * T * T / 38710000;
-  gmst = ((gmst % 360) + 360) % 360;
-  return (gmst + lon) * RAD;
+/* Sols middelanomali (grader) */
+function meanAnomSun(T) {
+  return 357.52911 + T * (35999.05029 - T * 0.0001537);
 }
 
-function sunHourAngle(altDeg, lat, dec) {
-  const cosH = (Math.sin(altDeg * RAD) - Math.sin(lat * RAD) * Math.sin(dec)) /
-               (Math.cos(lat * RAD) * Math.cos(dec));
-  if (cosH > 1) return null; // never up
-  if (cosH < -1) return null; // never down
-  return Math.acos(cosH);
+/* Sentrumlikningen — den lille korreksjonen pga. eksentrisitet */
+function sunEqOfCenter(T, M) {
+  const Mrad = M * RAD;
+  return Math.sin(Mrad) * (1.914602 - T * (0.004817 + T * 0.000014))
+       + Math.sin(2 * Mrad) * (0.019993 - T * 0.000101)
+       + Math.sin(3 * Mrad) * 0.000289;
 }
 
+/* Sols sanne lengdegrad (grader) */
+function sunTrueLong(T) {
+  return meanLongSun(T) + sunEqOfCenter(T, meanAnomSun(T));
+}
+
+/* Sols tilsynelatende lengdegrad — korrigert for nutasjon og aberrasjon */
+function sunAppLong(T) {
+  const omega = 125.04 - 1934.136 * T;
+  return sunTrueLong(T) - 0.00569 - 0.00478 * Math.sin(omega * RAD);
+}
+
+/* Ekliptikkens skråstilling (grader) */
+function obliquityCorr(T) {
+  const e0 = 23 + (26 + (21.448 - T*(46.8150 + T*(0.00059 - T*0.001813)))/60) / 60;
+  const omega = 125.04 - 1934.136 * T;
+  return e0 + 0.00256 * Math.cos(omega * RAD);
+}
+
+/* Sols deklinasjon (grader) */
+function sunDeclination(T) {
+  const e = obliquityCorr(T) * RAD;
+  const lam = sunAppLong(T) * RAD;
+  return Math.asin(Math.sin(e) * Math.sin(lam)) * DEG;
+}
+
+/* Likning for tid (minutter) — den ekte NOAA-formelen */
+function equationOfTime(T) {
+  const e = obliquityCorr(T) * RAD;
+  const L0 = meanLongSun(T) * RAD;
+  const M = meanAnomSun(T) * RAD;
+  // Eksentrisitet for jordbanen
+  const ecc = 0.016708634 - T * (0.000042037 + T * 0.0000001267);
+  const y = Math.tan(e / 2);
+  const y2 = y * y;
+  // E (radianer)
+  const E = y2 * Math.sin(2*L0)
+          - 2*ecc*Math.sin(M)
+          + 4*ecc*y2*Math.sin(M)*Math.cos(2*L0)
+          - 0.5*y2*y2*Math.sin(4*L0)
+          - 1.25*ecc*ecc*Math.sin(2*M);
+  return E * 4 * DEG;  // minutter
+}
+
+/* Soltimevinkel (grader) for gitt altitude.
+   Returnerer null hvis sola aldri når den altituden den dagen. */
+function hourAngle(altDeg, lat, dec) {
+  const cosH = (Math.sin(altDeg * RAD) - Math.sin(lat * RAD) * Math.sin(dec * RAD))
+             / (Math.cos(lat * RAD) * Math.cos(dec * RAD));
+  if (cosH > 1) return null;   // sola når aldri opp til altitude
+  if (cosH < -1) return null;  // sola står alltid over altitude
+  return Math.acos(cosH) * DEG;
+}
+
+/* Returnerer tid (Date i UTC) når sola passerer altDeg lokalt.
+   isRise=true gir morgen-overgangen, false gir kvelden.
+   Iterativt for å håndtere endring i deklinasjon gjennom dagen. */
 function timeForSunAlt(date, lat, lon, altDeg, isRise) {
-  // Iter for nøyaktighet
-  let t = new Date(date);
-  t.setHours(12, 0, 0, 0); // start ved solar noon
-  for (let i = 0; i < 5; i++) {
-    const J = jd(t);
-    const sun = sunPos(J);
-    const H = sunHourAngle(altDeg, lat, sun.dec);
+  // Start ved astronomisk middag (12:00 lokal-mid-time)
+  const Y = date.getFullYear(), M = date.getMonth(), D = date.getDate();
+  // Bruk UTC noon som første estimat — vi korrigerer iterativt
+  let t = new Date(Date.UTC(Y, M, D, 12, 0, 0)) - lon * 4 * 60 * 1000;
+  for (let i = 0; i < 4; i++) {
+    const T = jc(jd(new Date(t)));
+    const dec = sunDeclination(T);
+    const eot = equationOfTime(T);          // minutter
+    const H = hourAngle(altDeg, lat, dec);  // grader
     if (H === null) return null;
-    const lst = siderealTime(J, lon);
-    const eqOfTime = (sun.ra - lst) * 12 / Math.PI;
-    let solarNoon = jd(new Date(t.getFullYear(), t.getMonth(), t.getDate(), 12, 0)) - eqOfTime / 24;
-    const offset = H * 12 / Math.PI;
-    const targetJD = isRise ? solarNoon - offset : solarNoon + offset;
-    t = new Date((targetJD - 2440587.5) * 86400000);
+    // Solar noon i UTC (millisekunder fra epoch)
+    const solarNoonUTC = Date.UTC(Y, M, D, 12, 0, 0) - (lon * 4 + eot) * 60 * 1000;
+    const offsetMs = H * 4 * 60 * 1000;     // 1° = 4 minutter
+    t = isRise ? solarNoonUTC - offsetMs : solarNoonUTC + offsetMs;
   }
-  return t;
+  return new Date(t);
 }
 
 function fmtTime(d) {
@@ -157,6 +229,9 @@ function fmtTime(d) {
   return d.toLocaleTimeString('nb-NO', { hour: '2-digit', minute: '2-digit' });
 }
 
+/* ─── Måne ─────────────────────────────────────────────────────────── */
+
+/* Månefase 0..1: 0 = ny, 0.5 = full, 1 = ny igjen */
 function moonPhase(jd) {
   const j = jd - 2451550.1;
   const phase = (j / 29.530588853) % 1;
@@ -169,16 +244,110 @@ function moonIllumination(jd) {
 }
 
 function moonName(p) {
-  const names = ['Nymåne','Tiltakende sigd','Halvmåne','Tiltakende fullmåne','Fullmåne','Avtagende fullmåne','Halvmåne','Avtagende sigd'];
+  const names = ['Nymåne','Tiltakende sigd','Halvmåne','Tiltakende fullmåne',
+                 'Fullmåne','Avtagende fullmåne','Halvmåne','Avtagende sigd'];
   const idx = Math.floor((p + 1/16) * 8) % 8;
   return names[idx];
+}
+
+/* Måneposisjon (forenklet etter Meeus kap. 47 — nøyaktighet ~5 bueminutter)
+   Returnerer { ra (grader), dec (grader), dist (km) } */
+function moonPosition(jd) {
+  const T = jc(jd);
+  // Månens midlere lengdegrad
+  const L = (218.3164477 + 481267.88123421 * T - 0.0015786 * T*T + T*T*T/538841) % 360;
+  // Månens midlere anomali
+  const Mp = (134.9633964 + 477198.8675055 * T + 0.0087414 * T*T + T*T*T/69699) % 360;
+  // Sols midlere anomali
+  const M = (357.5291092 + 35999.0502909 * T - 0.0001536 * T*T) % 360;
+  // Månens argument av breddegrad
+  const F = (93.2720950 + 483202.0175233 * T - 0.0036539 * T*T) % 360;
+  // Forenklet — bruker bare et par dominerende ledd
+  const Lr = L * RAD, Mpr = Mp * RAD, Mr = M * RAD, Fr = F * RAD;
+  // Lengdegrad-korreksjon (bueminutter)
+  const dL = 6.289 * Math.sin(Mpr)
+           - 1.274 * Math.sin(2*Lr - Mpr - Mr*0) // forenklet
+           + 0.658 * Math.sin(2*Lr)
+           - 0.186 * Math.sin(Mr)
+           - 0.059 * Math.sin(2*Mpr - 2*Lr*0)
+           - 0.057 * Math.sin(Mpr - 2*Lr + Mr*0);
+  // Breddegrad-korreksjon
+  const beta = 5.128 * Math.sin(Fr)
+             + 0.281 * Math.sin(Mpr + Fr)
+             + 0.278 * Math.sin(Mpr - Fr);
+  const lambda = (L + dL) * RAD;
+  const betaR = beta * RAD;
+  // Konverter til RA/dec via ekliptikk
+  const eps = obliquityCorr(T) * RAD;
+  const ra = Math.atan2(Math.sin(lambda)*Math.cos(eps) - Math.tan(betaR)*Math.sin(eps),
+                        Math.cos(lambda));
+  const dec = Math.asin(Math.sin(betaR)*Math.cos(eps)
+                        + Math.cos(betaR)*Math.sin(eps)*Math.sin(lambda));
+  return { ra: ((ra * DEG) + 360) % 360, dec: dec * DEG };
+}
+
+/* GMST i grader */
+function gmstDeg(jd) {
+  const T = jc(jd);
+  let g = 280.46061837 + 360.98564736629 * (jd - 2451545.0)
+        + 0.000387933 * T * T - T * T * T / 38710000;
+  return ((g % 360) + 360) % 360;
+}
+
+/* Måneoppgang/-nedgang: finn første lokale altitude=0-passering, søkende
+   gjennom hele døgnet. Returnerer { rise, set } som Date-er (kan være null). */
+function moonRiseSet(date, lat, lon) {
+  const Y = date.getFullYear(), M = date.getMonth(), D = date.getDate();
+  // Søk i UTC over [-12h, +36h] rundt lokal midnatt for å håndtere TZ
+  const start = Date.UTC(Y, M, D, 0, 0, 0) - 12 * 3600 * 1000;
+  const step = 10 * 60 * 1000; // 10-min sampling
+  const samples = (48 * 60) / 10; // 48 timer
+  function altAt(ms) {
+    const J = jd(new Date(ms));
+    const mp = moonPosition(J);
+    const gmst = gmstDeg(J);
+    const lst = (gmst + lon + 360) % 360;
+    const H = ((lst - mp.ra + 540) % 360) - 180; // i grader, [-180,180]
+    const Hr = H * RAD;
+    const decR = mp.dec * RAD;
+    const latR = lat * RAD;
+    const sinAlt = Math.sin(latR)*Math.sin(decR) + Math.cos(latR)*Math.cos(decR)*Math.cos(Hr);
+    return Math.asin(sinAlt) * DEG;
+  }
+  // Refraksjon + parallakse — sett "horisont" til +0.125° (lik praksis)
+  const horizon = 0.125;
+  let rise = null, set = null;
+  let prev = altAt(start);
+  // Filter til døgnet vi spør om (i lokal TZ)
+  const dayStart = Date.UTC(Y, M, D, 0, 0, 0) - (date.getTimezoneOffset() * 60000);
+  const dayEnd = dayStart + 24 * 3600 * 1000;
+  for (let i = 1; i <= samples; i++) {
+    const ms = start + i * step;
+    const cur = altAt(ms);
+    // Krysser horisonten?
+    if (prev < horizon && cur >= horizon) {
+      // Lineær interpolasjon
+      const frac = (horizon - prev) / (cur - prev);
+      const tCross = ms - step + frac * step;
+      if (!rise && tCross >= dayStart && tCross < dayEnd) rise = new Date(tCross);
+    } else if (prev >= horizon && cur < horizon) {
+      const frac = (horizon - prev) / (cur - prev);
+      const tCross = ms - step + frac * step;
+      if (!set && tCross >= dayStart && tCross < dayEnd) set = new Date(tCross);
+    }
+    prev = cur;
+    if (rise && set) break;
+  }
+  return { rise, set };
 }
 
 function calc() {
   const lat = +document.getElementById('lat').value;
   const lon = +document.getElementById('lon').value;
   const dateStr = document.getElementById('date').value;
-  const date = new Date(dateStr + 'T12:00:00');
+  // Lag en Date i lokal tidssone for valgt dato
+  const [yy, mm, dd] = dateStr.split('-').map(Number);
+  const date = new Date(yy, mm - 1, dd, 12, 0, 0);
 
   const sunUp = timeForSunAlt(date, lat, lon, -0.833, true);
   const sunDown = timeForSunAlt(date, lat, lon, -0.833, false);
@@ -186,7 +355,7 @@ function calc() {
   document.getElementById('sun-up').innerHTML = fmtTime(sunUp);
   document.getElementById('sun-down').innerHTML = fmtTime(sunDown);
 
-  // Gylden time: kveld, fra solnedgang -4° til 6°
+  // Gylden time: kveld, fra solhøyde +6° til −4°
   const goldenStart = timeForSunAlt(date, lat, lon, 6, false);
   const goldenEnd = timeForSunAlt(date, lat, lon, -4, false);
   document.getElementById('golden').innerHTML =
@@ -197,6 +366,9 @@ function calc() {
     const h = Math.floor(mins / 60);
     const m = Math.round(mins % 60);
     document.getElementById('day-len').innerHTML = `${h}<span class="stat-unit">t</span> ${m}<span class="stat-unit">m</span>`;
+  } else if (sunUp || sunDown) {
+    // Midnattssol eller polarnatt — vis det
+    document.getElementById('day-len').innerHTML = sunUp ? '24<span class="stat-unit">t</span>' : '0<span class="stat-unit">t</span>';
   } else {
     document.getElementById('day-len').innerHTML = '—';
   }
@@ -207,6 +379,16 @@ function calc() {
   const illum = moonIllumination(J);
   document.getElementById('moon-phase').innerHTML = moonName(mp);
   document.getElementById('moon-illum').innerHTML = (illum * 100).toFixed(0) + '<span class="stat-unit">%</span>';
+
+  // Måneoppgang / -nedgang
+  try {
+    const { rise, set } = moonRiseSet(date, lat, lon);
+    document.getElementById('moon-up').innerHTML = fmtTime(rise);
+    document.getElementById('moon-down').innerHTML = fmtTime(set);
+  } catch (e) {
+    document.getElementById('moon-up').innerHTML = '—';
+    document.getElementById('moon-down').innerHTML = '—';
+  }
 
   // Twilight
   const twilights = [

@@ -8,6 +8,18 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..700;1,9..144,400&family=Inter+Tight:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<meta name="author" content="Heming Westad">
+<link rel="canonical" href="https://hemingwestad.no/tools/hunting.html">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="/favicon.ico" sizes="any">
+<meta name="theme-color" content="#b8552e">
+<meta property="og:title" content="Jaktkalender — Heming Westad">
+<meta property="og:description" content="Norske jakttider, generert programmatisk fra Miljødirektoratet.">
+<meta property="og:image" content="https://hemingwestad.no/og-image.png">
+<meta property="og:url" content="https://hemingwestad.no/tools/hunting.html">
+<meta property="og:type" content="website">
+<meta property="og:locale" content="nb_NO">
+<meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="/style.css">
 </head>
 <body>
@@ -27,7 +39,7 @@
 <main>
   <div class="page-meta fade-up">
     <span>Jaktkalender</span>
-    <span>2025/2026 sesong</span>
+    <span id="season-label">— sesong</span>
     <span>Miljødirektoratet</span>
   </div>
 
@@ -65,62 +77,113 @@
 
 <script src="/common.js"></script>
 <script>
-// Norske jakttider 2025/26 (fra Miljødirektoratet)
-const SEASONS = [
-  { art: 'Elg',           start: '2025-09-25', end: '2025-12-23' },
-  { art: 'Hjort',         start: '2025-09-01', end: '2025-12-23' },
-  { art: 'Rådyr (bukk)',  start: '2025-08-10', end: '2025-09-25' },
-  { art: 'Rådyr',         start: '2025-09-25', end: '2025-12-23' },
-  { art: 'Villrein',      start: '2025-08-20', end: '2025-09-30' },
-  { art: 'Bjørn',         start: '2025-08-21', end: '2025-10-15' },
-  { art: 'Storfugl',      start: '2025-09-10', end: '2025-12-23' },
-  { art: 'Orrfugl',       start: '2025-09-10', end: '2025-12-23' },
-  { art: 'Lirype',        start: '2025-09-10', end: '2026-02-28' },
-  { art: 'Ringdue',       start: '2025-08-21', end: '2025-12-23' },
-  { art: 'Skogshare',     start: '2025-09-10', end: '2026-02-28' },
-  { art: 'Bever',         start: '2025-10-01', end: '2026-04-30' },
-  { art: 'Mårhund',       start: '2025-04-01', end: '2026-03-31' },
+/* ─── Norske jakttider, generert programmatisk ──────────────────────────
+   Datoene følger standardmønsteret fra Miljødirektoratet (forskrift om
+   jakt- og fangsttider). Vi genererer aktiv sesong basert på dagens dato
+   slik at siden alltid viser riktig sesong uten manuell oppdatering.
+   Lokale forskrifter, kvoter og kalv-først-prinsipp kan gjelde i ditt
+   jaktfelt — sjekk alltid fjellstyre / grunneier.
+   ─────────────────────────────────────────────────────────────────── */
+
+// Mønster: månedstart/-slutt for hver art. Bruker { m: måned (1-12), d: dag }.
+// nextYear=true betyr at sluttdato er i påfølgende kalenderår.
+const PATTERNS = [
+  { art: 'Elg',           start: { m: 9,  d: 25 }, end: { m: 12, d: 23 } },
+  { art: 'Hjort',         start: { m: 9,  d: 1 },  end: { m: 12, d: 23 } },
+  { art: 'Rådyr (bukk)',  start: { m: 8,  d: 10 }, end: { m: 9,  d: 24 } },
+  { art: 'Rådyr',         start: { m: 9,  d: 25 }, end: { m: 12, d: 23 } },
+  { art: 'Villrein',      start: { m: 8,  d: 20 }, end: { m: 9,  d: 30 } },
+  { art: 'Bjørn',         start: { m: 8,  d: 21 }, end: { m: 10, d: 15 } },
+  { art: 'Storfugl',      start: { m: 9,  d: 10 }, end: { m: 12, d: 23 } },
+  { art: 'Orrfugl',       start: { m: 9,  d: 10 }, end: { m: 12, d: 23 } },
+  { art: 'Lirype',        start: { m: 9,  d: 10 }, end: { m: 2,  d: 28 }, nextYear: true },
+  { art: 'Ringdue',       start: { m: 8,  d: 21 }, end: { m: 12, d: 23 } },
+  { art: 'Skogshare',     start: { m: 9,  d: 10 }, end: { m: 2,  d: 28 }, nextYear: true },
+  { art: 'Bever',         start: { m: 10, d: 1 },  end: { m: 4,  d: 30 }, nextYear: true },
+  { art: 'Mårhund',       start: { m: 4,  d: 1 },  end: { m: 3,  d: 31 }, nextYear: true },
 ];
 
-function status(s, e) {
-  const today = new Date();
-  const start = new Date(s);
-  const end = new Date(e);
-  if (today >= start && today <= end) return { label: 'Åpen', cls: 'green', daysLeft: Math.ceil((end - today) / 86400000) };
-  if (today < start) return { label: 'Kommer', cls: 'warn', daysLeft: -Math.ceil((start - today) / 86400000) };
+/* Bestem aktiv sesong (start-år) for en gitt dato.
+   En "jaktsesong" går normalt fra ca. 1. april til 31. mars året etter
+   (bever, mårhund er nær-helårig). Hvis dagens dato er før 1. april, hører
+   den til forrige sesong. */
+function currentSeasonStartYear(today) {
+  return today.getMonth() < 3 ? today.getFullYear() - 1 : today.getFullYear();
+}
+
+/* Generer (startDato, sluttDato) for en art for gitt sesong-startår */
+function seasonDates(pattern, startYear) {
+  const start = new Date(startYear, pattern.start.m - 1, pattern.start.d);
+  const endYear = pattern.nextYear ? startYear + 1 : startYear;
+  const end = new Date(endYear, pattern.end.m - 1, pattern.end.d, 23, 59, 59);
+  return { start, end };
+}
+
+function statusForDates(start, end, today) {
+  if (today >= start && today <= end) {
+    return { label: 'Åpen', cls: 'green', daysLeft: Math.ceil((end - today) / 86400000) };
+  }
+  if (today < start) {
+    return { label: 'Kommer', cls: 'warn', daysLeft: -Math.ceil((start - today) / 86400000) };
+  }
   return { label: 'Stengt', cls: '', daysLeft: 0 };
 }
 
+const today = new Date();
+const seasonYear = currentSeasonStartYear(today);
+
+// Vis sesong-etiketten i sidehodet ("2026/2027 sesong")
+document.getElementById('season-label').textContent =
+  `${seasonYear}/${seasonYear + 1} sesong`;
+
+// Bygg ut SEASONS for nåværende og neste sesong, så vi alltid har noe
+// å vise — også fra april til september når aktiv sesong er over.
+const SEASONS = [];
+for (const yr of [seasonYear, seasonYear + 1]) {
+  for (const p of PATTERNS) {
+    const { start, end } = seasonDates(p, yr);
+    SEASONS.push({ art: p.art, start, end });
+  }
+}
+
+// Tabell over alle arter — viser nåværende sesong, eller neste hvis stengt
 const allBody = document.getElementById('all-tbody');
-allBody.innerHTML = SEASONS.map(s => {
-  const st = status(s.start, s.end);
-  const dStart = new Date(s.start).toLocaleDateString('nb-NO', { day: '2-digit', month: 'short' });
-  const dEnd = new Date(s.end).toLocaleDateString('nb-NO', { day: '2-digit', month: 'short' });
+allBody.innerHTML = PATTERNS.map(p => {
+  let { start, end } = seasonDates(p, seasonYear);
+  let st = statusForDates(start, end, today);
+  // Hvis stengt, prøv neste sesong
+  if (st.label === 'Stengt') {
+    const next = seasonDates(p, seasonYear + 1);
+    const nextSt = statusForDates(next.start, next.end, today);
+    if (nextSt.label === 'Kommer') {
+      start = next.start; end = next.end; st = nextSt;
+    }
+  }
+  const fmt = d => d.toLocaleDateString('nb-NO', { day: '2-digit', month: 'short' });
   let txt;
-  if (st.daysLeft > 0 && st.label === 'Åpen') txt = `${st.daysLeft} dager`;
+  if (st.label === 'Åpen') txt = `${st.daysLeft} dager`;
   else if (st.label === 'Kommer') txt = `om ${-st.daysLeft} dager`;
   else txt = '—';
   return `<tr>
-    <td><strong>${s.art}</strong></td>
-    <td class="mono small">${dStart} – ${dEnd}</td>
+    <td><strong>${p.art}</strong></td>
+    <td class="mono small">${fmt(start)} – ${fmt(end)}</td>
     <td><span class="tag ${st.cls}">${st.label}</span></td>
     <td class="num">${txt}</td>
   </tr>`;
 }).join('');
 
-// Kommende sesonger (åpne eller starter innen 60 dager)
-const today = new Date();
+// Kommende: åpne nå, eller starter innen 90 dager
 const upcoming = SEASONS.map(s => {
-  const st = status(s.start, s.end);
+  const st = statusForDates(s.start, s.end, today);
   return { ...s, st };
-}).filter(s => s.st.label === 'Åpen' || (s.st.label === 'Kommer' && Math.abs(s.st.daysLeft) < 60))
+}).filter(s => s.st.label === 'Åpen' || (s.st.label === 'Kommer' && Math.abs(s.st.daysLeft) <= 90))
   .sort((a, b) => Math.abs(a.st.daysLeft) - Math.abs(b.st.daysLeft));
 
+const fmt = d => d.toLocaleDateString('nb-NO', { day: '2-digit', month: 'short' });
 document.getElementById('seasons').innerHTML = upcoming.map(s => `
   <div class="event">
     <div class="event-time">
-      ${s.st.label === 'Åpen' ? `Til ${new Date(s.end).toLocaleDateString('nb-NO', { day: '2-digit', month: 'short' })}` :
-        `Fra ${new Date(s.start).toLocaleDateString('nb-NO', { day: '2-digit', month: 'short' })}`}
+      ${s.st.label === 'Åpen' ? `Til ${fmt(s.end)}` : `Fra ${fmt(s.start)}`}
     </div>
     <div class="event-name">
       ${s.art}

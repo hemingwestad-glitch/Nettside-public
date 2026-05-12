@@ -8,6 +8,18 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..700;1,9..144,400&family=Inter+Tight:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<meta name="author" content="Heming Westad">
+<link rel="canonical" href="https://hemingwestad.no/tools/space.html">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="/favicon.ico" sizes="any">
+<meta name="theme-color" content="#b8552e">
+<meta property="og:title" content="Satellitt-arbeidsbord — Heming Westad">
+<meta property="og:description" content="Live 3D-tracker, ground track, TLE-leser, link budget, antenne, Doppler og pass-prediksjoner.">
+<meta property="og:image" content="https://hemingwestad.no/og-image.png">
+<meta property="og:url" content="https://hemingwestad.no/tools/space.html">
+<meta property="og:type" content="website">
+<meta property="og:locale" content="nb_NO">
+<meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="/style.css">
 <style>
   /* Globe canvas: WebGL-canvas må ligge inne, men ikke blokkeres av overlays */
@@ -856,7 +868,8 @@ function colorForId(noradId) {
 
 /* ═══ TLE-PARSING ════════════════════════════════════════════════════ */
 function parseTLEs(text) {
-  const lines = text.split(/\r?\n/).map(l => l.trim()).filter(l => l.length > 0);
+  const lines = text.split(/\r?
+/).map(l => l.trim()).filter(l => l.length > 0);
   const sats = [];
   for (let i = 0; i + 2 < lines.length; i += 3) {
     if (!lines[i+1].startsWith('1 ') || !lines[i+2].startsWith('2 ')) continue;
@@ -2220,7 +2233,8 @@ function calculateAntenna() {
 /* ═══ TLE-LESER ══════════════════════════════════════════════════════ */
 function parseTLEManual() {
   const text = document.getElementById('tle-input').value.trim();
-  const lines = text.split(/\r?\n/).map(l => l.trim()).filter(l => l.length);
+  const lines = text.split(/\r?
+/).map(l => l.trim()).filter(l => l.length);
   const result = document.getElementById('tle-result');
 
   if (lines.length < 2) {
@@ -2357,7 +2371,9 @@ document.getElementById('tle-parse').addEventListener('click', parseTLEManual);
 document.getElementById('tle-from-selected').addEventListener('click', () => {
   const sat = primarySat();
   if (!sat) { alert('Velg en primær satellitt først.'); return; }
-  document.getElementById('tle-input').value = `${sat.name}\n${sat.line1}\n${sat.line2}`;
+  document.getElementById('tle-input').value = `${sat.name}
+${sat.line1}
+${sat.line2}`;
   parseTLEManual();
 });
 document.getElementById('tle-from-norad').addEventListener('click', async () => {
@@ -2366,7 +2382,9 @@ document.getElementById('tle-from-norad').addEventListener('click', async () => 
   document.getElementById('tle-result').innerHTML = '<p class="muted">Henter...</p>';
   try {
     const sat = await fetchTLEByNorad(id);
-    document.getElementById('tle-input').value = `${sat.name}\n${sat.line1}\n${sat.line2}`;
+    document.getElementById('tle-input').value = `${sat.name}
+${sat.line1}
+${sat.line2}`;
     parseTLEManual();
   } catch (e) {
     document.getElementById('tle-result').innerHTML = `<p class="muted">Klarte ikke hente NORAD ${id}: ${e.message}</p>`;

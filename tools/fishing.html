@@ -8,6 +8,18 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..700;1,9..144,400&family=Inter+Tight:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<meta name="author" content="Heming Westad">
+<link rel="canonical" href="https://hemingwestad.no/tools/fishing.html">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="/favicon.ico" sizes="any">
+<meta name="theme-color" content="#b8552e">
+<meta property="og:title" content="Fiskeforhold — Heming Westad">
+<meta property="og:description" content="Live MET-vær, lufttrykktrend, fiskeindeks 0-100.">
+<meta property="og:image" content="https://hemingwestad.no/og-image.png">
+<meta property="og:url" content="https://hemingwestad.no/tools/fishing.html">
+<meta property="og:type" content="website">
+<meta property="og:locale" content="nb_NO">
+<meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="/style.css">
 </head>
 <body>
@@ -68,7 +80,7 @@
       <div class="stat accent"><div class="stat-label">Fiskeindeks</div><div class="stat-value" id="idx">—</div></div>
       <div class="stat"><div class="stat-label">Temperatur</div><div class="stat-value" id="temp">—</div></div>
       <div class="stat blue"><div class="stat-label">Lufttrykk</div><div class="stat-value" id="press">—</div></div>
-      <div class="stat"><div class="stat-label">Trykktrend (6t)</div><div class="stat-value" id="trend">—</div></div>
+      <div class="stat"><div class="stat-label">Trykktrend neste 6t</div><div class="stat-value" id="trend">—</div></div>
       <div class="stat"><div class="stat-label">Vind</div><div class="stat-value" id="wind">—</div></div>
       <div class="stat"><div class="stat-label">Nedbør (24t)</div><div class="stat-value" id="rain">—</div></div>
     </div>
@@ -79,7 +91,7 @@
     <h2 class="section-header">Lufttrykk neste 24 timer</h2>
     <div class="chart"><svg id="chart-press" viewBox="0 0 800 220" preserveAspectRatio="none"></svg></div>
 
-    <h2 class="section-header">Vind og temperatur</h2>
+    <h2 class="section-header">Vindhastighet neste 24 timer</h2>
     <div class="chart"><svg id="chart-wind" viewBox="0 0 800 220" preserveAspectRatio="none"></svg></div>
   </div>
 
@@ -101,8 +113,10 @@
 <script src="/common.js"></script>
 <script>
 async function fetchWeather(lat, lon) {
+  // Nettleseren tillater ikke å sette User-Agent — MET aksepterer fortsatt
+  // requestene fra browserens default-UA så lenge volumet er beskjedent.
   const url = `https://api.met.no/weatherapi/locationforecast/2.0/compact?lat=${lat.toFixed(4)}&lon=${lon.toFixed(4)}`;
-  const r = await fetch(url, { headers: { 'User-Agent': 'hemingwestad.no/1.0 (heming@hemingwestad.no)' } });
+  const r = await fetch(url);
   if (!r.ok) throw new Error('MET-feil ' + r.status);
   return await r.json();
 }
@@ -200,29 +214,28 @@ document.getElementById('fetch').addEventListener('click', async () => {
     const data = await fetchWeather(lat, lon);
     const series = data.properties.timeseries.slice(0, 48); // 48t
     const now = series[0];
-    const sixAgo = series.find(s => {
-      const dt = new Date(s.time);
-      return dt.getTime() <= Date.now() + 6 * 3600 * 1000;
-    }) || series[6];
-    const sixFromNow = series[6];
+    // MET-data starter ved nåværende time, så series[6] er om 6 timer
+    const sixFromNow = series[6] || series[series.length - 1];
 
     const inst = now.data.instant.details;
     const next6 = now.data.next_6_hours ? now.data.next_6_hours.details : {};
 
     const press = inst.air_pressure_at_sea_level;
     const press6 = sixFromNow.data.instant.details.air_pressure_at_sea_level;
-    const trend = press6 - press;
+    const trend = press6 - press;  // forecast: hvor trykket er på vei
     const temp = inst.air_temperature;
     const vind = inst.wind_speed;
     const nedbor = next6.precipitation_amount || 0;
     const mp = moonPhase(new Date());
 
+    // calcIndex: dp < 0 (synkende trykk) = bra for fiske
     const idx = calcIndex(press6, press, vind, nedbor, temp, mp);
 
     document.getElementById('idx').innerHTML = idx + '<span class="stat-unit">/100</span>';
     document.getElementById('temp').innerHTML = temp.toFixed(1) + '<span class="stat-unit">°C</span>';
     document.getElementById('press').innerHTML = press.toFixed(0) + '<span class="stat-unit">hPa</span>';
-    document.getElementById('trend').innerHTML = (trend >= 0 ? '+' : '') + trend.toFixed(1) + '<span class="stat-unit">hPa</span>';
+    const arrow = trend > 0.5 ? '↑ ' : trend < -0.5 ? '↓ ' : '→ ';
+    document.getElementById('trend').innerHTML = arrow + (trend >= 0 ? '+' : '') + trend.toFixed(1) + '<span class="stat-unit">hPa</span>';
     document.getElementById('wind').innerHTML = vind.toFixed(1) + '<span class="stat-unit">m/s</span>';
     document.getElementById('rain').innerHTML = nedbor.toFixed(1) + '<span class="stat-unit">mm</span>';
 

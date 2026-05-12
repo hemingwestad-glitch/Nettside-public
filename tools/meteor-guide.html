@@ -8,6 +8,18 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..700;1,9..144,400&family=Inter+Tight:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<meta name="author" content="Heming Westad">
+<link rel="canonical" href="https://hemingwestad.no/tools/meteor-guide.html">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="/favicon.ico" sizes="any">
+<meta name="theme-color" content="#b8552e">
+<meta property="og:title" content="Meteor M2 værbilder — Heming Westad">
+<meta property="og:description" content="Praktisk guide for LRPT-mottak med RTL-SDR og SatDump.">
+<meta property="og:image" content="https://hemingwestad.no/og-image.png">
+<meta property="og:url" content="https://hemingwestad.no/tools/meteor-guide.html">
+<meta property="og:type" content="website">
+<meta property="og:locale" content="nb_NO">
+<meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="/style.css">
 <style>
   /* Bildekarusell */
@@ -250,25 +262,46 @@
   <div class="carousel">
     <div class="carousel-track" id="carousel-track">
       <div class="carousel-slide">
-        <img src="/bilder/meteor/msu_mr_rgb_AVHRR_3a21_False_Color_corrected1.png" alt="Storm-virvel over Nordsjøen, Skandinavia synlig">
+        <picture>
+          <source srcset="/bilder/meteor/msu_mr_rgb_AVHRR_3a21_False_Color_corrected1.webp" type="image/webp">
+          <img src="/bilder/meteor/msu_mr_rgb_AVHRR_3a21_False_Color_corrected1.png" alt="Storm-virvel over Nordsjøen, Skandinavia synlig" loading="eager">
+        </picture>
       </div>
       <div class="carousel-slide">
-        <img src="/bilder/meteor/msu_mr_rgb_AVHRR_221_False_Color_corrected.png" alt="Skandinavia tydelig med periodiske svarte signaltap-bånd">
+        <picture>
+          <source srcset="/bilder/meteor/msu_mr_rgb_AVHRR_221_False_Color_corrected.webp" type="image/webp">
+          <img src="/bilder/meteor/msu_mr_rgb_AVHRR_221_False_Color_corrected.png" alt="Skandinavia tydelig med periodiske svarte signaltap-bånd" loading="lazy">
+        </picture>
       </div>
       <div class="carousel-slide">
-        <img src="/bilder/meteor/msu_mr_rgb_MSA_corrected_map1.png" alt="Skandinavia med kystlinje-overlay og periodisk signaltap">
+        <picture>
+          <source srcset="/bilder/meteor/msu_mr_rgb_MSA_corrected_map1.webp" type="image/webp">
+          <img src="/bilder/meteor/msu_mr_rgb_MSA_corrected_map1.png" alt="Skandinavia med kystlinje-overlay og periodisk signaltap" loading="lazy">
+        </picture>
       </div>
       <div class="carousel-slide">
-        <img src="/bilder/meteor/msu_mr_rgb_AVHRR_3a21_False_Color.png" alt="Mørkt IR-bilde med fargestriper øverst">
+        <picture>
+          <source srcset="/bilder/meteor/msu_mr_rgb_AVHRR_3a21_False_Color.webp" type="image/webp">
+          <img src="/bilder/meteor/msu_mr_rgb_AVHRR_3a21_False_Color.png" alt="Mørkt IR-bilde med fargestriper øverst" loading="lazy">
+        </picture>
       </div>
       <div class="carousel-slide">
-        <img src="/bilder/meteor/msu_mr_rgb_MSA_corrected_map.png" alt="Kart-overlay med kraftig støy">
+        <picture>
+          <source srcset="/bilder/meteor/msu_mr_rgb_MSA_corrected_map.webp" type="image/webp">
+          <img src="/bilder/meteor/msu_mr_rgb_MSA_corrected_map.png" alt="Kart-overlay med kraftig støy" loading="lazy">
+        </picture>
       </div>
       <div class="carousel-slide">
-        <img src="/bilder/meteor/msu_mr_rgb_AVHRR_3a21_False_Color_corrected1%20(2).png" alt="Mørkt bilde med tykke svarte signaltap-bånd">
+        <picture>
+          <source srcset="/bilder/meteor/msu_mr_rgb_AVHRR_3a21_False_Color_corrected1%20(2).webp" type="image/webp">
+          <img src="/bilder/meteor/msu_mr_rgb_AVHRR_3a21_False_Color_corrected1%20(2).png" alt="Mørkt bilde med tykke svarte signaltap-bånd" loading="lazy">
+        </picture>
       </div>
       <div class="carousel-slide">
-        <img src="/bilder/meteor/msu_mr_rgb_AVHRR_221_False_Color_corrected1.png" alt="Nesten helt svart bilde med kort glimt av data">
+        <picture>
+          <source srcset="/bilder/meteor/msu_mr_rgb_AVHRR_221_False_Color_corrected1.webp" type="image/webp">
+          <img src="/bilder/meteor/msu_mr_rgb_AVHRR_221_False_Color_corrected1.png" alt="Nesten helt svart bilde med kort glimt av data" loading="lazy">
+        </picture>
       </div>
     </div>
     <div class="carousel-caption" id="carousel-caption">
@@ -625,43 +658,4 @@
     });
     update();
     // Ignorer scroll-events i 600ms mens smooth scroll pågår
-    setTimeout(() => { isProgScrolling = false; }, 600);
-  }
-
-  function update() {
-    const s = SLIDES[current] || { title: '', text: '' };
-    caption.innerHTML =
-      `<span class="step">Bilde ${current + 1} / ${total}</span>` +
-      `<span class="cap-title">${s.title}</span>` +
-      `${s.text}`;
-    dotsCont.querySelectorAll('.carousel-dot').forEach((d, i) => {
-      d.classList.toggle('active', i === current);
-    });
-    prev.disabled = current === 0;
-    next.disabled = current === total - 1;
-  }
-
-  prev.addEventListener('click', () => goTo(current - 1));
-  next.addEventListener('click', () => goTo(current + 1));
-
-  // Sync når brukeren scroller manuelt (men ikke når vi nettopp har programmert scroll)
-  let scrollTimeout;
-  track.addEventListener('scroll', () => {
-    if (isProgScrolling) return;
-    clearTimeout(scrollTimeout);
-    scrollTimeout = setTimeout(() => {
-      const w = track.clientWidth;
-      if (w === 0) return;
-      const i = Math.round(track.scrollLeft / w);
-      if (i !== current && i >= 0 && i < total) {
-        current = i;
-        update();
-      }
-    }, 100);
-  });
-
-  update();
-})();
-</script>
-</body>
-</html>
+    setTimeout(() => { isProgScrolling = false; }

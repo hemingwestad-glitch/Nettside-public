@@ -8,6 +8,18 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..700;1,9..144,400&family=Inter+Tight:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<meta name="author" content="Heming Westad">
+<link rel="canonical" href="https://hemingwestad.no/tools/dynamics.html">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="/favicon.ico" sizes="any">
+<meta name="theme-color" content="#b8552e">
+<meta property="og:title" content="Dynamikk-sandkasse — Heming Westad">
+<meta property="og:description" content="3D RK4 av Lorenz, dobbel pendel, tre-legeme og mer.">
+<meta property="og:image" content="https://hemingwestad.no/og-image.png">
+<meta property="og:url" content="https://hemingwestad.no/tools/dynamics.html">
+<meta property="og:type" content="website">
+<meta property="og:locale" content="nb_NO">
+<meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="/style.css">
 <style>
   .sim-canvas {
@@ -377,15 +389,33 @@ const SYSTEMS = {
     scale: 1,
     trailLen: 2000,
     init() {
-      // Tilfeldige startbetingelser, men i samme størrelsesorden
+      // Tilfeldige startbetingelser, men i samme størrelsesorden.
+      // Trekk fra felles massesenter-hastighet så systemet holder seg
+      // sentrert i visningen (ellers driver det av skjermen).
       const rand = () => (Math.random() - 0.5) * 2;
+      const v = [
+        [rand()*0.3, rand()*0.3, 0],
+        [rand()*0.3, rand()*0.3, 0],
+        [rand()*0.3, rand()*0.3, 0],
+      ];
+      const vcx = (v[0][0] + v[1][0] + v[2][0]) / 3;
+      const vcy = (v[0][1] + v[1][1] + v[2][1]) / 3;
+      // Trekk også fra massesenter-posisjon
+      const r = [
+        [rand(), rand(), rand()*0.3],
+        [rand(), rand(), rand()*0.3],
+        [rand(), rand(), rand()*0.3],
+      ];
+      const rcx = (r[0][0] + r[1][0] + r[2][0]) / 3;
+      const rcy = (r[0][1] + r[1][1] + r[2][1]) / 3;
+      const rcz = (r[0][2] + r[1][2] + r[2][2]) / 3;
       return new Float64Array([
-        rand(), rand(), rand() * 0.3,
-        rand(), rand(), rand() * 0.3,
-        rand(), rand(), rand() * 0.3,
-        rand() * 0.3, rand() * 0.3, 0,
-        rand() * 0.3, rand() * 0.3, 0,
-        rand() * 0.3, rand() * 0.3, 0,
+        r[0][0]-rcx, r[0][1]-rcy, r[0][2]-rcz,
+        r[1][0]-rcx, r[1][1]-rcy, r[1][2]-rcz,
+        r[2][0]-rcx, r[2][1]-rcy, r[2][2]-rcz,
+        v[0][0]-vcx, v[0][1]-vcy, 0,
+        v[1][0]-vcx, v[1][1]-vcy, 0,
+        v[2][0]-vcx, v[2][1]-vcy, 0,
       ]);
     },
     derivs: SYSTEMS_derivs_threebody, // referer fram - vi setter etter
@@ -404,12 +434,16 @@ const SYSTEMS = {
     name: 'Kjedet pendel',
     tag: 'kompleks',
     description: `
-      N pendler koblet i serie. Med 5 ledd er systemet svært kaotisk.
-      Visuelt er det kanskje det mest fascinerende av alle de klassiske
-      systemene — minner om en levende slange.
+      N koblede oscillatorer hengt opp i hverandre. Med 5 ledd er bevegelsen
+      svært kompleks — visuelt minner det om en levende slange eller pisk.
       <br><br>
-      Fysikken implementeres som et system av koblede ODE-er via Lagrange-metoden,
-      forenklet med diagonal masse-matrise (alle ledd har lik masse og lengde).
+      <strong>Forenkling:</strong> Dette er ikke en stiv-stang-pendel
+      (som ville krevd en full Lagrangian med tette koblinger mellom alle ledd).
+      Her er hvert ledd en uavhengig vinkel <code>θᵢ</code> koblet til naboene
+      med en torsjonsfjær (stivhet k = 50). Det gir et solid ODE-system
+      som ligner kvalitativt, men ikke kvantitativt, på en stiv kjede.
+      Hvert ledd har gravitasjonsdrevet pendelterm <code>-(g/l)·sin(θ)</code>
+      pluss kobling og demping.
     `,
     params: [
       { id: 'n', label: 'Antall ledd', min: 2, max: 7, step: 1, val: 5, integer: true, requiresReset: true },
@@ -557,15 +591,15 @@ const dir = new THREE.DirectionalLight(0xffeec0, 0.8);
 dir.position.set(5, 10, 7);
 scene.add(dir);
 
-// Akser (subtilt)
+// Akser (subtilt — løftet litt opp i kontrast for synlighet på mørk bg)
 const axesHelper = new THREE.AxesHelper(2);
-axesHelper.material.opacity = 0.15;
+axesHelper.material.opacity = 0.35;
 axesHelper.material.transparent = true;
 scene.add(axesHelper);
 
-// Grid
-const grid = new THREE.GridHelper(20, 20, 0x3d3833, 0x3d3833);
-grid.material.opacity = 0.2;
+// Grid — litt mer markert enn før
+const grid = new THREE.GridHelper(20, 20, 0x6b645b, 0x4a4540);
+grid.material.opacity = 0.35;
 grid.material.transparent = true;
 grid.position.y = -2;
 scene.add(grid);
