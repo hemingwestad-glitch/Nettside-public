@@ -26,14 +26,110 @@
   .sat-canvas {
     position: relative;
     aspect-ratio: 16/10;
-    background: #0a0d14;
+    background: radial-gradient(circle at 50% 50%, rgba(110,150,180,0.08) 0%, rgba(10,13,20,0.95) 42%);
     overflow: hidden;
+    border-radius: 1rem;
+    box-shadow: inset 0 0 28px rgba(65,123,152,0.14);
+  }
+  .sat-canvas::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(circle at center, rgba(255,255,255,0.12) 0%, transparent 40%),
+      linear-gradient(180deg, rgba(255,255,255,0.05) 0%, transparent 25%, transparent 70%, rgba(255,255,255,0.02) 100%),
+      radial-gradient(circle at center, transparent 65%, rgba(255,255,255,0.08) 66%, transparent 70%),
+      radial-gradient(circle at center, transparent 80%, rgba(255,255,255,0.05) 81%, transparent 90%);
+    pointer-events: none;
+    mix-blend-mode: screen;
+  }
+  .sat-canvas::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(circle at center, rgba(118,194,174,0.12) 0%, transparent 60%),
+      linear-gradient(90deg, rgba(118,194,174,0.06) 0%, transparent 2%, transparent 98%, rgba(118,194,174,0.06) 100%);
+    opacity: 0.7;
+    pointer-events: none;
+    animation: radar-sweep 8s linear infinite;
+  }
+  @keyframes radar-sweep {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
   }
   .sat-canvas canvas {
     display: block;
     width: 100% !important;
     height: 100% !important;
   }
+  .panel-help {
+    margin-top: 1rem;
+    padding: 0.9rem 1rem;
+    background: rgba(18,28,38,0.92);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 0.9rem;
+    color: #d7dbde;
+  }
+  .panel-help strong { display: block; margin-bottom: 0.3rem; color: #fff; }
+  .panel-help p { margin: 0; font-size: 0.86rem; line-height: 1.5; }
+  .help-btn {
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.14);
+    border-radius: 999px;
+    width: 1.7rem; height: 1.7rem;
+    display: inline-flex;
+    align-items: center; justify-content: center;
+    color: #fff;
+    font-size: 0.9rem; font-weight: 700;
+    cursor: pointer;
+    margin-left: 0.4rem;
+  }
+  .help-btn:hover { background: rgba(255,255,255,0.12); }
+  .mission-log {
+    max-height: 14rem;
+    overflow-y: auto;
+    border: 1px solid rgba(255,255,255,0.08);
+    background: rgba(2,8,15,0.9);
+    border-radius: 0.9rem;
+    padding: 0.85rem;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.82rem;
+    color: #d9e4e8;
+  }
+  .mission-log .log-entry {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 0.75rem;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+  }
+  .mission-log .log-entry:last-child { border-bottom: none; }
+  .mission-log .log-time { color: #7cc1b7; min-width: 4.5rem; }
+  .monitor-card {
+    padding: 0.9rem 1rem;
+    background: rgba(2,8,15,0.95);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 1rem;
+  }
+  .monitor-card h4 { margin-top: 0; margin-bottom: 0.7rem; }
+  .monitor-card small { display: block; color: #9da9b2; }
+  .instrument-panel {
+    background: rgba(0,8,18,0.92);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 1rem;
+    padding: 1rem;
+  }
+  .instrument-panel .stat-grid { margin-bottom: 0.8rem; }
+  .ant-visual { margin-top: 1rem; gap: 0.75rem; display: grid; }
+  .visual-row { display: grid; grid-template-columns: 6rem 1fr auto; gap: 0.75rem; align-items: center; }
+  .visual-label { color: #b8c7d3; font-size: 0.82rem; }
+  .visual-bar { position: relative; height: 0.8rem; background: rgba(255,255,255,0.08); border-radius: 999px; overflow: hidden; }
+  .visual-bar span {
+    display: block; height: 100%; border-radius: 999px;
+    background: linear-gradient(90deg, rgba(182,85,46,0.95), rgba(255,183,119,0.85));
+  }
+  .visual-value { font-family: 'JetBrains Mono', monospace; font-size: 0.78rem; color: #eef3f7; }
   .canvas-overlay {
     position: absolute;
     pointer-events: none;
@@ -48,6 +144,17 @@
   }
   .canvas-overlay.top-left { top: 0.5rem; left: 0.5rem; }
   .canvas-overlay.bottom-right { bottom: 0.5rem; right: 0.5rem; text-align: right; }
+  .canvas-overlay.bottom-left { bottom: 0.5rem; left: 0.5rem; display: grid; grid-template-columns: auto auto; align-items: center; gap: 0.5rem; }
+  .globe-arrow {
+    width: 0;
+    height: 0;
+    border-left: 0.45rem solid transparent;
+    border-right: 0.45rem solid transparent;
+    border-bottom: 0.85rem solid #7cc1b7;
+    transform-origin: center top;
+    transition: transform 0.2s ease;
+  }
+  .globe-arrow-label { font-size: 0.75rem; color: #e9f0f3; }
 
   /* Satellitt-liste */
   .sat-list {
@@ -338,6 +445,7 @@
         <div class="sat-canvas" id="globe-canvas">
           <div class="canvas-overlay top-left" id="globe-overlay">Dra for å rotere · scroll for zoom</div>
           <div class="canvas-overlay bottom-right" id="globe-stats"></div>
+          <div class="canvas-overlay bottom-left" id="globe-arrow"></div>
         </div>
         <div class="controls-grid" style="margin-top: 0.75rem; display: flex; gap: 0.5rem; flex-wrap: wrap;">
           <button id="btn-spin" class="secondary">Auto-rotér</button>
@@ -357,6 +465,38 @@
           <option value="starlink">Starlink (utvalg)</option>
           <option value="gps-ops">GPS</option>
         </select>
+
+        <div class="monitor-card" style="margin-bottom: 1rem;">
+          <h4>Systemovervåkning</h4>
+          <small>Radar-modus og teknisk logg for aktiv satellitt.</small>
+          <div class="mission-log" id="mission-log">
+            <div class="log-entry"><span class="log-time">NÅ</span><span>Venter på satellittvalg...</span></div>
+          </div>
+        </div>
+        <div class="monitor-card" style="margin-bottom: 1rem;">
+          <h4>Observasjonssted</h4>
+          <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:0.75rem;align-items:end;margin-bottom:0.75rem;">
+            <div class="field"><label>Latitude</label><input type="number" id="station-lat" value="63.43050" step="0.00001"></div>
+            <div class="field"><label>Longitude</label><input type="number" id="station-lon" value="10.39510" step="0.00001"></div>
+            <div class="field"><label>Høyde (m)</label><input type="number" id="station-alt" value="51" step="1" min="0"></div>
+          </div>
+          <button id="station-set" class="secondary" style="width:100%;">Oppdater sted</button>
+          <p class="muted tiny" style="margin-top:0.75rem;">Denne lokasjonen brukes for live tracker, passvarsler og ground track.</p>
+        </div>
+        <div class="monitor-card" style="margin-bottom: 1rem;">
+          <h4>Satellittinfo</h4>
+          <div id="sat-info">Velg en primær satellitt for detaljer.</div>
+        </div>
+        <div class="monitor-card" style="margin-bottom: 1rem;">
+          <h4>Live ticker</h4>
+          <div id="live-ticker" class="mission-log" style="max-height: 9rem; padding: 0.7rem 0.8rem;">
+            <div class="log-entry"><span class="log-time">NÅ</span><span>Ingen ticker-data ennå.</span></div>
+          </div>
+        </div>
+        <div class="panel-help" id="live-help">
+          <strong>Hva betyr dette?</strong>
+          <p>Live tracker viser satellitter i en radar-aktig 3D-visning fra din stasjon. Journalen fanger valg, varsler og neste viktige pass.</p>
+        </div>
 
         <div class="norad-loader">
           <input type="text" id="norad-input" placeholder="NORAD-ID (f.eks. 25544)" inputmode="numeric">
@@ -398,9 +538,12 @@
       <div class="chart-title" id="gt-title">Velg en eller flere satellitter for å se ground track</div>
       <svg id="gt-svg" viewBox="0 0 800 400" preserveAspectRatio="xMidYMid meet"></svg>
     </div>
+    <div class="panel-help" id="ground-help">
+      <strong>Hva betyr dette?</strong>
+      <p>Ground track viser satellittens spor over jordens flate projeksjon. Kryss viser stasjonen din, og fylte sirkler markerer hvor satellitten er synlig over horisonten.</p>
+    </div>
     <p class="muted small">
-      Bakkestasjon (Trondheim, 63,43° N / 10,40° E) markert med kryss. Fyldte
-      sirkler viser hvor satellitten er over horisonten (≥5° elevasjon).
+      Din bakkestasjon er markert med kryss. Fyldte sirkler viser hvor satellitten er over horisonten (≥5° elevasjon).
       Alle valgte satellitter tegnes — primær med tykkere strek.
     </p>
   </div>
@@ -408,7 +551,7 @@
   <!-- ═══ PASS-PREDIKSJONER ═══ -->
   <div class="tab-panel" data-panel="passes">
     <p class="small" style="margin-top: 0;">
-      Beregner kommende passes for valgte satellitter over Trondheim. Peak-elevasjonen
+      Beregner kommende passes for valgte satellitter fra din stasjon. Peak-elevasjonen
       finjusteres med gylden-snitt-søk innenfor sample-vinduet, så maks-verdien er
       stabil mellom kjøringer.
     </p>
@@ -421,7 +564,7 @@
     <div class="compact-controls">
       <div class="field">
         <label>Bakkestasjon</label>
-        <input type="text" id="pass-station" value="Trondheim (63.43°N / 10.40°E / 51m)" disabled style="min-width: 18rem;">
+        <input type="text" id="pass-station" value="Trondheim (63.43°N / 10.40°E / 51m)" readonly style="min-width: 18rem;">
       </div>
       <div class="field">
         <label>Min. elevasjon</label>
@@ -443,7 +586,10 @@
       </div>
       <button id="pass-calc">Beregn passes</button>
     </div>
-
+    <div class="panel-help" id="passes-help">
+      <strong>Hva betyr dette?</strong>
+      <p>Pass-prediksjoner forteller deg når og hvor høyt satellitten vil være over horisonten. Det er nyttig for planlegging av mottak og antenna-peiling.</p>
+    </div>
     <div id="pass-results">
       <p class="muted">Velg én eller flere satellitter og trykk "Beregn passes".</p>
     </div>
@@ -460,7 +606,9 @@
 
     <div class="compact-controls">
       <div class="field" style="flex: 0 0 13rem;">
-        <label>Senderfrekvens (MHz)</label>
+        <label class="help-row">Senderfrekvens (MHz)
+          <button type="button" class="help-btn" data-help-target="doppler-help" data-help-key="doppler-freq">?</button>
+        </label>
         <input type="number" id="dop-freq" value="145.825" step="0.001" min="0">
       </div>
       <div class="field" style="flex: 0 0 9rem;">
@@ -475,16 +623,22 @@
       <button id="dop-calc">Beregn</button>
     </div>
 
-    <div class="stat-grid">
-      <div class="stat"><div class="stat-label">Frekvens nå</div><div class="stat-value" id="dop-now">—</div></div>
-      <div class="stat blue"><div class="stat-label">Skift nå</div><div class="stat-value" id="dop-shift">—</div></div>
-      <div class="stat accent"><div class="stat-label">Maks skift</div><div class="stat-value" id="dop-max">—</div></div>
-      <div class="stat"><div class="stat-label">Radial hast.</div><div class="stat-value" id="dop-rate">—</div></div>
+    <div class="instrument-panel">
+      <div class="stat-grid">
+        <div class="stat"><div class="stat-label">Frekvens nå</div><div class="stat-value" id="dop-now">—</div></div>
+        <div class="stat blue"><div class="stat-label">Skift nå</div><div class="stat-value" id="dop-shift">—</div></div>
+        <div class="stat accent"><div class="stat-label">Maks skift</div><div class="stat-value" id="dop-max">—</div></div>
+        <div class="stat"><div class="stat-label">Radial hast.</div><div class="stat-value" id="dop-rate">—</div></div>
+      </div>
     </div>
 
     <div class="chart">
       <div class="chart-title" id="dop-title">Velg en satellitt og trykk "Beregn"</div>
       <svg id="dop-svg" viewBox="0 0 800 280" preserveAspectRatio="none"></svg>
+    </div>
+    <div class="panel-help" id="doppler-help">
+      <strong>Hva betyr dette?</strong>
+      <p>Doppler måler frekvensskiftet fra satellittens relative hastighet. Når satellitten nærmer seg, skyves signalet opp i frekvens; når den beveger seg bort, skyves det ned.</p>
     </div>
   </div>
 
@@ -514,8 +668,14 @@
         <input type="number" id="lb-grx" value="14.0" step="0.5">
       </div>
       <div class="field">
-        <label>Diverse tap (dB)</label>
+        <label class="help-row">Diverse tap (dB)
+          <button type="button" class="help-btn" data-help-target="link-help" data-help-key="link-loss">?</button>
+        </label>
         <input type="number" id="lb-loss" value="3.0" step="0.5">
+      </div>
+      <div class="field">
+        <label class="help-row">SNR-margin (krav)</label>
+        <input type="number" id="lb-snr" value="10" step="1">
       </div>
       <div class="field">
         <label>Distanse (km)</label>
@@ -529,21 +689,22 @@
         <label>NF mottaker (dB)</label>
         <input type="number" id="lb-nf" value="2.0" step="0.5">
       </div>
-      <div class="field">
-        <label>Krevd SNR (dB)</label>
-        <input type="number" id="lb-snr" value="10" step="1">
+    </div>
+
+    <div class="instrument-panel">
+      <div class="stat-grid">
+        <div class="stat"><div class="stat-label">EIRP</div><div class="stat-value" id="lb-eirp">—</div></div>
+        <div class="stat"><div class="stat-label">FSPL</div><div class="stat-value" id="lb-fspl">—</div></div>
+        <div class="stat blue"><div class="stat-label">Pmottatt</div><div class="stat-value" id="lb-prx">—</div></div>
+        <div class="stat"><div class="stat-label">Støygulv</div><div class="stat-value" id="lb-noise">—</div></div>
+        <div class="stat accent"><div class="stat-label">Margin</div><div class="stat-value" id="lb-margin">—</div></div>
       </div>
+      <div id="lb-verdict" style="margin-top: 0.75rem;"></div>
     </div>
-
-    <div class="stat-grid">
-      <div class="stat"><div class="stat-label">EIRP</div><div class="stat-value" id="lb-eirp">—</div></div>
-      <div class="stat"><div class="stat-label">FSPL</div><div class="stat-value" id="lb-fspl">—</div></div>
-      <div class="stat blue"><div class="stat-label">Pmottatt</div><div class="stat-value" id="lb-prx">—</div></div>
-      <div class="stat"><div class="stat-label">Støygulv</div><div class="stat-value" id="lb-noise">—</div></div>
-      <div class="stat accent"><div class="stat-label">Margin</div><div class="stat-value" id="lb-margin">—</div></div>
+    <div class="panel-help" id="link-help">
+      <strong>Hva betyr dette?</strong>
+      <p>Link budget beregner om radiosignalet når fram med tilstrekkelig SNR. Marginen viser hvor mye svakere signalet kan bli før det mistes.</p>
     </div>
-
-    <div id="lb-verdict" style="margin-top: 0.75rem;"></div>
 
     <p class="muted small" style="margin-top: 1rem;">
       "Distanse" hentes automatisk fra primær satellitt om mulig (slant range
@@ -581,6 +742,22 @@
     </div>
 
     <div id="ant-detail" style="margin-top: 0.75rem;"></div>
+    <div class="ant-visual" id="ant-visual">
+      <div class="visual-row">
+        <span class="visual-label">Gain</span>
+        <div class="visual-bar"><span id="ant-bar-gain" style="width: 0%"></span></div>
+        <span class="visual-value" id="ant-bar-gain-label">— dBi</span>
+      </div>
+      <div class="visual-row">
+        <span class="visual-label">Åpning</span>
+        <div class="visual-bar"><span id="ant-bar-bw" style="width: 0%"></span></div>
+        <span class="visual-value" id="ant-bar-bw-label">— °</span>
+      </div>
+    </div>
+    <div class="panel-help" id="antenna-help">
+      <strong>Hva betyr dette?</strong>
+      <p>Antenne-visualiseringen viser hva som skjer når du velger type: høyere gain gir smalere strålebredde, lavere gain gir bredere dekningsvinkel.</p>
+    </div>
 
     <p class="muted small" style="margin-top: 1rem;">
       Estimater er basert på tommelfingerregler (½λ-segmenter, dipol = 2,15 dBi,
@@ -595,6 +772,10 @@
       Lim inn et TLE (to-linjers element-sett) for å se de orbitale parameterne
       forklart. Du kan også hente fra primær satellitt eller via NORAD-ID.
     </p>
+    <div class="panel-help" id="tle-help">
+      <strong>Hva betyr dette?</strong>
+      <p>TLE er elementene som beskriver satellittens bane. Denne vinduet hjelper deg sjekke og dekode banedata uten å bruke eksterne verktøy.</p>
+    </div>
 
     <label>TLE (3 linjer: navn + linje 1 + linje 2)</label>
     <textarea id="tle-input" rows="4" style="font-family: 'JetBrains Mono', monospace; font-size: 0.78rem;"
@@ -831,7 +1012,30 @@ const SAT_GROUPS = {
   'gps-ops': 'https://celestrak.org/NORAD/elements/gp.php?GROUP=gps-ops&FORMAT=tle',
 };
 
-const STATION = { lat: 63.4305, lon: 10.3951, alt: 0.0513 }; // km
+let STATION = { lat: 63.4305, lon: 10.3951, alt: 0.0513 }; // km
+let STATION_ECF = { x: 0, y: 0, z: 0 };
+
+function computeStationEcf() {
+  const _stLat = STATION.lat * Math.PI / 180;
+  const _stLon = STATION.lon * Math.PI / 180;
+  const _N = Re / Math.sqrt(1 - e2 * Math.sin(_stLat)**2);
+  STATION_ECF = {
+    x: (_N + STATION.alt) * Math.cos(_stLat) * Math.cos(_stLon),
+    y: (_N + STATION.alt) * Math.cos(_stLat) * Math.sin(_stLon),
+    z: (_N * (1 - e2) + STATION.alt) * Math.sin(_stLat)
+  };
+}
+
+function setStationLocation(lat, lon, alt = 0.0513) {
+  STATION.lat = lat;
+  STATION.lon = lon;
+  STATION.alt = alt;
+  computeStationEcf();
+  const label = `${lat.toFixed(5)}° N / ${lon.toFixed(5)}° E / ${Math.round(alt * 1000)} m`;
+  const stationEl = document.getElementById('pass-station');
+  if (stationEl) stationEl.value = `Egen stasjon (${label})`;
+}
+computeStationEcf();
 
 /* Faste farger for valgte satellitter (når flere er valgt). Indeks rotates. */
 const SAT_COLORS = [
@@ -850,6 +1054,8 @@ let satellites = [];           // alle TLE-er fra valgt gruppe
 let customSats = new Map();    // ekstra-satter hentet via NORAD-ID (NORAD -> sat)
 const selectedIds = [];         // ordnet liste av NORAD-IDer; [0] = primær
 let currentGroup = 'amateur';
+let lastPrimaryLog = null;
+let lastTickerUpdate = 0;
 
 function getSat(noradId) {
   return customSats.get(noradId) ||
@@ -971,15 +1177,6 @@ function isSunlit(eciPos, date) {
 const Re = 6378.137;
 const f_e = 1/298.257223563;
 const e2 = f_e * (2 - f_e);
-const _stLat = STATION.lat * Math.PI / 180;
-const _stLon = STATION.lon * Math.PI / 180;
-const _N = Re / Math.sqrt(1 - e2 * Math.sin(_stLat)**2);
-const STATION_ECF = {
-  x: (_N + STATION.alt) * Math.cos(_stLat) * Math.cos(_stLon),
-  y: (_N + STATION.alt) * Math.cos(_stLat) * Math.sin(_stLon),
-  z: (_N * (1 - e2) + STATION.alt) * Math.sin(_stLat)
-};
-
 function lookAngles(sat, date = new Date()) {
   if (!sat || !sat.satrec) return null;
   const pv = satelliteJS.propagate(sat.satrec, date);
@@ -1202,6 +1399,9 @@ function onSelectionChange() {
   // Refresh tab content
   const active = document.querySelector('.tab-panel.active');
   if (active) refreshTab(active.dataset.panel);
+  refreshMissionLog();
+  refreshSatelliteInfo();
+  updateLiveTicker();
 }
 
 /* ═══ FREKVENSINFO + UTSTYRKRAV ═══════════════════════════════════ */
@@ -1262,6 +1462,104 @@ function renderFrequencyInfo(sat) {
     </ul>
   `;
 }
+
+function addMissionLog(message) {
+  const log = document.getElementById('mission-log');
+  if (!log) return;
+  const now = new Date();
+  const time = now.toLocaleTimeString('nb-NO', { hour: '2-digit', minute: '2-digit' });
+  const entry = document.createElement('div');
+  entry.className = 'log-entry';
+  entry.innerHTML = `<span class="log-time">${time}</span><span>${message}</span>`;
+  log.prepend(entry);
+  while (log.children.length > 10) log.removeChild(log.lastChild);
+}
+function refreshMissionLog() {
+  const primary = primarySat();
+  if (!primary || lastPrimaryLog === primary.noradId) return;
+  addMissionLog(`Primær valgt: ${primary.name} (NORAD ${primary.noradId})`);
+  lastPrimaryLog = primary.noradId;
+}
+function updateAntennaVisualization(gain, bw) {
+  const gainPct = Math.min(100, Math.max(10, ((gain + 5) / 20) * 100));
+  const bwPct = Math.min(100, Math.max(8, ((120 - bw) / 100) * 100));
+  const gainBar = document.getElementById('ant-bar-gain');
+  const bwBar = document.getElementById('ant-bar-bw');
+  if (gainBar) gainBar.style.width = `${gainPct}%`;
+  if (bwBar) bwBar.style.width = `${bwPct}%`;
+  const gainLabel = document.getElementById('ant-bar-gain-label');
+  const bwLabel = document.getElementById('ant-bar-bw-label');
+  if (gainLabel) gainLabel.textContent = `${gain.toFixed(1)} dBi`;
+  if (bwLabel) bwLabel.textContent = `${bw.toFixed(0)} °`;
+}
+function showHelpText(key, targetId) {
+  const texts = {
+    'doppler-freq': 'Velg frekvensen som Doppler-teorien skal bruke. Dette er typisk sender- eller mottakerfrekvensen.',
+    'link-loss': 'Tap reflekterer koaksial- og filtertap, samt eventuelle mismatch- og rotor-feil.',
+    'snr-margin': 'SNR-margin er hvor mange dB signalet er sterkere enn nødvendig for dekoding. Positiv margin gir rom for fading og feil.',
+    'antenna-type': 'Antennetypen bestemmer både gain og strålebredde. Høyere gain gir smalere dekning og bedre signal for målrettede satellitter.'
+  };
+  const target = document.getElementById(targetId);
+  if (target) target.querySelector('p').textContent = texts[key] || 'Ukjent hjelp.';
+}
+
+function formatTimeShort(date) {
+  return `${date.toLocaleDateString('nb-NO', { day: '2-digit', month: '2-digit' })} ${date.toLocaleTimeString('nb-NO', { hour: '2-digit', minute: '2-digit' })}`;
+}
+function refreshSatelliteInfo() {
+  const sat = primarySat();
+  const container = document.getElementById('sat-info');
+  if (!container) return;
+  if (!sat) {
+    container.innerHTML = '<p class="muted small">Velg en primær satellitt for detaljer.</p>';
+    return;
+  }
+  const fr = FREQUENCIES[sat.noradId];
+  const pos = getSatPosition(sat);
+  const period = sat.satrec ? (2 * Math.PI / sat.satrec.no) : null;
+  container.innerHTML = `
+    <h4 style="margin-top: 0;">${fr ? fr.label : sat.name}</h4>
+    ${fr && fr.notes ? `<p class="small">${fr.notes}</p>` : ''}
+    <table class="data-table">
+      <tbody>
+        <tr><td>NORAD-ID</td><td class="num">${sat.noradId}</td></tr>
+        <tr><td>Typisk frekvens</td><td class="num">${fr ? fr.freqs[0].mhz.toFixed(3) + ' MHz' : '—'}</td></tr>
+        <tr><td>Aktuell høyde</td><td class="num">${pos ? pos.alt.toFixed(1) + ' km' : '—'}</td></tr>
+        <tr><td>Inklinasjon</td><td class="num">${sat.satrec ? (sat.satrec.inclo * 180 / Math.PI).toFixed(2) + '°' : '—'}</td></tr>
+        <tr><td>Omløpstid</td><td class="num">${period ? (period.toFixed(1) + ' min') : '—'}</td></tr>
+      </tbody>
+    </table>
+  `;
+}
+function nextPassFor(noradId, minElev, days) {
+  const sat = getSat(noradId);
+  if (!sat) return null;
+  const passes = calculatePassesFor(sat, minElev, days);
+  return passes.length > 0 ? passes[0] : null;
+}
+function updateLiveTicker() {
+  const ticker = document.getElementById('live-ticker');
+  if (!ticker) return;
+  const now = Date.now();
+  if (now - lastTickerUpdate < 30000) return;
+  lastTickerUpdate = now;
+
+  const lines = [];
+  const issPass = nextPassFor('25544', 10, 2);
+  if (issPass) {
+    lines.push(`<div class="log-entry"><span class="log-time">${formatTimeShort(issPass.aos)}</span><span>ISS neste AOS: ${HW.fmt.dt(issPass.aos)}, maks elev ${issPass.maxEl.toFixed(0)}°</span></div>`);
+  } else {
+    lines.push(`<div class="log-entry"><span class="log-time">—</span><span>Ingen ISS-pass funnet de neste to dagene.</span></div>`);
+  }
+  const meteorPass = nextPassFor('59051', 60, 2);
+  if (meteorPass) {
+    lines.push(`<div class="log-entry"><span class="log-time">${formatTimeShort(meteorPass.aos)}</span><span>METEOR M2-4 over 60°: ${HW.fmt.dt(meteorPass.aos)}, maks elev ${meteorPass.maxEl.toFixed(0)}°</span></div>`);
+  } else {
+    lines.push(`<div class="log-entry"><span class="log-time">—</span><span>Ingen Meteor M2-4-pass over 60° de neste to dagene.</span></div>`);
+  }
+  ticker.innerHTML = lines.join('');
+}
+
 /* ═══ 3D GLOBE (LIVE TRACKER) ════════════════════════════════════════ */
 let globeAPI = null;
 
@@ -1595,6 +1893,22 @@ function initGlobe() {
       overlay.innerHTML = '';
     }
 
+    // Direction arrow overlay
+    const arrowEl = document.getElementById('globe-arrow');
+    if (primary && primPos && primPos.la) {
+      const az = primPos.la.azimuth;
+      const el = primPos.la.elevation;
+      const arrow = arrowEl.querySelector('.globe-arrow');
+      const label = arrowEl.querySelector('.globe-arrow-label');
+      if (arrow && label) {
+        arrow.style.transform = `rotate(${az}deg)`;
+        label.textContent = `${az.toFixed(0)}° az / ${el.toFixed(1)}° el`;
+        arrowEl.style.display = 'grid';
+      }
+    } else {
+      arrowEl.style.display = 'none';
+    }
+
     controls.update();
     renderer.render(scene, camera);
     requestAnimationFrame(update);
@@ -1898,6 +2212,8 @@ function calculatePasses() {
       result.innerHTML = `<p class="muted small">Ingen passes med min. ${minElev}° elevasjon over Trondheim de neste ${days} dagene. Sjekk om TLE er fersk.</p>`;
       return;
     }
+    const nextPass = allPasses[0];
+    addMissionLog(`Neste pass for ${nextPass.sat.name}: ${HW.fmt.dt(nextPass.aos)}, maks elev ${nextPass.maxEl.toFixed(1)}°`);
 
     // Frekvens-hint for primær (om aktiv)
     let freqHint = '';
@@ -2227,6 +2543,7 @@ function calculateAntenna() {
   document.getElementById('ant-gain').innerHTML = `${gain.toFixed(1)}<span class="stat-unit">dBi</span>`;
   document.getElementById('ant-bw').innerHTML = `${bw.toFixed(0)}<span class="stat-unit">°</span>`;
   document.getElementById('ant-detail').innerHTML = detail;
+  updateAntennaVisualization(gain, bw);
 }
 
 /* ═══ TLE-LESER ══════════════════════════════════════════════════════ */
@@ -2339,6 +2656,21 @@ window.addEventListener('tabchange', e => refreshTab(e.detail.tab));
 
 /* ═══ EVENT-WIRING ═══════════════════════════════════════════════════ */
 document.getElementById('sat-search').addEventListener('input', e => renderSatList(e.target.value));
+document.getElementById('station-set').addEventListener('click', () => {
+  const lat = parseFloat(document.getElementById('station-lat').value);
+  const lon = parseFloat(document.getElementById('station-lon').value);
+  const alt = parseFloat(document.getElementById('station-alt').value) / 1000;
+  if (Number.isNaN(lat) || Number.isNaN(lon)) {
+    alert('Skriv inn gyldige koordinater.');
+    return;
+  }
+  setStationLocation(lat, lon, alt);
+  refreshGroundTrack();
+  refreshTab('passes');
+  refreshSatelliteInfo();
+  updateLiveTicker();
+  addMissionLog(`Stasjon oppdatert til ${lat.toFixed(5)}°, ${lon.toFixed(5)}°`);
+});
 document.getElementById('sat-group').addEventListener('change', e => {
   currentGroup = e.target.value;
   loadSatGroup(currentGroup);
@@ -2389,6 +2721,14 @@ ${sat.line2}`;
   }
 });
 
+document.querySelectorAll('.help-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const key = btn.dataset.helpKey;
+    const target = btn.dataset.helpTarget;
+    showHelpText(key, target);
+  });
+});
+
 /* NORAD-loader i hovedlisten */
 async function loadCustomNorad() {
   const input = document.getElementById('norad-input');
@@ -2433,6 +2773,10 @@ initGlobe();
 calculateAntenna();
 calculateLinkBudget();
 loadSatGroup(currentGroup);
+setStationLocation(STATION.lat, STATION.lon, STATION.alt);
+refreshSatelliteInfo();
+updateLiveTicker();
+setInterval(updateLiveTicker, 30000);
 
 </script>
 </body>

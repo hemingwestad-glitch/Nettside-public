@@ -24,19 +24,46 @@
 <style>
   .sim-canvas {
     aspect-ratio: 16/10;
-    background: #0e0c09;
+    background: radial-gradient(circle at 20% 20%, rgba(255,228,174,0.15), transparent 18%),
+                radial-gradient(circle at 80% 15%, rgba(74,107,122,0.12), transparent 20%),
+                linear-gradient(180deg, #12100c 0%, #0e0c09 40%, #110f0b 100%);
     position: relative;
+    border-radius: 1rem;
+    overflow: hidden;
+    box-shadow: inset 0 0 80px rgba(0, 0, 0, 0.35), 0 20px 70px rgba(0, 0, 0, 0.18);
   }
   .sim-info {
     position: absolute;
     top: 0.75rem;
     left: 0.75rem;
+    right: 0.75rem;
+    padding: 0.9rem 1rem;
+    border-radius: 999px;
+    background: rgba(16, 14, 11, 0.75);
     font-family: 'JetBrains Mono', monospace;
     font-size: 0.72rem;
-    color: rgba(245, 241, 234, 0.85);
+    color: rgba(245, 241, 234, 0.95);
     pointer-events: none;
-    line-height: 1.5;
-    text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+    line-height: 1.4;
+    text-shadow: 0 1px 3px rgba(0,0,0,0.45);
+    display: grid;
+    gap: 0.25rem;
+  }
+  .canvas-overlay.bottom-right {
+    position: absolute;
+    right: 0.75rem;
+    bottom: 0.75rem;
+    padding: 0.75rem 1rem;
+    border-radius: 0.85rem;
+    background: rgba(16, 14, 11, 0.65);
+    color: rgba(245, 241, 234, 0.9);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.78rem;
+    line-height: 1.4;
+    letter-spacing: 0.02em;
+    text-transform: none;
+    min-width: 10rem;
+    text-align: right;
   }
   .controls-grid {
     display: grid;
@@ -55,24 +82,45 @@
     color: var(--ink-soft);
   }
   .sys-buttons {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.5rem;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
+    gap: 0.65rem;
     margin: 0.75rem 0;
   }
   .sys-btn {
-    background: var(--bg-soft);
-    color: var(--ink-soft);
-    border: 1px solid var(--rule);
+    border-radius: 999px;
+    padding: 0.75rem 1rem;
+    font-family: var(--font-mono);
+    font-size: 0.88rem;
+    letter-spacing: 0.04em;
+    background: rgba(245, 241, 234, 0.95);
+    color: var(--ink);
+    border: 1px solid rgba(26, 24, 20, 0.12);
+    transition: transform 0.18s var(--ease), box-shadow 0.18s var(--ease), background 0.18s var(--ease);
   }
   .sys-btn:hover {
-    background: var(--ink);
-    color: var(--bg);
+    transform: translateY(-1px);
+    background: #f7f3ec;
+    color: var(--ink);
   }
   .sys-btn.active {
     background: var(--accent);
     color: #fff;
     border-color: var(--accent);
+    box-shadow: 0 12px 30px rgba(184, 85, 46, 0.12);
+  }
+  .meta-pill {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.35rem 0.8rem;
+    border-radius: 999px;
+    border: 1px solid rgba(184, 85, 46, 0.15);
+    background: rgba(184, 85, 46, 0.08);
+    color: var(--accent-deep);
+    font-size: 0.72rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
   }
 </style>
 </head>
@@ -95,6 +143,7 @@
     <span>Dynamikk</span>
     <span>Numerisk integrasjon — RK4</span>
     <span>Three.js</span>
+    <span class="meta-pill" id="system-tag"></span>
   </div>
 
   <h1 class="fade-up">Dynamikk-<em>sandkasse</em>.</h1>
@@ -113,7 +162,8 @@
 
   <div class="controls-grid">
     <button id="btn-play">Pause</button>
-    <button id="btn-reset" class="secondary">Reset</button>
+    <button id="btn-reset" class="secondary">Nullstill</button>
+    <button id="btn-random" class="secondary">Nytt init</button>
     <button id="btn-trail" class="secondary">Skjul spor</button>
     <div class="control-group">
       <label>Tidsskritt (×)</label>
@@ -678,7 +728,25 @@ function setupSystem(key) {
     b.classList.toggle('active', b.dataset.sys === key);
   });
 
+  updateSimInfo();
   reset();
+}
+
+function updateSimInfo() {
+  const info = document.getElementById('sim-info');
+  info.innerHTML = `${currentSystem.name}<br>Dra for å rotere · skroll for zoom`;
+  const tag = document.getElementById('system-tag');
+  if (currentSystem.tag) {
+    tag.textContent = currentSystem.tag.toUpperCase();
+    tag.style.display = 'inline-flex';
+  } else {
+    tag.style.display = 'none';
+  }
+}
+
+function updateSimStats() {
+  const stats = document.getElementById('sim-stats');
+  stats.textContent = `t=${simT.toFixed(2)} • dt=${currentSystem.dt.toFixed(4)} • ×${timeScale.toFixed(2)} • spor ${showTrail ? 'på' : 'av'}`;
 }
 
 function reset() {
@@ -709,6 +777,7 @@ function reset() {
       lineGeom.setDrawRange(0, 0);
       const mat = new THREE.LineBasicMaterial({ color: colors[i] || 0xb8552e, transparent: true, opacity: 0.5 });
       const line = new THREE.Line(lineGeom, mat);
+      line.visible = showTrail;
       scene.add(line);
       sceneObjects.trails.push({ positions, idx: 0, count: 0, line, bodyIdx: i });
     }
@@ -722,6 +791,7 @@ function reset() {
     lineGeom.setDrawRange(0, 0);
     const mat = new THREE.LineBasicMaterial({ color: 0xb8552e, transparent: true, opacity: 0.55 });
     const line = new THREE.Line(lineGeom, mat);
+    line.visible = showTrail;
     scene.add(line);
     sceneObjects.trails.push({ positions, idx: 0, count: 0, line, bodyIdx: trailIdx === -1 ? bodies.length - 1 : trailIdx });
   }
@@ -819,11 +889,7 @@ function animate() {
   controls.update();
   renderer.render(scene, camera);
 
-  // Stats
-  const stats = document.getElementById('sim-stats');
-  if (currentSystem) {
-    stats.textContent = `t = ${simT.toFixed(2)}    dt = ${currentSystem.dt}`;
-  }
+  if (currentSystem) updateSimStats();
 }
 animate();
 
@@ -848,6 +914,8 @@ document.getElementById('btn-play').addEventListener('click', e => {
 
 document.getElementById('btn-reset').addEventListener('click', () => reset());
 
+document.getElementById('btn-random').addEventListener('click', () => reset());
+
 document.getElementById('btn-trail').addEventListener('click', e => {
   showTrail = !showTrail;
   e.target.textContent = showTrail ? 'Skjul spor' : 'Vis spor';
@@ -865,7 +933,7 @@ document.getElementById('time-scale').addEventListener('input', e => {
 setupSystem('lorenz');
 
 // Sim info
-document.getElementById('sim-info').innerHTML = 'Dra for å rotere · skroll for zoom';
+updateSimInfo();
 </script>
 </body>
 </html>
