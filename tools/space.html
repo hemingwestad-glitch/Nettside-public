@@ -868,8 +868,7 @@ function colorForId(noradId) {
 
 /* ═══ TLE-PARSING ════════════════════════════════════════════════════ */
 function parseTLEs(text) {
-  const lines = text.split(/\r?
-/).map(l => l.trim()).filter(l => l.length > 0);
+  const lines = text.split(/\r?\n/).map(l => l.trim()).filter(l => l.length > 0);
   const sats = [];
   for (let i = 0; i + 2 < lines.length; i += 3) {
     if (!lines[i+1].startsWith('1 ') || !lines[i+2].startsWith('2 ')) continue;
@@ -2233,8 +2232,7 @@ function calculateAntenna() {
 /* ═══ TLE-LESER ══════════════════════════════════════════════════════ */
 function parseTLEManual() {
   const text = document.getElementById('tle-input').value.trim();
-  const lines = text.split(/\r?
-/).map(l => l.trim()).filter(l => l.length);
+  const lines = text.split(/\r?\n/).map(l => l.trim()).filter(l => l.length);
   const result = document.getElementById('tle-result');
 
   if (lines.length < 2) {
