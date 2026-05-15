@@ -2765,37 +2765,4 @@ async function loadCustomNorad() {
     status.className = 'norad-status success';
     status.textContent = `Lastet ${sat.name} (NORAD ${sat.noradId})`;
     input.value = '';
-    // Velg som primær automatisk
-    if (!selectedIds.includes(sat.noradId)) {
-      selectedIds.unshift(sat.noradId);
-    } else {
-      const idx = selectedIds.indexOf(sat.noradId);
-      selectedIds.splice(idx, 1);
-      selectedIds.unshift(sat.noradId);
-    }
-    document.getElementById('sat-count').textContent =
-      `${satellites.length} + ${customSats.size} egne sat. lastet`;
-    onSelectionChange();
-  } catch (e) {
-    status.className = 'norad-status error';
-    status.textContent = `Feil: ${e.message}`;
-  }
-}
-document.getElementById('norad-load').addEventListener('click', loadCustomNorad);
-document.getElementById('norad-input').addEventListener('keydown', e => {
-  if (e.key === 'Enter') { e.preventDefault(); loadCustomNorad(); }
-});
-
-/* ═══ START ══════════════════════════════════════════════════════════ */
-initGlobe();
-calculateAntenna();
-calculateLinkBudget();
-loadSatGroup(currentGroup);
-setStationLocation(STATION.lat, STATION.lon, STATION.alt);
-refreshSatelliteInfo();
-updateLiveTicker();
-setInterval(updateLiveTicker, 30000);
-
-</script>
-</body>
-</html>
+    // Velg som prim
