@@ -177,6 +177,18 @@
     <div id="system-params"></div>
   </div>
 
+  <div class="panel" id="initial-cond-panel" style="margin-top: 1rem;">
+    <div class="panel-title">
+      Startbetingelser
+      <span class="help-tip" data-tip="Tilstandsvektoren ved t=0. Kopier denne for å gjenskape akkurat denne kjøringen senere.">?</span>
+    </div>
+    <pre id="initial-cond" style="font-family: var(--font-mono); font-size: 0.78rem; margin: 0; white-space: pre-wrap; color: var(--ink-soft);"></pre>
+    <div style="display: flex; gap: 0.5rem; margin-top: 0.5rem;">
+      <button id="btn-copy-init" class="secondary">Kopier</button>
+      <button id="btn-replay-init" class="secondary">Gjenskap nøyaktig</button>
+    </div>
+  </div>
+
   <h2 class="section-header">Om systemet <span class="count" id="about-tag"></span></h2>
   <div id="about-text"></div>
 
@@ -244,6 +256,7 @@ const SYSTEMS = {
   lorenz: {
     name: 'Lorenz-attraktor',
     tag: 'kaos',
+    stateLabels: ['x', 'y', 'z'],
     description: `
       Lorenz' tre koblede ligninger fra atmosfæremodellering (1963). De gjorde
       kaosteori berømt — for visse parameterverdier er løsningen sensitiv for
@@ -280,6 +293,7 @@ const SYSTEMS = {
   doublePendulum: {
     name: 'Dobbel pendel',
     tag: 'kaos',
+    stateLabels: ['θ₁', 'θ₂', 'ω₁', 'ω₂'],
     description: `
       To pendler hengt opp i hverandre. Det enkleste mekaniske systemet som
       viser kaotisk oppførsel — bittesmå endringer i startposisjon gir helt
@@ -350,6 +364,8 @@ const SYSTEMS = {
   threeBody: {
     name: 'Tre-legeme: figur 8',
     tag: 'gravitasjon',
+    stateLabels: ['r1.x','r1.y','r1.z','r2.x','r2.y','r2.z','r3.x','r3.y','r3.z',
+                  'v1.x','v1.y','v1.z','v2.x','v2.y','v2.z','v3.x','v3.y','v3.z'],
     description: `
       Tre likt tunge legemer som følger samme bane formet som et 8-tall.
       Oppdaget av Chenciner og Montgomery i 2000 — en av de få kjente
@@ -425,6 +441,8 @@ const SYSTEMS = {
   threeBodyChaos: {
     name: 'Tre-legeme: kaos',
     tag: 'gravitasjon',
+    stateLabels: ['r1.x','r1.y','r1.z','r2.x','r2.y','r2.z','r3.x','r3.y','r3.z',
+                  'v1.x','v1.y','v1.z','v2.x','v2.y','v2.z','v3.x','v3.y','v3.z'],
     description: `
       Samme fysikk som figur-8, men med tilfeldige startbetingelser. Den generelle
       løsningen er ikke periodisk — vanligvis ender systemet med at to legemer
@@ -567,6 +585,7 @@ const SYSTEMS = {
   rossler: {
     name: 'Rössler-attraktor',
     tag: 'kaos',
+    stateLabels: ['x', 'y', 'z'],
     description: `
       Otto Rösslers kaotiske system fra 1976. Enklere enn Lorenz (én
       ikke-linearitet) men gir også fraktale attraktorer.
@@ -612,9 +631,9 @@ function SYSTEMS_derivs_threebody() {}
 const canvas = document.getElementById('sim-canvas');
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x0e0c09);
-scene.fog = new THREE.Fog(0x0e0c09, 8, 25);
+// Fog FJERNET — vi vil at hele banen skal være synlig uansett zoom-nivå.
 
-const camera = new THREE.PerspectiveCamera(45, 16/10, 0.1, 200);
+const camera = new THREE.PerspectiveCamera(45, 16/10, 0.01, 5000);
 camera.position.set(5, 3, 8);
 
 const renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -633,23 +652,29 @@ resize();
 const controls = new OrbitControls(camera, renderer.domElement);
 controls.enableDamping = true;
 controls.dampingFactor = 0.06;
+controls.minDistance = 0.1;
+controls.maxDistance = 2000;
 
-// Lys
-const ambient = new THREE.AmbientLight(0xffeec0, 0.4);
+// Lys — lysere ambient så bodies har mer egenkontrast mot bakgrunnen
+const ambient = new THREE.AmbientLight(0xffeec0, 0.7);
 scene.add(ambient);
-const dir = new THREE.DirectionalLight(0xffeec0, 0.8);
+const dir = new THREE.DirectionalLight(0xffeec0, 1.0);
 dir.position.set(5, 10, 7);
 scene.add(dir);
+const fill = new THREE.DirectionalLight(0x7fb0c4, 0.3);
+fill.position.set(-5, -5, -3);
+scene.add(fill);
 
-// Akser (subtilt — løftet litt opp i kontrast for synlighet på mørk bg)
-const axesHelper = new THREE.AxesHelper(2);
-axesHelper.material.opacity = 0.35;
+// Akser — tydelige RGB-stiler, X=rød, Y=grønn, Z=blå (Three default), opacity høyere
+const axesHelper = new THREE.AxesHelper(3);
+axesHelper.material.opacity = 0.85;
 axesHelper.material.transparent = true;
+axesHelper.material.linewidth = 2;
 scene.add(axesHelper);
 
-// Grid — litt mer markert enn før
-const grid = new THREE.GridHelper(20, 20, 0x6b645b, 0x4a4540);
-grid.material.opacity = 0.35;
+// Grid — lysere kontrast så vi ser den uansett system-skala
+const grid = new THREE.GridHelper(20, 20, 0xa39787, 0x6b645b);
+grid.material.opacity = 0.55;
 grid.material.transparent = true;
 grid.position.y = -2;
 scene.add(grid);
@@ -749,47 +774,64 @@ function updateSimStats() {
   stats.textContent = `t=${simT.toFixed(2)} • dt=${currentSystem.dt.toFixed(4)} • ×${timeScale.toFixed(2)} • spor ${showTrail ? 'på' : 'av'}`;
 }
 
+let savedInitialState = null;  // for replay
+let forcedInitialState = null; // satt av "Gjenskap nøyaktig"
+
 function reset() {
   clearScene();
   const p = getParams();
-  state = currentSystem.init(p);
+  if (forcedInitialState) {
+    state = new Float64Array(forcedInitialState);
+    forcedInitialState = null;
+  } else {
+    state = currentSystem.init(p);
+  }
+  savedInitialState = new Float64Array(state);
   simT = 0;
 
-  // Bygg kropper
+  // Skriv startbetingelsene til panel
+  renderInitialConditions(p);
+
+  // Bygg kropper — mye sterkere kontrast: økt emissive, MeshStandard for spillighet
   const bodies = currentSystem.bodies(state, p);
   for (const b of bodies) {
-    const geom = new THREE.SphereGeometry(b.size, 18, 14);
-    const mat = new THREE.MeshLambertMaterial({ color: b.color });
+    const geom = new THREE.SphereGeometry(b.size, 24, 18);
+    const mat = new THREE.MeshStandardMaterial({
+      color: b.color,
+      emissive: b.color,
+      emissiveIntensity: 0.35,
+      roughness: 0.45,
+      metalness: 0.1,
+    });
     const mesh = new THREE.Mesh(geom, mat);
     mesh.position.set(b.pos[0] * currentSystem.scale, b.pos[1] * currentSystem.scale, b.pos[2] * currentSystem.scale);
     scene.add(mesh);
     sceneObjects.bodies.push(mesh);
   }
 
-  // Bygg trail(s)
+  // Bygg trail(s) — full opacity, ingen fog
   if (currentSystem.multiTrail) {
-    const colors = [0xb8552e, 0x4a6b7a, 0x5a6b3e];
+    const colors = [0xff8a5c, 0x7fb0c4, 0xa3c870];  // lysere varianter for synlighet
     for (let i = 0; i < bodies.length; i++) {
       if (bodies[i].trailIdx == null) continue;
       const lineGeom = new THREE.BufferGeometry();
       const positions = new Float32Array(currentSystem.trailLen * 3);
       lineGeom.setAttribute('position', new THREE.BufferAttribute(positions, 3));
       lineGeom.setDrawRange(0, 0);
-      const mat = new THREE.LineBasicMaterial({ color: colors[i] || 0xb8552e, transparent: true, opacity: 0.5 });
+      const mat = new THREE.LineBasicMaterial({ color: colors[i] || 0xff8a5c, opacity: 0.92, transparent: true, fog: false });
       const line = new THREE.Line(lineGeom, mat);
       line.visible = showTrail;
       scene.add(line);
       sceneObjects.trails.push({ positions, idx: 0, count: 0, line, bodyIdx: i });
     }
   } else {
-    // Enkelt trail på siste / spesifisert body
     const trailIdx = currentSystem.trailIdx != null ? currentSystem.trailIdx :
                      (bodies.length === 1 ? 0 : bodies.length - 1);
     const lineGeom = new THREE.BufferGeometry();
     const positions = new Float32Array(currentSystem.trailLen * 3);
     lineGeom.setAttribute('position', new THREE.BufferAttribute(positions, 3));
     lineGeom.setDrawRange(0, 0);
-    const mat = new THREE.LineBasicMaterial({ color: 0xb8552e, transparent: true, opacity: 0.55 });
+    const mat = new THREE.LineBasicMaterial({ color: 0xff8a5c, opacity: 0.92, transparent: true, fog: false });
     const line = new THREE.Line(lineGeom, mat);
     line.visible = showTrail;
     scene.add(line);
@@ -912,9 +954,65 @@ document.getElementById('btn-play').addEventListener('click', e => {
   e.target.textContent = playing ? 'Pause' : 'Spill';
 });
 
-document.getElementById('btn-reset').addEventListener('click', () => reset());
+// "Nullstill" = bruk gjeldende savedInitialState igjen (samme bane fra start)
+document.getElementById('btn-reset').addEventListener('click', () => {
+  if (savedInitialState) {
+    forcedInitialState = savedInitialState;
+  }
+  reset();
+});
 
-document.getElementById('btn-random').addEventListener('click', () => reset());
+// "Nytt init" = trekke nye tilfeldige startbetingelser
+document.getElementById('btn-random').addEventListener('click', () => {
+  forcedInitialState = null;
+  reset();
+});
+
+// Kopier startbetingelser
+document.getElementById('btn-copy-init').addEventListener('click', () => {
+  if (!savedInitialState) return;
+  const txt = Array.from(savedInitialState).map(v => v.toFixed(10)).join(',');
+  navigator.clipboard.writeText(txt).then(() => {
+    const btn = document.getElementById('btn-copy-init');
+    const orig = btn.textContent;
+    btn.textContent = 'Kopiert ✓';
+    setTimeout(() => btn.textContent = orig, 1200);
+  });
+});
+
+// Gjenskap fra clipboard
+document.getElementById('btn-replay-init').addEventListener('click', async () => {
+  try {
+    const txt = await navigator.clipboard.readText();
+    const nums = txt.split(',').map(s => parseFloat(s.trim())).filter(n => !isNaN(n));
+    if (nums.length === 0) return alert('Fant ingen tall i clipboard.');
+    forcedInitialState = new Float64Array(nums);
+    reset();
+  } catch (e) {
+    alert('Kunne ikke lese clipboard: ' + e.message);
+  }
+});
+
+// Funksjon: skriv tilstandsvektoren med labels
+function renderInitialConditions(p) {
+  const target = document.getElementById('initial-cond');
+  if (!target) return;
+  const labels = currentSystem.stateLabels || null;
+  const arr = Array.from(savedInitialState);
+  let out = `System: ${currentSystem.name}\nt = 0\n\n`;
+  if (labels) {
+    arr.forEach((v, i) => {
+      out += `${(labels[i] || ('y' + i)).padEnd(8)} = ${v.toFixed(6)}\n`;
+    });
+  } else {
+    arr.forEach((v, i) => {
+      out += `y[${String(i).padStart(2,'0')}] = ${v.toFixed(6)}\n`;
+    });
+  }
+  out += '\nParametre:\n';
+  for (const k in p) out += `${k.padEnd(8)} = ${(+p[k]).toFixed(4)}\n`;
+  target.textContent = out;
+}
 
 document.getElementById('btn-trail').addEventListener('click', e => {
   showTrail = !showTrail;

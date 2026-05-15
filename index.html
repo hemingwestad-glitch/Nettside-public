@@ -94,6 +94,31 @@
     gjerne hvis du har lyst.
   </p>
 
+  <h2 class="section-header">Live fra Trondheim <span class="count">over hodet vårt</span></h2>
+
+  <div class="live-ticker fade-up" id="home-ticker">
+    <div class="ticker-card live">
+      <div class="ticker-label"><span class="dot live"></span>ISS · neste pass</div>
+      <div class="ticker-value" id="ticker-iss-time">venter…</div>
+      <div class="ticker-meta" id="ticker-iss-meta">henter TLE fra CelesTrak</div>
+    </div>
+    <div class="ticker-card live">
+      <div class="ticker-label"><span class="dot live"></span>METEOR M2-4 · neste pass ≥60°</div>
+      <div class="ticker-value" id="ticker-meteor-time">venter…</div>
+      <div class="ticker-meta" id="ticker-meteor-meta">SDR-mottak verdt det</div>
+    </div>
+    <div class="ticker-card">
+      <div class="ticker-label">Strømpris akkurat nå · NO3</div>
+      <div class="ticker-value" id="ticker-power-now">—</div>
+      <div class="ticker-meta" id="ticker-power-meta">snitt i dag —</div>
+    </div>
+    <div class="ticker-card">
+      <div class="ticker-label">Tidevann Trondheim havn</div>
+      <div class="ticker-value" id="ticker-tide-now">—</div>
+      <div class="ticker-meta" id="ticker-tide-meta">neste vending —</div>
+    </div>
+  </div>
+
   <h2 class="section-header">Verktøy <span class="count">åpne for alle</span></h2>
 
   <div class="tool-grid">
@@ -184,4 +209,171 @@
     <a href="/now.html">Hva som skjer nå</a>
   </p>
 
-  <h2 class=
+  <h2 class="section-header">Andre steder <span class="count">kontakt</span></h2>
+
+  <div class="uses-table">
+    <div class="row">
+      <div class="label">github</div>
+      <div class="value"><a href="https://github.com/hemingwestad-glitch" target="_blank" rel="noopener">hemingwestad-glitch</a></div>
+    </div>
+    <div class="row">
+      <div class="label">e-post</div>
+      <div class="value"><a href="mailto:heming@hemingwestad.no">heming@hemingwestad.no</a></div>
+    </div>
+    <div class="row">
+      <div class="label">orbit ntnu</div>
+      <div class="value"><a href="https://www.orbitntnu.com" target="_blank" rel="noopener">orbitntnu.com</a></div>
+    </div>
+  </div>
+</main>
+
+<footer>
+  <div class="footer-content">
+    <div>© 2026 — Heming Westad</div>
+    <div>Trondheim · <a href="https://github.com/hemingwestad-glitch/Nettside-public">kildekode</a></div>
+  </div>
+</footer>
+
+<script src="/common.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/satellite.js@5.0.0/dist/satellite.min.js"></script>
+<script>
+/* ─── Live ticker på forsiden ────────────────────────────────────────────── */
+(function () {
+  const STATION = { lat: 63.4305, lon: 10.3951, alt: 0.0513 };
+
+  function nextPass(satrec, minElevDeg, hoursAhead) {
+    if (!satrec || typeof satellite === 'undefined') return null;
+    const obs = {
+      latitude: STATION.lat * Math.PI / 180,
+      longitude: STATION.lon * Math.PI / 180,
+      height: STATION.alt
+    };
+    const start = new Date();
+    const end = new Date(start.getTime() + hoursAhead * 3600 * 1000);
+    const stepSec = 30;
+    let inPass = false, peakEl = -90, aos = null;
+    for (let t = start.getTime(); t < end.getTime(); t += stepSec * 1000) {
+      const d = new Date(t);
+      const pv = satellite.propagate(satrec, d);
+      if (!pv.position) continue;
+      const gmst = satellite.gstime(d);
+      const ecf = satellite.eciToEcf(pv.position, gmst);
+      const la = satellite.ecfToLookAngles(obs, ecf);
+      const elDeg = la.elevation * 180 / Math.PI;
+      if (!inPass && elDeg > 0) { inPass = true; aos = d; peakEl = elDeg; }
+      else if (inPass) {
+        if (elDeg > peakEl) peakEl = elDeg;
+        if (elDeg < 0) {
+          if (peakEl >= minElevDeg) return { aos, peakEl };
+          inPass = false; peakEl = -90;
+        }
+      }
+    }
+    return null;
+  }
+
+  function fmtAhead(date) {
+    if (!date) return '—';
+    const mins = Math.round((date - new Date()) / 60000);
+    if (mins < 0) return 'akkurat nå';
+    if (mins < 60) return `om ${mins} min`;
+    const hrs = Math.floor(mins / 60);
+    const m = mins % 60;
+    if (hrs < 24) return `om ${hrs}t ${m}m`;
+    return date.toLocaleString('nb-NO', { weekday: 'short', hour: '2-digit', minute: '2-digit' });
+  }
+
+  async function fetchTLE(catnr) {
+    try {
+      const r = await fetch(`https://celestrak.org/NORAD/elements/gp.php?CATNR=${catnr}&FORMAT=tle`);
+      if (!r.ok) return null;
+      const txt = await r.text();
+      const lines = txt.trim().split(/\r?\n/);
+      if (lines.length < 3) return null;
+      return satellite.twoline2satrec(lines[1], lines[2]);
+    } catch (e) { return null; }
+  }
+
+  async function updateISS() {
+    const t = document.getElementById('ticker-iss-time');
+    const m = document.getElementById('ticker-iss-meta');
+    const sr = await fetchTLE('25544');
+    if (!sr) { t.textContent = 'TLE ikke tilgjengelig'; m.textContent = 'prøv igjen senere'; return; }
+    const p = nextPass(sr, 10, 24);
+    if (!p) { t.textContent = 'Ingen pass neste 24t'; m.textContent = 'over 10° elev'; return; }
+    t.textContent = fmtAhead(p.aos);
+    m.textContent = `${p.aos.toLocaleString('nb-NO',{hour:'2-digit',minute:'2-digit'})} · peak ${p.peakEl.toFixed(0)}°`;
+  }
+
+  async function updateMeteor() {
+    const t = document.getElementById('ticker-meteor-time');
+    const m = document.getElementById('ticker-meteor-meta');
+    const sr = await fetchTLE('59051');
+    if (!sr) { t.textContent = 'TLE ikke tilgjengelig'; m.textContent = '—'; return; }
+    const p = nextPass(sr, 60, 96);
+    if (!p) { t.textContent = 'Ingen ≥60° i 4 dager'; m.textContent = 'se meteor-guide'; return; }
+    t.textContent = fmtAhead(p.aos);
+    m.textContent = `${p.aos.toLocaleString('nb-NO',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})} · peak ${p.peakEl.toFixed(0)}°`;
+  }
+
+  async function updatePower() {
+    try {
+      const d = new Date();
+      const y = d.getFullYear(), mm = String(d.getMonth()+1).padStart(2,'0'), dd = String(d.getDate()).padStart(2,'0');
+      const r = await fetch(`https://www.hvakosterstrommen.no/api/v1/prices/${y}/${mm}-${dd}_NO3.json`);
+      if (!r.ok) return;
+      const data = await r.json();
+      const h = d.getHours();
+      const now = data.find(p => new Date(p.time_start).getHours() === h);
+      const avg = data.reduce((s,p) => s + p.NOK_per_kWh, 0) / data.length;
+      if (now) {
+        document.getElementById('ticker-power-now').textContent =
+          (now.NOK_per_kWh * 100 * 1.25).toFixed(1).replace('.', ',') + ' øre';
+        document.getElementById('ticker-power-meta').textContent =
+          `snitt i dag ${(avg * 100 * 1.25).toFixed(1).replace('.', ',')} øre`;
+      }
+    } catch (e) {}
+  }
+
+  async function updateTide() {
+    try {
+      const r = await fetch('https://api.met.no/weatherapi/tidalwater/1.1/?harbor=trondheim');
+      if (!r.ok) return;
+      const txt = await r.text();
+      const data = [];
+      for (const line of txt.split('\n')) {
+        const m = line.trim().match(/^(\d{4})\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(-?\d+\.\d+)\s+(-?\d+\.\d+)\s+(-?\d+\.\d+)/);
+        if (m) {
+          const [_, y, mo, d, h, mi, surge, tide, total] = m;
+          data.push({ t: new Date(Date.UTC(+y, +mo - 1, +d, +h, +mi)), tide: +tide, total: +total });
+        }
+      }
+      if (!data.length) return;
+      const now = Date.now();
+      const c = data.reduce((a, b) => Math.abs(a.t - now) < Math.abs(b.t - now) ? a : b);
+      document.getElementById('ticker-tide-now').textContent =
+        `${c.total >= 0 ? '+' : ''}${c.total.toFixed(2)} m`;
+      let nt = null;
+      for (let i = 1; i < data.length - 1; i++) {
+        if (data[i].t.getTime() < now) continue;
+        const a = data[i-1].tide, b = data[i].tide, cN = data[i+1].tide;
+        if ((b > a && b > cN) || (b < a && b < cN)) {
+          nt = { t: data[i].t, type: b > a ? 'flo' : 'fjære', level: data[i].total };
+          break;
+        }
+      }
+      if (nt) {
+        document.getElementById('ticker-tide-meta').textContent =
+          `neste ${nt.type} ${nt.t.toLocaleString('nb-NO',{hour:'2-digit',minute:'2-digit'})} (${nt.level >= 0 ? '+' : ''}${nt.level.toFixed(2)} m)`;
+      }
+    } catch (e) {}
+  }
+
+  function refresh() { updateISS(); updateMeteor(); updatePower(); updateTide(); }
+  if (typeof satellite !== 'undefined') refresh();
+  else setTimeout(refresh, 600);
+  setInterval(refresh, 5 * 60 * 1000);
+})();
+</script>
+</body>
+</html>
