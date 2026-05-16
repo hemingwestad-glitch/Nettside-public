@@ -10,9 +10,9 @@
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..700;1,9..144,400&family=Inter+Tight:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <meta name="author" content="Heming Westad">
 <link rel="canonical" href="https://hemingwestad.no/tools/dynamics.html">
-<link rel="icon" href="/favicon.svg" type="image/svg+xml">
-<link rel="icon" href="/favicon.ico" sizes="any">
-<meta name="theme-color" content="#b8552e">
+<link rel="icon" href="../favicon.svg" type="image/svg+xml">
+<link rel="icon" href="../favicon.ico" sizes="any">
+<meta name="theme-color" content="#0a0d14">
 <meta property="og:title" content="Dynamikk-sandkasse — Heming Westad">
 <meta property="og:description" content="3D RK4 av Lorenz, dobbel pendel, tre-legeme og mer.">
 <meta property="og:image" content="https://hemingwestad.no/og-image.png">
@@ -20,13 +20,35 @@
 <meta property="og:type" content="website">
 <meta property="og:locale" content="nb_NO">
 <meta name="twitter:card" content="summary_large_image">
-<link rel="stylesheet" href="/style.css">
+<link rel="stylesheet" href="../style.css">
 <style>
+  :root {
+    --bg: #0a0d14;
+    --bg-alt: rgba(10, 13, 20, 0.9);
+    --bg-soft: rgba(13, 24, 32, 0.78);
+    --bg-card: rgba(13, 24, 32, 0.9);
+    --rule: rgba(124, 193, 183, 0.18);
+    --rule-soft: rgba(124, 193, 183, 0.10);
+    --ink: #d9e4e8;
+    --ink-soft: #b8c7d3;
+    --ink-dim: #7c8d96;
+    --ink-faint: #5f7c84;
+    --accent: #7cc1b7;
+    --accent-soft: #9ad5cb;
+    --accent-deep: #4c8f7d;
+    --blue: #6a98a7;
+    --blue-deep: #527984;
+    --green: #7ebc92;
+  }
+  body {
+    background: #080e14 !important;
+    color: #d9e4e8 !important;
+  }
   .sim-canvas {
     aspect-ratio: 16/10;
-    background: radial-gradient(circle at 20% 20%, rgba(255,228,174,0.15), transparent 18%),
-                radial-gradient(circle at 80% 15%, rgba(74,107,122,0.12), transparent 20%),
-                linear-gradient(180deg, #12100c 0%, #0e0c09 40%, #110f0b 100%);
+    background: radial-gradient(circle at 20% 20%, rgba(124, 193, 183, 0.12), transparent 18%),
+                radial-gradient(circle at 80% 15%, rgba(74, 107, 122, 0.10), transparent 20%),
+                linear-gradient(180deg, #090c11 0%, #0c1016 40%, #0f1319 100%);
     position: relative;
     border-radius: 1rem;
     overflow: hidden;
@@ -39,7 +61,7 @@
     right: 0.75rem;
     padding: 0.9rem 1rem;
     border-radius: 999px;
-    background: rgba(16, 14, 11, 0.75);
+    background: rgba(12, 15, 23, 0.86);
     font-family: 'JetBrains Mono', monospace;
     font-size: 0.72rem;
     color: rgba(245, 241, 234, 0.95);
@@ -48,6 +70,7 @@
     text-shadow: 0 1px 3px rgba(0,0,0,0.45);
     display: grid;
     gap: 0.25rem;
+    border: 1px solid rgba(124, 193, 183, 0.12);
   }
   .canvas-overlay.bottom-right {
     position: absolute;
@@ -55,8 +78,8 @@
     bottom: 0.75rem;
     padding: 0.75rem 1rem;
     border-radius: 0.85rem;
-    background: rgba(16, 14, 11, 0.65);
-    color: rgba(245, 241, 234, 0.9);
+    background: rgba(12, 15, 23, 0.72);
+    color: rgba(245, 241, 234, 0.92);
     font-family: 'JetBrains Mono', monospace;
     font-size: 0.78rem;
     line-height: 1.4;
@@ -64,6 +87,7 @@
     text-transform: none;
     min-width: 10rem;
     text-align: right;
+    border: 1px solid rgba(124, 193, 183, 0.12);
   }
   .controls-grid {
     display: grid;
@@ -93,21 +117,21 @@
     font-family: var(--font-mono);
     font-size: 0.88rem;
     letter-spacing: 0.04em;
-    background: rgba(245, 241, 234, 0.95);
-    color: var(--ink);
-    border: 1px solid rgba(26, 24, 20, 0.12);
+    background: rgba(124, 193, 183, 0.12);
+    color: #e9f3f5;
+    border: 1px solid rgba(124, 193, 183, 0.22);
     transition: transform 0.18s var(--ease), box-shadow 0.18s var(--ease), background 0.18s var(--ease);
   }
   .sys-btn:hover {
     transform: translateY(-1px);
-    background: #f7f3ec;
-    color: var(--ink);
+    background: rgba(124, 193, 183, 0.2);
+    color: #f8fbfd;
   }
   .sys-btn.active {
     background: var(--accent);
-    color: #fff;
+    color: #0a0d14;
     border-color: var(--accent);
-    box-shadow: 0 12px 30px rgba(184, 85, 46, 0.12);
+    box-shadow: 0 12px 30px rgba(124, 193, 183, 0.15);
   }
   .meta-pill {
     display: inline-flex;
@@ -115,9 +139,9 @@
     justify-content: center;
     padding: 0.35rem 0.8rem;
     border-radius: 999px;
-    border: 1px solid rgba(184, 85, 46, 0.15);
-    background: rgba(184, 85, 46, 0.08);
-    color: var(--accent-deep);
+    border: 1px solid rgba(124, 193, 183, 0.18);
+    background: rgba(124, 193, 183, 0.08);
+    color: var(--accent-soft);
     font-size: 0.72rem;
     letter-spacing: 0.08em;
     text-transform: uppercase;
@@ -207,7 +231,7 @@
   </div>
 </footer>
 
-<script src="/common.js"></script>
+<script src="../common.js"></script>
 <script type="importmap">
 {
   "imports": {
@@ -862,6 +886,7 @@ function step(dt_real) {
     simT += dt_sim;
   }
 
+  const bodies = currentSystem.bodies(state, p);
   for (let i = 0; i < bodies.length && i < sceneObjects.bodies.length; i++) {
     const b = bodies[i];
     sceneObjects.bodies[i].position.set(
