@@ -10,8 +10,8 @@
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..700;1,9..144,400&family=Inter+Tight:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <meta name="author" content="Heming Westad">
 <link rel="canonical" href="https://hemingwestad.no/tools/space.html">
-<link rel="icon" href="/favicon.svg" type="image/svg+xml">
-<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="icon" href="../favicon.svg" type="image/svg+xml">
+<link rel="icon" href="../favicon.ico" sizes="any">
 <meta name="theme-color" content="#b8552e">
 <meta property="og:title" content="Satellitt-arbeidsbord — Heming Westad">
 <meta property="og:description" content="Live 3D-tracker, ground track, TLE-leser, link budget, antenne, Doppler og pass-prediksjoner.">
@@ -20,7 +20,7 @@
 <meta property="og:type" content="website">
 <meta property="og:locale" content="nb_NO">
 <meta name="twitter:card" content="summary_large_image">
-<link rel="stylesheet" href="/style.css">
+<link rel="stylesheet" href="../style.css">
 <style>
   /* ─── Mørkt sci-fi-tema for hele space.html ────────────────────────── */
   body { background: #0a0d14 !important; color: #d9e4e8; }
@@ -329,29 +329,32 @@
 
   /* Satellitt-liste */
   .sat-list {
-    max-height: 24rem;
+    max-height: 22rem;
     overflow-y: auto;
-    border: 1px solid var(--rule);
-    background: var(--bg-card);
+    border: 1px solid rgba(124, 193, 183, 0.15);
+    background: rgba(13, 24, 32, 0.85);
+    color: #d6e0e4;
+    border-radius: 0.85rem;
   }
   .sat-row {
     display: grid;
     grid-template-columns: auto 1fr auto;
     gap: 0.6rem;
-    padding: 0.45rem 0.7rem;
-    border-bottom: 1px solid var(--rule-soft);
+    padding: 0.55rem 0.75rem;
+    border-bottom: 1px solid rgba(124, 193, 183, 0.12);
     cursor: pointer;
     align-items: center;
     transition: background 0.1s;
+    color: #d6e0e4;
   }
-  .sat-row:hover { background: var(--bg-soft); }
+  .sat-row:hover { background: rgba(124, 193, 183, 0.08); }
   .sat-row.primary {
-    background: var(--bg-soft);
+    background: rgba(124, 193, 183, 0.08);
     border-left: 3px solid var(--accent);
-    padding-left: calc(0.7rem - 3px);
+    padding-left: calc(0.75rem - 3px);
   }
   .sat-row .sat-name { font-weight: 500; }
-  .sat-row .sat-meta { font-family: 'JetBrains Mono', monospace; font-size: 0.7rem; color: var(--ink-faint); }
+  .sat-row .sat-meta { font-family: 'JetBrains Mono', monospace; font-size: 0.7rem; color: #9db4be; }
   .sat-row .sat-freq { font-family: 'JetBrains Mono', monospace; font-size: 0.72rem; color: var(--accent); white-space: nowrap; }
   .sat-row input[type="checkbox"] {
     width: auto;
@@ -655,6 +658,17 @@
           <option value="gps-ops">GPS</option>
         </select>
 
+        <div class="norad-loader" style="margin-bottom: 0.75rem;">
+          <input type="text" id="norad-input" placeholder="NORAD-ID (f.eks. 25544)" inputmode="numeric">
+          <button id="norad-load" class="secondary" style="white-space: nowrap;">Hent TLE</button>
+        </div>
+        <div class="norad-status" id="norad-status" style="margin-bottom: 0.75rem;"></div>
+
+        <div class="sat-list" id="sat-list"></div>
+        <p class="muted tiny" style="margin: 0.5rem 0 1rem;">
+          Klikk navn for å velge primær. Kryss av flere for å vise dem samtidig. TLE fra CelesTrak.
+        </p>
+
         <div class="monitor-card" style="margin-bottom: 1rem;">
           <h4>Systemovervåkning</h4>
           <small>Radar-modus og teknisk logg for aktiv satellitt.</small>
@@ -686,18 +700,6 @@
           <strong>Hva betyr dette?</strong>
           <p>Live tracker viser satellitter i en radar-aktig 3D-visning fra din stasjon. Journalen fanger valg, varsler og neste viktige pass.</p>
         </div>
-
-        <div class="norad-loader">
-          <input type="text" id="norad-input" placeholder="NORAD-ID (f.eks. 25544)" inputmode="numeric">
-          <button id="norad-load" class="secondary" style="white-space: nowrap;">Hent TLE</button>
-        </div>
-        <div class="norad-status" id="norad-status"></div>
-
-        <div class="sat-list" id="sat-list"></div>
-        <p class="muted tiny" style="margin: 0.5rem 0 0;">
-          Klikk navn for å velge primær. Kryss av flere for å vise dem
-          samtidig. TLE fra CelesTrak.
-        </p>
       </div>
     </div>
   </div>
@@ -1003,7 +1005,7 @@
   </div>
 </footer>
 
-<script src="/common.js"></script>
+<script src="../common.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/satellite.js@5.0.0/dist/satellite.min.js"></script>
 <script type="importmap">
 {
@@ -1201,19 +1203,12 @@ const SAT_GROUPS = {
   'gps-ops': 'https://celestrak.org/NORAD/elements/gp.php?GROUP=gps-ops&FORMAT=tle',
 };
 
+const Re = 6378.137;
+const f_e = 1/298.257223563;
+const e2 = f_e * (2 - f_e);
+
 let STATION = { lat: 63.4305, lon: 10.3951, alt: 0.0513 }; // km
 let STATION_ECF = { x: 0, y: 0, z: 0 };
-
-function computeStationEcf() {
-  const _stLat = STATION.lat * Math.PI / 180;
-  const _stLon = STATION.lon * Math.PI / 180;
-  const _N = Re / Math.sqrt(1 - e2 * Math.sin(_stLat)**2);
-  STATION_ECF = {
-    x: (_N + STATION.alt) * Math.cos(_stLat) * Math.cos(_stLon),
-    y: (_N + STATION.alt) * Math.cos(_stLat) * Math.sin(_stLon),
-    z: (_N * (1 - e2) + STATION.alt) * Math.sin(_stLat)
-  };
-}
 
 function setStationLocation(lat, lon, alt = 0.0513) {
   STATION.lat = lat;
@@ -1363,9 +1358,17 @@ function isSunlit(eciPos, date) {
 }
 
 /* Bakkestasjon i ECF (forhåndsberegnet) */
-const Re = 6378.137;
-const f_e = 1/298.257223563;
-const e2 = f_e * (2 - f_e);
+function computeStationEcf() {
+  const _stLat = STATION.lat * Math.PI / 180;
+  const _stLon = STATION.lon * Math.PI / 180;
+  const _N = Re / Math.sqrt(1 - e2 * Math.sin(_stLat)**2);
+  STATION_ECF = {
+    x: (_N + STATION.alt) * Math.cos(_stLat) * Math.cos(_stLon),
+    y: (_N + STATION.alt) * Math.cos(_stLat) * Math.sin(_stLon),
+    z: (_N * (1 - e2) + STATION.alt) * Math.sin(_stLat)
+  };
+}
+
 function lookAngles(sat, date = new Date()) {
   if (!sat || !sat.satrec) return null;
   const pv = satelliteJS.propagate(sat.satrec, date);
