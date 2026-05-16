@@ -413,6 +413,51 @@ hr {
 
 .uses-table .value { color: var(--ink-soft); }
 
+.live-ticker {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+  gap: 1rem;
+  margin: 0.75rem 0 2rem;
+}
+
+.ticker-card {
+  display: grid;
+  gap: 0.35rem;
+  padding: 1.15rem 1.2rem;
+  background: var(--bg-card);
+  border: 1px solid var(--rule-soft);
+  border-radius: 1.1rem;
+  box-shadow: var(--shadow-sm);
+}
+
+.ticker-card.live {
+  border-left: 0.35rem solid var(--accent);
+  background: #fffdf7;
+}
+
+.ticker-label {
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--ink-faint);
+}
+
+.ticker-value {
+  font-family: var(--font-display);
+  font-size: 1.6rem;
+  font-weight: 500;
+  line-height: 1.05;
+  color: var(--ink);
+}
+
+.ticker-meta {
+  font-family: var(--font-mono);
+  font-size: 0.88rem;
+  color: var(--ink-soft);
+  letter-spacing: 0.02em;
+}
+
 /* ─── Verktøy-sider: layout ─── */
 .tool-page {
   display: grid;
