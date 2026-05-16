@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="no" spellcheck="false">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kart — Heming Westad</title>
+<meta name="description" content="Klikk på kartet for å hente fiskeforhold, jakttider, sol/måne og strøm for valgt lokasjon i Norge.">
+<meta name="author" content="Heming Westad">
+<link rel="canonical" href="https://hemingwestad.no/tools/map.html">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="/favicon.ico" sizes="any">
+<meta name="theme-color" content="#b8552e">
+<meta property="og:title" content="Kart — Heming Westad">
+<meta property="og:description" content="Klikk på kartet, få fiske + jakt + sol + strøm for stedet.">
+<meta property="og:image" content="https://hemingwestad.no/og-image.png">
+<meta property="og:url" content="https://hemingwestad.no/tools/map.html">
+<meta property="og:type" content="website">
+<meta property="og:locale" content="nb_NO">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..700;1,9..144,400&family=Inter+Tight:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
+<link rel="stylesheet" href="/style.css">
+<style>
+  #map { height: 540px; width: 100%; border: 1px solid var(--rule); }
+  .map-layout { display: grid; grid-template-columns: minmax(0,2fr) minmax(18rem,1fr); gap: 1.25rem; align-items: start; }
+  @media (max-width: 900px) { .map-layout { grid-template-columns: 1fr; } }
+  .info-panel { background: var(--bg-card); border: 1px solid var(--rule); padding: 0.9rem 1rem; max-height: 540px; overflow-y: auto; }
+  .info-panel h3 { font-size: 1rem; margin: 0.8rem 0 0.4rem; }
+  .info-panel h3:first-child { margin-top: 0; }
+  .info-panel .row-stat { display: flex; justify-content: space-between; padding: 0.25rem 0; border-bottom: 1px solid var(--rule-soft); font-size: 0.9rem; }
+  .info-panel .row-stat:last-of-type { border-bottom: none; }
+  .info-panel .label { color: var(--ink-faint); font-family: var(--font-mono); font-size: 0.75rem; }
+  .info-panel .value { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+  .leaflet-popup-content { font-family: 'Inter Tight', sans-serif; font-size: 0.85rem; }
+</style>
+</head>
+<body>
+<header>
+  <div class="logo"><a href="/">Heming Westad<span class="dot">.</span></a></div>
+  <nav>
+    <ul>
+      <li><a href="/">heim</a></li>
+      <li><a href="/tools.html" class="current">verktøy</a></li>
+      <li><a href="/projects.html">prosjekter</a></li>
+      <li><a href="/now.html">nå</a></li>
+      <li><a href="/about.html">om</a></li>
+    </ul>
+  </nav>
+</header>
+
+<main>
+  <div class="page-meta fade-up">
+    <span>Friluft-kart</span>
+    <span>MET Norway · Kartverket</span>
+    <span id="map-coords">63.43° N · 10.40° E</span>
+  </div>
+
+  <h1 class="fade-up">Friluft-<em>kart</em>.</h1>
+  <p class="lede fade-up">
+    Klikk hvor som helst i Norge for å se vær, sol/måne og fiske-/jakt-forhold akkurat der.
+    Bruk tre-knappen øverst til høyre for å bytte mellom kart-lag.
+  </p>
+
+  <div class="map-layout">
+    <div id="map"></div>
+    <div class="info-panel" id="info-panel">
+      <p class="muted">Klikk på kartet for å hente data for et sted.</p>
+    </div>
+  </div>
+
+  <h2 class="section-header">Tips</h2>
+  <div class="uses-table">
+    <div class="row"><div class="label">Kart-lag</div><div class="value">OpenStreetMap, topografisk (Kartverket), satellitt — bytt øverst til høyre.</div></div>
+    <div class="row"><div class="label">Søk sted</div><div class="value">Hold over markører for sted-navn, eller klikk for full info.</div></div>
+    <div class="row"><div class="label">Lagre sted</div><div class="value">Kopier URL — klikk-koordinaten lagres som hash (#lat,lon).</div></div>
+    <div class="row"><div class="label">Dyplenker</div><div class="value">Knappene i info-panelet åpner andre verktøy med samme lokasjon forhåndsutfylt.</div></div>
+  </div>
+
+  <hr>
+  <p class="muted small">
+    Kartfliser: OpenStreetMap (© bidragsytere), topo-kart fra Kartverket (åpent), Esri World Imagery.
+    Værdata fra MET Norway. Alt kjører lokalt — ingen tracking.
+  </p>
+</main>
+
+<footer>
+  <div class="footer-content">
+    <div>© 2026 — Heming Westad</div>
+    <div>Trondheim · <a href="https://github.com/hemingwestad-glitch/Nettside-public">kildekode</a></div>
+  </div>
+</footer>
+
+<script src="/common.js"></script>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+<script>
+const $ = id => document.getElementById(id);
+
+// Default Trondheim
+let startLat = 63.4305, startLon = 10.3951, startZoom = 8;
+// Hash-init
+if (location.hash) {
+  const m = location.hash.match(/#?(-?\d+\.?\d*),(-?\d+\.?\d*)(?:,(\d+))?/);
+  if (m) { startLat = +m[1]; startLon = +m[2]; if (m[3]) startZoom = +m[3]; }
+}
+
+const map = L.map('map', { center: [startLat, startLon], zoom: startZoom, scrollWheelZoom: true });
+
+const osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  maxZoom: 18, attribution: '© OpenStreetMap-bidragsytere'
+});
+const topo = L.tileLayer('https://cache.kartverket.no/v1/wmts/1.0.0/topo/default/webmercator/{z}/{y}/{x}.png', {
+  maxZoom: 17, attribution: '© Kartverket'
+});
+const sat = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+  maxZoom: 18, attribution: 'Esri World Imagery'
+});
+topo.addTo(map);
+L.control.layers({
+  'Topografisk (Kartverket)': topo,
+  'OpenStreetMap': osm,
+  'Satellitt': sat
+}).addTo(map);
+L.control.scale({ imperial: false, position: 'bottomleft' }).addTo(map);
+
+let marker = null;
+
+map.on('click', e => {
+  setLocation(e.latlng.lat, e.latlng.lng);
+});
+
+function setLocation(lat, lon) {
+  if (marker) map.removeLayer(marker);
+  marker = L.marker([lat, lon]).addTo(map);
+  $('map-coords').textContent = `${lat.toFixed(4)}° N · ${lon.toFixed(4)}° E`;
+  location.hash = `${lat.toFixed(4)},${lon.toFixed(4)},${map.getZoom()}`;
+  loadInfo(lat, lon);
+}
+
+async function loadInfo(lat, lon) {
+  const panel = $('info-panel');
+  panel.innerHTML = `<p class="muted">Henter data for ${lat.toFixed(4)}°, ${lon.toFixed(4)}°…</p>`;
+  // Parallelle hent
+  const [weather, place] = await Promise.allSettled([
+    fetch(`https://api.met.no/weatherapi/locationforecast/2.0/compact?lat=${lat.toFixed(4)}&lon=${lon.toFixed(4)}`).then(r => r.json()),
+    fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lon}&zoom=10&accept-language=no`).then(r => r.json()).catch(() => null)
+  ]);
+
+  let html = '';
+  const placeName = place.status === 'fulfilled' && place.value && place.value.display_name
+    ? place.value.display_name.split(',').slice(0, 2).join(',').trim()
+    : 'Ukjent sted';
+  html += `<h3>${placeName}</h3>`;
+  html += `<div class="muted small" style="margin-bottom:0.5rem;">${lat.toFixed(4)}°, ${lon.toFixed(4)}°</div>`;
+
+  if (weather.status === 'fulfilled') {
+    const w = weather.value.properties.timeseries[0];
+    const next6 = w.data.next_6_hours?.details || {};
+    const next12 = weather.value.properties.timeseries.slice(0, 12);
+    const inst = w.data.instant.details;
+    html += '<h3>Akkurat nå</h3>';
+    html += rowStat('Temperatur', inst.air_temperature?.toFixed(1) + ' °C');
+    html += rowStat('Lufttrykk', inst.air_pressure_at_sea_level?.toFixed(0) + ' hPa');
+    html += rowStat('Vind', `${inst.wind_speed?.toFixed(1)} m/s @ ${inst.wind_from_direction?.toFixed(0)}°`);
+    html += rowStat('Skydekke', inst.cloud_area_fraction?.toFixed(0) + ' %');
+    html += rowStat('Nedbør neste 6t', (next6.precipitation_amount || 0).toFixed(1) + ' mm');
+
+    // Trend
+    const press12 = next12[next12.length - 1]?.data.instant.details.air_pressure_at_sea_level;
+    if (press12 && inst.air_pressure_at_sea_level) {
+      const trend = press12 - inst.air_pressure_at_sea_level;
+      html += rowStat('Trykk-trend 12t', (trend >= 0 ? '+' : '') + trend.toFixed(1) + ' hPa');
+    }
+  } else {
+    html += `<p class="muted small">Klarte ikke hente vær.</p>`;
+  }
+
+  // Sol/måne — bruk forenklet egen beregning
+  const sun = computeSunTimes(new Date(), lat, lon);
+  html += '<h3>Sol</h3>';
+  html += rowStat('Soloppgang', sun.rise || '—');
+  html += rowStat('Solnedgang', sun.set || '—');
+  html += rowStat('Dagens lengde', sun.length || '—');
+
+  // Lenker
+  html += '<h3>Åpne i …</h3>';
+  html += `<div style="display:flex;gap:0.4rem;flex-wrap:wrap;margin-top:0.4rem;">
+    <a class="btn secondary" href="/tools/fishing.html#${lat.toFixed(4)},${lon.toFixed(4)}">Fiske</a>
+    <a class="btn secondary" href="/tools/sun.html">Sol/måne</a>
+    <a class="btn secondary" href="/tools/aurora.html">Nordlys</a>
+    <a class="btn secondary" href="/tools/aviation.html">Vind</a>
+  </div>`;
+
+  panel.innerHTML = html;
+}
+
+function rowStat(label, value) {
+  return `<div class="row-stat"><span class="label">${label}</span><span class="value">${value || '—'}</span></div>`;
+}
+
+/* ─── Forenklet sol-opp/-ned (NOAA-formel) ─── */
+function computeSunTimes(date, lat, lon) {
+  const RAD = Math.PI / 180;
+  const Y = date.getFullYear(), M = date.getMonth(), D = date.getDate();
+  function jd(d) { return d.getTime() / 86400000 + 2440587.5; }
+  function jc(j) { return (j - 2451545.0) / 36525.0; }
+  function meanLong(T) { return ((280.46646 + T*(36000.76983 + T*0.0003032)) % 360 + 360) % 360; }
+  function meanAnom(T) { return 357.52911 + T*(35999.05029 - T*0.0001537); }
+  function eqOfCenter(T, M) {
+    const mr = M * RAD;
+    return Math.sin(mr) * (1.914602 - T*(0.004817 + T*0.000014))
+         + Math.sin(2*mr) * (0.019993 - T*0.000101)
+         + Math.sin(3*mr) * 0.000289;
+  }
+  function obliquity(T) {
+    const e0 = 23 + (26 + (21.448 - T*(46.815 + T*(0.00059 - T*0.001813)))/60) / 60;
+    return e0 + 0.00256 * Math.cos((125.04 - 1934.136*T) * RAD);
+  }
+  function dec(T) {
+    const e = obliquity(T) * RAD;
+    const lam = (meanLong(T) + eqOfCenter(T, meanAnom(T))) * RAD;
+    return Math.asin(Math.sin(e) * Math.sin(lam)) / RAD;
+  }
+  function eqTime(T) {
+    const e = obliquity(T) * RAD, L = meanLong(T) * RAD, M = meanAnom(T) * RAD;
+    const ecc = 0.016708634 - T*(0.000042037 + T*0.0000001267);
+    const y = Math.tan(e/2)**2;
+    return (y*Math.sin(2*L) - 2*ecc*Math.sin(M) + 4*ecc*y*Math.sin(M)*Math.cos(2*L)
+            - 0.5*y*y*Math.sin(4*L) - 1.25*ecc*ecc*Math.sin(2*M)) * 4 / RAD;
+  }
+  function hourAngle(alt, lat, dec) {
+    const c = (Math.sin(alt*RAD) - Math.sin(lat*RAD)*Math.sin(dec*RAD)) / (Math.cos(lat*RAD)*Math.cos(dec*RAD));
+    return c > 1 || c < -1 ? null : Math.acos(c) / RAD;
+  }
+  function timeFor(isRise) {
+    let t = Date.UTC(Y, M, D, 12) - lon * 4 * 60 * 1000;
+    for (let i = 0; i < 4; i++) {
+      const T = jc(jd(new Date(t)));
+      const d = dec(T), eot = eqTime(T);
+      const H = hourAngle(-0.833, lat, d);
+      if (H === null) return null;
+      const noon = Date.UTC(Y, M, D, 12) - (lon * 4 + eot) * 60 * 1000;
+      t = isRise ? noon - H * 4 * 60 * 1000 : noon + H * 4 * 60 * 1000;
+    }
+    return new Date(t);
+  }
+  const rise = timeFor(true), set = timeFor(false);
+  const fmt = d => d ? d.toLocaleTimeString('nb-NO', { hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Oslo' }) : null;
+  let length = null;
+  if (rise && set) {
+    const mins = Math.round((set - rise) / 60000);
+    length = `${Math.floor(mins/60)} t ${mins%60} m`;
+  } else if (rise || set) {
+    length = rise ? '24 t (midnattssol)' : '0 t (mørketid)';
+  }
+  return { rise: fmt(rise), set: fmt(set), length };
+}
+
+// Trigge initial last hvis vi har hash
+if (location.hash) setLocation(startLat, startLon);
+</script>
+</body>
+</html>

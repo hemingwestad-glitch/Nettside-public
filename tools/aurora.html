@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="no" spellcheck="false">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nordlys-varsel — Heming Westad</title>
+<meta name="description" content="Live Kp-index, solvinddata og skydekke. Sannsynlighet for nordlys i kveld over valgt lokasjon.">
+<meta name="author" content="Heming Westad">
+<link rel="canonical" href="https://hemingwestad.no/tools/aurora.html">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="/favicon.ico" sizes="any">
+<meta name="theme-color" content="#b8552e">
+<meta property="og:title" content="Nordlys-varsel — Heming Westad">
+<meta property="og:description" content="Kp-index, solvind, skydekke. Vil du se nordlys i kveld?">
+<meta property="og:image" content="https://hemingwestad.no/og-image.png">
+<meta property="og:url" content="https://hemingwestad.no/tools/aurora.html">
+<meta property="og:type" content="website">
+<meta property="og:locale" content="nb_NO">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..700;1,9..144,400&family=Inter+Tight:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/style.css">
+<style>
+  .kp-bar { display: flex; gap: 1px; margin: 0.5rem 0; }
+  .kp-bar .kp-cell { flex: 1; height: 28px; display: flex; align-items: center; justify-content: center; font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; color: #fff; }
+  .verdict-box { padding: 1rem 1.2rem; border-radius: 4px; margin: 1rem 0; border-left: 4px solid var(--rule); }
+  .verdict-box.good { background: rgba(90, 107, 62, 0.1); border-left-color: var(--green); }
+  .verdict-box.ok   { background: rgba(200, 152, 50, 0.1); border-left-color: var(--warn); }
+  .verdict-box.bad  { background: rgba(184, 85, 46, 0.08); border-left-color: var(--accent); }
+  .verdict-box .v-headline { font-family: var(--font-display); font-size: 1.4rem; margin-bottom: 0.3rem; }
+</style>
+</head>
+<body>
+<header>
+  <div class="logo"><a href="/">Heming Westad<span class="dot">.</span></a></div>
+  <nav>
+    <ul>
+      <li><a href="/">heim</a></li>
+      <li><a href="/tools.html" class="current">verktøy</a></li>
+      <li><a href="/projects.html">prosjekter</a></li>
+      <li><a href="/now.html">nå</a></li>
+      <li><a href="/about.html">om</a></li>
+    </ul>
+  </nav>
+</header>
+
+<main>
+  <div class="page-meta fade-up">
+    <span><span class="dot live"></span>Nordlys-varsel</span>
+    <span>NOAA SWPC · MET Norway</span>
+    <span id="aurora-loc">Trondheim</span>
+  </div>
+
+  <h1 class="fade-up">Nordlys <em>i kveld?</em></h1>
+  <p class="lede fade-up">
+    Live Kp-index, solvinddata og lokalt skydekke. Vurderer sannsynligheten for synlig nordlys
+    fra valgt lokasjon i de neste 24 timene.
+  </p>
+
+  <div class="panel">
+    <div class="panel-title">Lokasjon</div>
+    <div class="field-row">
+      <div class="field">
+        <label>Forhåndsvalg</label>
+        <select id="loc-preset">
+          <option value="63.4305,10.3951,Trondheim">Trondheim</option>
+          <option value="69.6492,18.9553,Tromsø">Tromsø</option>
+          <option value="78.2232,15.6267,Longyearbyen">Longyearbyen</option>
+          <option value="68.4385,17.4272,Narvik">Narvik</option>
+          <option value="59.9139,10.7522,Oslo">Oslo</option>
+          <option value="60.3913,5.3221,Bergen">Bergen</option>
+          <option value="59.5611,9.2614,Notodden">Notodden</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Bredde</label>
+        <input type="number" id="lat" value="63.4305" step="0.0001">
+      </div>
+      <div class="field">
+        <label>Lengde</label>
+        <input type="number" id="lon" value="10.3951" step="0.0001">
+      </div>
+      <div class="field" style="align-self:flex-end;">
+        <button id="refresh">Oppdater</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="verdict-out"></div>
+
+  <h2 class="section-header">Romvær akkurat nå</h2>
+  <div class="stat-grid">
+    <div class="stat accent"><div class="stat-label">Kp-index</div><div class="stat-value" id="kp">—</div></div>
+    <div class="stat"><div class="stat-label">Bz (nT)</div><div class="stat-value" id="bz">—</div></div>
+    <div class="stat blue"><div class="stat-label">Solvind</div><div class="stat-value" id="sw-speed">—</div></div>
+    <div class="stat"><div class="stat-label">Tetthet</div><div class="stat-value" id="sw-density">—</div></div>
+  </div>
+
+  <h2 class="section-header">Kp neste 3 dager</h2>
+  <div class="kp-bar" id="kp-forecast"></div>
+  <p class="muted small" id="kp-forecast-meta">3-timers prognose fra NOAA SWPC</p>
+
+  <h2 class="section-header">Lokalt vær neste 12 timer</h2>
+  <div class="stat-grid">
+    <div class="stat"><div class="stat-label">Skydekke nå</div><div class="stat-value" id="clouds-now">—</div></div>
+    <div class="stat"><div class="stat-label">Snitt 12t</div><div class="stat-value" id="clouds-avg">—</div></div>
+    <div class="stat blue"><div class="stat-label">Best vindu</div><div class="stat-value" id="best-window">—</div></div>
+    <div class="stat accent"><div class="stat-label">Månefase</div><div class="stat-value" id="moonphase">—</div></div>
+  </div>
+
+  <div class="chart">
+    <div class="chart-title">Skydekke + solhøyde gjennom natten</div>
+    <svg id="cloud-chart" viewBox="0 0 800 220" preserveAspectRatio="none"></svg>
+  </div>
+
+  <h2 class="section-header">Slik leser du tallene</h2>
+  <div class="uses-table">
+    <div class="row"><div class="label">Kp 0-2</div><div class="value">Lavt — nordlys typisk bare nord for polarkretsen.</div></div>
+    <div class="row"><div class="label">Kp 3-4</div><div class="value">Moderat — nordlys synlig fra Trøndelag og nordover.</div></div>
+    <div class="row"><div class="label">Kp 5-6</div><div class="value">Sterk — nordlys helt ned i Sør-Norge. Ofte sterk og dansende.</div></div>
+    <div class="row"><div class="label">Kp 7+</div><div class="value">Geomagnetisk storm. Spektakulært. Mulig fra Danmark.</div></div>
+    <div class="row"><div class="label">Bz negativ</div><div class="value">Sør-rettet magnetfelt fra solen — kobler best med jordens. Mer aktivitet.</div></div>
+    <div class="row"><div class="label">Solvind &gt;500 km/s</div><div class="value">Hurtig vind = mer energi inn i magnetosfæren.</div></div>
+  </div>
+
+  <hr>
+  <p class="muted small">
+    Data: Kp og solvind fra <a href="https://services.swpc.noaa.gov" target="_blank" rel="noopener">NOAA SWPC</a>.
+    Skydekke fra <a href="https://api.met.no" target="_blank" rel="noopener">MET Norway</a>.
+    Nordlys-modell basert på OvationPrime — for nøyaktig prognose se <a href="https://www.swpc.noaa.gov/products/aurora-30-minute-forecast" target="_blank" rel="noopener">SWPC Aurora Forecast</a>.
+  </p>
+</main>
+
+<footer>
+  <div class="footer-content">
+    <div>© 2026 — Heming Westad</div>
+    <div>Trondheim · <a href="https://github.com/hemingwestad-glitch/Nettside-public">kildekode</a></div>
+  </div>
+</footer>
+
+<script src="/common.js"></script>
+<script>
+const $ = id => document.getElementById(id);
+let CURRENT_LAT = 63.4305, CURRENT_LON = 10.3951, CURRENT_NAME = 'Trondheim';
+
+$('loc-preset').addEventListener('change', e => {
+  const [lat, lon, name] = e.target.value.split(',');
+  $('lat').value = lat;
+  $('lon').value = lon;
+  CURRENT_LAT = +lat; CURRENT_LON = +lon; CURRENT_NAME = name;
+  $('aurora-loc').textContent = name;
+  refresh();
+});
+$('refresh').addEventListener('click', () => {
+  CURRENT_LAT = +$('lat').value;
+  CURRENT_LON = +$('lon').value;
+  refresh();
+});
+
+async function refresh() {
+  fetchKp();
+  fetchSolarWind();
+  fetchClouds();
+  showMoonPhase();
+}
+
+function kpColor(kp) {
+  if (kp < 3) return '#5a6b3e';
+  if (kp < 5) return '#c89832';
+  if (kp < 7) return '#b8552e';
+  return '#8c3e1f';
+}
+
+async function fetchKp() {
+  try {
+    // 3-hour Kp planetary
+    const r = await fetch('https://services.swpc.noaa.gov/products/noaa-planetary-k-index.json');
+    if (!r.ok) throw new Error('Kp');
+    const data = await r.json();
+    // Format: [["time_tag","Kp","a_running","station_count"], ...]
+    const rows = data.slice(1).map(r => ({ t: new Date(r[0] + 'Z'), kp: +r[1] }));
+    const latest = rows[rows.length - 1];
+    if (latest) {
+      $('kp').innerHTML = latest.kp.toFixed(1);
+      $('kp').style.color = kpColor(latest.kp);
+    }
+    // 3-day forecast endpoint
+    const r2 = await fetch('https://services.swpc.noaa.gov/products/noaa-planetary-k-index-forecast.json');
+    if (r2.ok) {
+      const fc = await r2.json();
+      const fcRows = fc.slice(1).map(r => ({ t: new Date(r[0] + 'Z'), kp: +r[1] }));
+      renderKpForecast(fcRows);
+    }
+    updateVerdict();
+  } catch (e) { console.warn(e); }
+}
+
+function renderKpForecast(rows) {
+  const cont = $('kp-forecast');
+  // Vis ~24 verdier (3 dager × 8/dag = 24)
+  const slice = rows.slice(0, 24);
+  cont.innerHTML = slice.map(r => `
+    <div class="kp-cell" style="background:${kpColor(r.kp)}" title="${r.t.toLocaleString('nb-NO')}">${r.kp.toFixed(0)}</div>
+  `).join('');
+}
+
+async function fetchSolarWind() {
+  try {
+    const r = await fetch('https://services.swpc.noaa.gov/products/solar-wind/plasma-1-day.json');
+    const data = await r.json();
+    const latest = data[data.length - 1];
+    if (latest) {
+      $('sw-density').innerHTML = (+latest[1]).toFixed(1) + '<span class="stat-unit">p/cm³</span>';
+      $('sw-speed').innerHTML = (+latest[2]).toFixed(0) + '<span class="stat-unit">km/s</span>';
+    }
+    const r2 = await fetch('https://services.swpc.noaa.gov/products/solar-wind/mag-1-day.json');
+    const mag = await r2.json();
+    const latestM = mag[mag.length - 1];
+    if (latestM) {
+      $('bz').innerHTML = (+latestM[3]).toFixed(1);
+      const bz = +latestM[3];
+      $('bz').style.color = bz < -5 ? 'var(--green)' : bz < 0 ? 'var(--warn)' : 'var(--ink)';
+    }
+    updateVerdict();
+  } catch (e) { console.warn(e); }
+}
+
+async function fetchClouds() {
+  try {
+    const r = await fetch(`https://api.met.no/weatherapi/locationforecast/2.0/compact?lat=${CURRENT_LAT.toFixed(4)}&lon=${CURRENT_LON.toFixed(4)}`);
+    if (!r.ok) throw new Error('MET');
+    const data = await r.json();
+    const ts = data.properties.timeseries.slice(0, 12);
+    const now = ts[0].data.instant.details;
+    const cloudNow = now.cloud_area_fraction || 0;
+    $('clouds-now').innerHTML = cloudNow.toFixed(0) + '<span class="stat-unit">%</span>';
+    const avg = ts.reduce((s, t) => s + (t.data.instant.details.cloud_area_fraction || 0), 0) / ts.length;
+    $('clouds-avg').innerHTML = avg.toFixed(0) + '<span class="stat-unit">%</span>';
+    // Best vindu: laveste skydekke i nattevindu
+    let best = { val: 100, time: null };
+    ts.forEach(t => {
+      const c = t.data.instant.details.cloud_area_fraction || 0;
+      if (c < best.val) best = { val: c, time: new Date(t.time) };
+    });
+    if (best.time) {
+      $('best-window').innerHTML = best.time.toLocaleTimeString('nb-NO',{hour:'2-digit',minute:'2-digit'}) + '<span class="stat-unit">@ ' + best.val.toFixed(0) + '%</span>';
+    }
+    drawCloudChart(ts);
+    updateVerdict();
+  } catch (e) { console.warn(e); }
+}
+
+function drawCloudChart(ts) {
+  const W = 800, H = 220, m = { l: 50, r: 16, t: 16, b: 30 };
+  const w = W - m.l - m.r, h = H - m.t - m.b;
+  let s = '';
+  // Y-grid
+  for (let pct = 0; pct <= 100; pct += 25) {
+    const y = m.t + h - (pct / 100) * h;
+    s += `<line x1="${m.l}" y1="${y}" x2="${W - m.r}" y2="${y}" stroke="#e6e0d2"/>`;
+    s += `<text x="${m.l - 6}" y="${y + 4}" text-anchor="end" fill="#9a9087" font-family="JetBrains Mono" font-size="10">${pct}%</text>`;
+  }
+  // Tidsmerker
+  ts.forEach((t, i) => {
+    if (i % 2 === 0) {
+      const x = m.l + (i / (ts.length - 1)) * w;
+      s += `<text x="${x}" y="${H - 8}" text-anchor="middle" fill="#6b645b" font-family="JetBrains Mono" font-size="10">${new Date(t.time).getHours().toString().padStart(2,'0')}</text>`;
+    }
+  });
+  // Skydekke-bar
+  ts.forEach((t, i) => {
+    const c = t.data.instant.details.cloud_area_fraction || 0;
+    const x = m.l + (i / (ts.length - 1)) * w;
+    const y = m.t + h - (c / 100) * h;
+    s += `<rect x="${x - 12}" y="${y}" width="24" height="${m.t + h - y}" fill="${c > 75 ? '#9a9087' : c > 25 ? '#d6cfc1' : '#5a6b3e'}" opacity="0.55"/>`;
+  });
+  $('cloud-chart').innerHTML = s;
+}
+
+function showMoonPhase() {
+  const j = (new Date().getTime() / 86400000 + 2440587.5) - 2451550.1;
+  const phase = ((j / 29.530588853) % 1 + 1) % 1;
+  const illum = 0.5 * (1 - Math.cos(2 * Math.PI * phase));
+  const names = ['Nymåne','Tilt. sigd','Halvmåne','Tilt. full','Fullmåne','Avt. full','Halvmåne','Avt. sigd'];
+  const idx = Math.floor((phase + 1/16) * 8) % 8;
+  $('moonphase').innerHTML = names[idx] + '<span class="stat-unit">' + Math.round(illum * 100) + '%</span>';
+}
+
+function updateVerdict() {
+  const kp = parseFloat($('kp').textContent);
+  const bz = parseFloat($('bz').textContent);
+  const clouds = parseFloat($('clouds-now').textContent);
+  if (isNaN(kp) || isNaN(clouds)) return;
+  // Auroral oval-kant: ~60° geomagnetisk ved Kp 4. Trondheim er ~64° geomagnetisk.
+  // Forenklet: synlighet hvis Kp ≥ kpThreshold for breddegrad
+  const lat = CURRENT_LAT;
+  let kpThreshold = 5;
+  if (lat >= 70) kpThreshold = 1;
+  else if (lat >= 67) kpThreshold = 2;
+  else if (lat >= 64) kpThreshold = 3;
+  else if (lat >= 60) kpThreshold = 5;
+  else if (lat >= 55) kpThreshold = 6;
+  else kpThreshold = 7;
+  const kpOK = kp >= kpThreshold;
+  const bzOK = isNaN(bz) || bz < 0;
+  const cloudOK = clouds < 60;
+  let cls, headline, body;
+  if (kpOK && bzOK && cloudOK) {
+    cls = 'good';
+    headline = 'Stor sjanse for nordlys i kveld';
+    body = `Kp ${kp.toFixed(1)} er over terskelen for ${CURRENT_NAME} (${kpThreshold}). Bz er ${bz < 0 ? 'sør-rettet — bra' : 'flat'}. Skydekke ${clouds.toFixed(0)}% — du har klare flekker.`;
+  } else if (kpOK && cloudOK) {
+    cls = 'good';
+    headline = 'God sjanse, men Bz ikke optimal';
+    body = `Kp ${kp.toFixed(1)} holder, klart vær. Aktiviteten kan komme i bølger — sjekk himmelen flere ganger.`;
+  } else if (kpOK && !cloudOK) {
+    cls = 'ok';
+    headline = 'Aktivitet er der, men det er overskyet';
+    body = `Kp ${kp.toFixed(1)} > ${kpThreshold}, men ${clouds.toFixed(0)}% skydekke. Sjekk best-vindu under for åpningen.`;
+  } else if (!kpOK && cloudOK) {
+    cls = 'ok';
+    headline = 'Klar himmel, men lav aktivitet';
+    body = `Kp ${kp.toFixed(1)} er under terskelen for ${CURRENT_NAME} (trenger ≥${kpThreshold}). Sjekk SWPC for plutselige solstormer.`;
+  } else {
+    cls = 'bad';
+    headline = 'Sannsynligvis ikke i kveld';
+    body = `Kp ${kp.toFixed(1)} (trenger ≥${kpThreshold}) og ${clouds.toFixed(0)}% skydekke. Begge faktorene jobber mot deg.`;
+  }
+  $('verdict-out').innerHTML = `<div class="verdict-box ${cls}">
+    <div class="v-headline">${headline}</div>
+    <div>${body}</div>
+  </div>`;
+}
+
+refresh();
+</script>
+</body>
+</html>

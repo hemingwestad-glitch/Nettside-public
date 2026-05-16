@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="no" spellcheck="false">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Antenne-designer — Heming Westad</title>
+<meta name="description" content="Full geometri for dipol, yagi, QFH, aksial helix — klar for bygging. Med materialliste og toleranser.">
+<meta name="author" content="Heming Westad">
+<link rel="canonical" href="https://hemingwestad.no/tools/antenna-builder.html">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="/favicon.ico" sizes="any">
+<meta name="theme-color" content="#b8552e">
+<meta property="og:title" content="Antenne-designer — Heming Westad">
+<meta property="og:description" content="Hjemmesnekret antenne fra dimensjoner til BOM.">
+<meta property="og:image" content="https://hemingwestad.no/og-image.png">
+<meta property="og:url" content="https://hemingwestad.no/tools/antenna-builder.html">
+<meta property="og:type" content="website">
+<meta property="og:locale" content="nb_NO">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..700;1,9..144,400&family=Inter+Tight:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/style.css">
+<style>
+  .geom-svg { width: 100%; max-width: 720px; height: auto; background: var(--bg-card); border: 1px solid var(--rule); margin: 1rem 0; }
+  .geom-svg .ant-bone { stroke: var(--accent); stroke-width: 3; }
+  .geom-svg .ant-bone-2 { stroke: var(--blue); stroke-width: 2; }
+  .geom-svg .ant-boom { stroke: var(--ink-soft); stroke-width: 2; }
+  .geom-svg .ant-label { font-family: 'JetBrains Mono', monospace; font-size: 11px; fill: var(--ink-soft); }
+  .geom-svg .ant-dim { stroke: var(--ink-dim); stroke-width: 0.5; stroke-dasharray: 2,2; }
+  .bom-table td.num { text-align: right; }
+</style>
+</head>
+<body>
+<header>
+  <div class="logo"><a href="/">Heming Westad<span class="dot">.</span></a></div>
+  <nav>
+    <ul>
+      <li><a href="/">heim</a></li>
+      <li><a href="/tools.html" class="current">verktøy</a></li>
+      <li><a href="/projects.html">prosjekter</a></li>
+      <li><a href="/now.html">nå</a></li>
+      <li><a href="/about.html">om</a></li>
+    </ul>
+  </nav>
+</header>
+
+<main>
+  <div class="page-meta fade-up">
+    <span>Antenne-designer</span>
+    <span>VHF · UHF · L-bånd</span>
+    <span>Geometri + BOM</span>
+  </div>
+
+  <h1 class="fade-up">Antenne fra <em>idé til bygg</em>.</h1>
+  <p class="lede fade-up">
+    Velg type, mat inn frekvens — få ferdig geometri, kuttplan og materialliste.
+    Bygd for hjemme-radioamatøren med rør, koaks og litt skum.
+  </p>
+
+  <div class="panel">
+    <div class="panel-title">Designparametre</div>
+    <div class="field-row">
+      <div class="field">
+        <label>Type</label>
+        <select id="ant-type">
+          <option value="dipole">Halvbølge dipol</option>
+          <option value="inv-v">Inverted-V dipol</option>
+          <option value="ground">Vertikal kvartbølge m. radialer</option>
+          <option value="jpole">J-pole (omnidir VHF/UHF)</option>
+          <option value="yagi3">Yagi 3-elements</option>
+          <option value="yagi5">Yagi 5-elements</option>
+          <option value="yagi7">Yagi 7-elements</option>
+          <option value="qfh">QFH (kvadrifilar helix)</option>
+          <option value="helix">Aksial helix (sirkulær polarisering)</option>
+          <option value="discone">Discone (bredbånd)</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Frekvens (MHz) <span class="help-tip" data-tip="Senterfrekvens. Båndbredden vil variere med type — yagi er smal, discone er bred.">?</span></label>
+        <input type="number" id="ant-freq" value="437" step="0.1" min="1">
+      </div>
+      <div class="field">
+        <label>Materiale <span class="help-tip" data-tip="Velocity factor avgjør hvor mye antennen krymper. Massivt kobber: 0.97. Loddet draft-rør: 0.95. Aluminiumsrør: 0.95. Koaks: 0.66-0.86.">?</span></label>
+        <select id="ant-vf">
+          <option value="0.97">Massiv kobber / draftrør (VF 0.97)</option>
+          <option value="0.95" selected>Aluminium-rør / massive (VF 0.95)</option>
+          <option value="0.90">Tynn tråd / litz (VF 0.90)</option>
+          <option value="0.66">RG-58 koaks-kjerne (VF 0.66)</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Diameter på rør/tråd (mm) <span class="help-tip" data-tip="Påvirker resonans og båndbredde. Tykkere rør = bredere bånd.">?</span></label>
+        <input type="number" id="ant-d" value="6" step="0.5" min="0.5">
+      </div>
+    </div>
+  </div>
+
+  <h2 class="section-header">Resultat <span class="count" id="ant-band-tag">—</span></h2>
+
+  <div class="stat-grid">
+    <div class="stat"><div class="stat-label">Bølgelengde (luft)</div><div class="stat-value" id="ant-lambda">—</div></div>
+    <div class="stat blue"><div class="stat-label">Hovedmål</div><div class="stat-value" id="ant-main-len">—</div></div>
+    <div class="stat accent"><div class="stat-label">Forventet gain</div><div class="stat-value" id="ant-gain">—</div></div>
+    <div class="stat"><div class="stat-label">3 dB åpning</div><div class="stat-value" id="ant-bw">—</div></div>
+  </div>
+
+  <h2 class="section-header">Geometri</h2>
+  <div id="ant-svg-wrap"><svg class="geom-svg" id="ant-svg" viewBox="0 0 720 320"></svg></div>
+
+  <h2 class="section-header">Kuttplan</h2>
+  <div id="ant-cuts"></div>
+
+  <h2 class="section-header">Materialliste (BOM)</h2>
+  <div id="ant-bom"></div>
+
+  <h2 class="section-header">Bygg-tips</h2>
+  <div id="ant-tips"></div>
+
+  <hr>
+  <p class="muted small">
+    Estimater basert på tommelfingerregler (Kraus, Balanis). Reell resonansfrekvens
+    påvirkes av nærliggende metall, plassering over bakke, og koaks-mating. Alltid
+    test med VNA / SWR-meter før vær-permanent montering. Forskjellen mellom
+    "fungerer" og "virker bra" er ofte 5 mm.
+  </p>
+</main>
+
+<footer>
+  <div class="footer-content">
+    <div>© 2026 — Heming Westad</div>
+    <div>Trondheim · <a href="https://github.com/hemingwestad-glitch/Nettside-public">kildekode</a></div>
+  </div>
+</footer>
+
+<script src="/common.js"></script>
+<script>
+const $ = id => document.getElementById(id);
+const C = 299.792458; // MHz·m
+
+function band(f) {
+  if (f < 30) return 'HF';
+  if (f < 300) return 'VHF';
+  if (f < 3000) return 'UHF';
+  if (f < 30000) return 'SHF';
+  return 'EHF';
+}
+
+function calc() {
+  const type = $('ant-type').value;
+  const f = +$('ant-freq').value;
+  const vf = +$('ant-vf').value;
+  const d = +$('ant-d').value;
+  if (!f || f <= 0) return;
+  const lambda = C / f; // m, in air
+  const lambda_eff = lambda * vf; // i materialet
+
+  let mainLen, gain, bw, geom, cuts, bom, tips;
+  const cm = m => (m * 100).toFixed(1) + ' cm';
+
+  switch (type) {
+    case 'dipole': {
+      const arm = lambda_eff / 4;
+      mainLen = lambda_eff / 2;
+      gain = 2.15;
+      bw = 78;
+      geom = drawDipole(arm);
+      cuts = [
+        { name: '2× armer', q: 2, len: arm * 1000, note: 'Kutt 5 mm lengre. Beskjær under SWR-måling.' }
+      ];
+      bom = [
+        ['Rør/tråd', `2× ${cm(arm)} (${d} mm diam)`],
+        ['Senter-isolator', 'Plast / PVC (35×20×8 mm)'],
+        ['Koaks-mating', 'RG-58, 50 Ω, så kort som mulig før choke'],
+        ['Choke balun', '1:1 ferrit (FT240-43, 8 viklinger) eller 10 vindinger koaks i 10 cm diam']
+      ];
+      tips = [
+        'Senter-impedans i fri-rom: 73 Ω. Bra match til 50 Ω.',
+        'Lavere over bakke: 50 Ω er typisk ved λ/4 høyde.',
+        'Sett opp i ren V (~120°) eller horisontalt for omni-azimut.'
+      ];
+      break;
+    }
+    case 'inv-v': {
+      const arm = lambda_eff / 4 * 0.97; // ~3% kortere pga droop
+      mainLen = arm * 2;
+      gain = 1.5;
+      bw = 65;
+      geom = drawInvertedV(arm);
+      cuts = [
+        { name: '2× armer', q: 2, len: arm * 1000, note: 'Henges ned i V med ~120° mellom armene.' }
+      ];
+      bom = [
+        ['Tråd', `2× ${cm(arm)} (kobber-litz eller massiv)`],
+        ['Senter-isolator', 'For oppheng i mast'],
+        ['Ende-isolatorer', '2 stk for oppheng i tau'],
+        ['Koaks + choke', 'RG-58 + 1:1 ferritbalun']
+      ];
+      tips = [
+        'Praktisk for HF/lavt VHF — plass i hagen istedenfor mast.',
+        'Vinkel 90-120° gir best ytelse. Smalere V = lavere impedans.',
+        'Trekk armene godt stramt — sagging endrer resonansen.'
+      ];
+      break;
+    }
+    case 'ground': {
+      const verticalLen = lambda_eff / 4;
+      const radialLen = lambda_eff / 4;
+      mainLen = verticalLen;
+      gain = 3.0; // mot dipol, men over bakke ofte 5 dBi
+      bw = 60;
+      geom = drawGroundPlane(verticalLen, radialLen);
+      cuts = [
+        { name: 'Vertikalt element', q: 1, len: verticalLen * 1000, note: 'Festes til SO-239 center pin.' },
+        { name: 'Radialer', q: 4, len: radialLen * 1000, note: 'Festes til SO-239 chassis. Bøyes 45° nedover for bedre match.' }
+      ];
+      bom = [
+        ['Vertikal-element', `1× ${cm(verticalLen)}`],
+        ['Radialer', `4× ${cm(radialLen)}`],
+        ['SO-239 monteringsplate', '1 stk (passer N-kontakt om du foretrekker)'],
+        ['Stativ / mast-feste', '15-20 mm rør']
+      ];
+      tips = [
+        'Bøy radialene 45° nedover for ~50 Ω matching.',
+        'Med horisontale radialer er impedansen ~36 Ω — krever transformator.',
+        'Vertikalt polarisert. Bra for omnidirekt mottak.',
+        'Plasseringen 0.5λ over jord eller mer hindrer multipath.'
+      ];
+      break;
+    }
+    case 'jpole': {
+      const longSection = lambda_eff * 3/4;
+      const shortSection = lambda_eff / 4;
+      const spacing = 25; // mm typisk
+      mainLen = longSection;
+      gain = 2.5;
+      bw = 60;
+      geom = drawJPole(longSection, shortSection);
+      cuts = [
+        { name: 'Lang seksjon (stråler)', q: 1, len: longSection * 1000, note: '3/4 λ. Topp er strålende ende.' },
+        { name: 'Kort seksjon (match)', q: 1, len: shortSection * 1000, note: '1/4 λ. Avstand 25-35 mm fra lang.' },
+        { name: 'Bunn-shortbar', q: 1, len: spacing, note: 'Kobler de to seksjonene.' }
+      ];
+      bom = [
+        ['Kobberrør 15-22 mm', `~${cm(longSection + shortSection + 0.05)} totalt`],
+        ['T-koblinger / lodd-vinkler', '2-3 stk (Yorkshire/Brass for hardlodding)'],
+        ['Feed-tap', 'Klemmer mat ca. 30-50 mm opp fra bunn. Justeres for laveste SWR.']
+      ];
+      tips = [
+        '2 m (144 MHz) jpole er en klassiker i kobberrør fra byggevarehandelen.',
+        'Feed-punkt: 50 Ω finnes empirisk. Start 5 cm opp, mål SWR, juster.',
+        'Vertikal polarisering. God omnidir for FM-repeatere.'
+      ];
+      break;
+    }
+    case 'yagi3':
+    case 'yagi5':
+    case 'yagi7': {
+      const N = +type.slice(4);
+      const dipole = lambda_eff / 2 * 0.95; // driven
+      const reflector = lambda_eff / 2 * 1.03;
+      const dir1 = lambda_eff / 2 * 0.93;
+      const elements = [];
+      // K6STI-aktig design: refl bak, driven, så dir-elementer som krymper litt
+      const positions = [0]; // refl
+      elements.push({ name: 'Refl', len: reflector, pos: 0 });
+      positions.push(lambda_eff * 0.2);
+      elements.push({ name: 'Driven', len: dipole, pos: lambda_eff * 0.2 });
+      let lastPos = lambda_eff * 0.2;
+      for (let i = 0; i < N - 2; i++) {
+        const dx = lambda_eff * (0.18 + 0.04 * i);
+        lastPos += dx;
+        const dirLen = dir1 * (1 - 0.015 * i);
+        elements.push({ name: 'Dir' + (i + 1), len: dirLen, pos: lastPos });
+      }
+      const boomLen = lastPos + 0.05;
+      mainLen = boomLen;
+      gain = 10 * Math.log10(N + 1) - 0.5; // empirical ish for ok design
+      bw = Math.max(30, 90 - N * 8);
+      geom = drawYagi(elements, boomLen);
+      cuts = elements.map(e => ({
+        name: e.name,
+        q: 1,
+        len: e.len * 1000,
+        note: `Plasseres på boom ved ${cm(e.pos)} fra refl.`
+      }));
+      cuts.push({ name: 'Boom', q: 1, len: boomLen * 1000, note: 'Isolert eller jordet — gjør elementene "isolert" gjennom u-bolts m/plast.' });
+      bom = [
+        ['Aluminiumsrør (elementer)', `${elements.length} stk, total ${cm(elements.reduce((s, e) => s + e.len, 0))}`],
+        ['Aluminium-boom', cm(boomLen)],
+        ['Boom-til-element klemmer', `${elements.length} stk u-bolts med isolerplate`],
+        ['Driven kobling', '1× gamma-match, hairpin, eller direkte 50 Ω + balun'],
+        ['Mast-feste', '1× u-bolts for vertikal/horisontal montering']
+      ];
+      tips = [
+        'Yagi er smalbåndet — designet for senterfrekvens ±2%. Utenfor det: gain faller raskt.',
+        'Driven-element-impedans: 25-35 Ω. Trenger transformer (hairpin/gamma) til 50 Ω.',
+        'Boom-jordpotensial: bruk isolerklemmer. Element-til-boom-feil er #1 design-bug.',
+        'Pek mot satellitt i overgang fra horisont — peak elev 30-60° gir best SNR.'
+      ];
+      break;
+    }
+    case 'qfh': {
+      const turns = 0.5; // half-turn helix
+      const len = lambda * 0.275; // approx for "long" type, m
+      const diameter = lambda * 0.156;
+      mainLen = len;
+      gain = 4;
+      bw = 110;
+      geom = drawQFH(diameter, len);
+      const helixWire = Math.PI * diameter * turns + len; // approx per helix loop
+      cuts = [
+        { name: '2× lange helixer', q: 2, len: helixWire * 1000, note: 'En tråd per helix, 0.5 omdreining over hele lengden.' },
+        { name: '2× korte helixer', q: 2, len: helixWire * 0.93 * 1000, note: 'Litt kortere for 90°-fasing.' }
+      ];
+      bom = [
+        ['Tråd 12 AWG (2.05 mm)', `4× ${cm(helixWire)}`],
+        ['Rør for "Spaceframe"', 'PVC 40 mm Ø, høyde ' + cm(len)],
+        ['Topp/bunn-skiver', '2× PVC-skiver med 4 hull (90° spacing)'],
+        ['Koaks-fasing', '90° fase mellom helix-par: 1/4 λ koaks-stub eller transformator']
+      ];
+      tips = [
+        'QFH = sirkulær polarisering, omnidir åpning ~120°. Ideelt for NOAA/METEOR APT/LRPT.',
+        'Bygg-tip: 32 mm PVC rør og 3 mm kobbertråd. Vinkel 0.5 omdreining over total høyde.',
+        'Test polarisering: rotér antenne over et sat-pass. SNR skal være jevnt over hele passet.',
+        'Mest pliktig av alle. Lager 4-5 dB bedre bilde enn dipol.'
+      ];
+      break;
+    }
+    case 'helix': {
+      const D = lambda / Math.PI;
+      const S = lambda * 0.25;
+      const turns = 5;
+      const L = turns * S;
+      mainLen = L;
+      gain = 11.8 + 10 * Math.log10(turns / 5);
+      bw = 52 / Math.sqrt(turns);
+      geom = drawHelix(D, L, turns);
+      const wireLen = turns * Math.sqrt((Math.PI * D) ** 2 + S ** 2);
+      cuts = [
+        { name: 'Kobbertråd til spiral', q: 1, len: wireLen * 1000, note: `${turns} omdreininger, helstigning ${cm(S)}, diameter ${cm(D)}.` },
+        { name: 'Reflektor (kvadratisk plate)', q: 1, len: lambda * 0.8 * 1000, note: 'Aluminium 0.8λ × 0.8λ.' }
+      ];
+      bom = [
+        ['Kobbertråd 4-6 mm', cm(wireLen)],
+        ['Reflektor', `Aluminium ${cm(lambda * 0.8)} × ${cm(lambda * 0.8)}`],
+        ['Støttepinne', `PVC ${cm(L + 0.1)} høy, 25 mm Ø`],
+        ['SO-239 / N-kontakt', '1 stk gjennom reflektor']
+      ];
+      tips = [
+        `Beste gain ved ${turns} omdreininger — ~${gain.toFixed(1)} dBi.`,
+        'Hovedlobe peker langs aksen. Bruk for satellitt-følging (motorisert) eller faste mål.',
+        'Sirkulær polarisering: matcher de fleste satellitter.',
+        'Impedans: ~140 Ω. Trenger transformer (1/4λ stub eller 4:1).'
+      ];
+      break;
+    }
+    case 'discone': {
+      const discR = lambda / 4;
+      const coneH = lambda / 4;
+      const coneTopR = 0.005; // small, ~5mm
+      const coneBaseR = lambda * 0.22;
+      mainLen = coneH + discR;
+      gain = 2.0;
+      bw = 4000; // veldig bred — 4 oktaver
+      geom = drawDiscone(discR, coneH, coneBaseR);
+      cuts = [
+        { name: 'Disc-radialer', q: 8, len: discR * 1000, note: 'Topp-disken. Bruk minst 8 radialer.' },
+        { name: 'Cone-radialer', q: 8, len: coneH * 1000, note: 'Konens skråsider. Også minst 8 radialer.' },
+        { name: 'Mast', q: 1, len: (coneH + 0.02) * 1000, note: 'PVC eller GRP.' }
+      ];
+      bom = [
+        ['Aluminium-stenger 4-6 mm', `${16} stk, total ${cm(16 * discR)}`],
+        ['Topp-knutepunkt', 'Hub med 8 hull (3D-print eller dreid)'],
+        ['Bunn-knutepunkt', 'Hub med 8 hull, isolert fra mast'],
+        ['SO-239 feed-tilkobling', 'Center pin → disc-hub, chassis → cone-hub'],
+        ['Mast', 'GRP/PVC ' + cm(coneH + 0.05)]
+      ];
+      tips = [
+        'Discone = bredbånd (oktaver), perfekt for skanning / VHF/UHF-mottak.',
+        'Vertikalt polarisert, omnidir.',
+        'Senterfrekvens er nedre grense — opp til ~5x senterfrekvens.',
+        'Bra som "stå-på-loft" antenne for ADS-B, FM-broadcast, amatør 2m/70cm samtidig.'
+      ];
+      break;
+    }
+  }
+
+  $('ant-band-tag').textContent = band(f) + ' · λ=' + cm(lambda);
+  $('ant-lambda').innerHTML = (lambda * 100).toFixed(1) + '<span class="stat-unit">cm</span>';
+  $('ant-main-len').innerHTML = (mainLen * 100).toFixed(1) + '<span class="stat-unit">cm</span>';
+  $('ant-gain').innerHTML = gain.toFixed(1) + '<span class="stat-unit">dBi</span>';
+  $('ant-bw').innerHTML = bw.toFixed(0) + '<span class="stat-unit">°</span>';
+  $('ant-svg').innerHTML = geom;
+
+  $('ant-cuts').innerHTML = `<table class="data-table bom-table">
+    <thead><tr><th>Del</th><th class="num">Antall</th><th class="num">Lengde</th><th>Merknad</th></tr></thead>
+    <tbody>${cuts.map(c => `
+      <tr><td><strong>${c.name}</strong></td><td class="num">${c.q}</td><td class="num">${c.len.toFixed(0)} mm</td><td class="muted small">${c.note}</td></tr>
+    `).join('')}</tbody>
+  </table>`;
+
+  $('ant-bom').innerHTML = `<table class="data-table bom-table">
+    <tbody>${bom.map(([name, val]) => `<tr><td><strong>${name}</strong></td><td>${val}</td></tr>`).join('')}</tbody>
+  </table>`;
+
+  $('ant-tips').innerHTML = '<ul>' + tips.map(t => `<li>${t}</li>`).join('') + '</ul>';
+}
+
+/* ─── SVG-tegnere ─── */
+function drawDipole(arm) {
+  const lenPx = arm * 800;
+  return `
+    <line class="ant-bone" x1="${360 - lenPx}" y1="160" x2="${360 + lenPx}" y2="160" stroke-linecap="round"/>
+    <circle cx="360" cy="160" r="6" fill="var(--accent-deep)"/>
+    <line class="ant-dim" x1="${360 - lenPx}" y1="200" x2="${360 + lenPx}" y2="200"/>
+    <text class="ant-label" x="360" y="220" text-anchor="middle">${(arm * 200).toFixed(1)} cm total</text>
+    <text class="ant-label" x="360" y="145" text-anchor="middle">←  λ/2  →</text>
+    <line class="ant-bone-2" x1="360" y1="160" x2="360" y2="260" stroke-dasharray="3,3"/>
+    <text class="ant-label" x="370" y="265">koaks-mating ↓</text>
+  `;
+}
+function drawInvertedV(arm) {
+  const lenPx = arm * 600;
+  const dropY = lenPx * 0.5;
+  return `
+    <line class="ant-bone" x1="${360 - lenPx}" y1="${100 + dropY}" x2="360" y2="100" stroke-linecap="round"/>
+    <line class="ant-bone" x1="360" y1="100" x2="${360 + lenPx}" y2="${100 + dropY}" stroke-linecap="round"/>
+    <circle cx="360" cy="100" r="6" fill="var(--accent-deep)"/>
+    <text class="ant-label" x="360" y="85" text-anchor="middle">topp-isolator</text>
+    <text class="ant-label" x="${360 - lenPx}" y="${110 + dropY}" text-anchor="end">ende-isolator</text>
+    <text class="ant-label" x="${360 + lenPx}" y="${110 + dropY}">ende-isolator</text>
+    <line class="ant-bone-2" x1="360" y1="100" x2="360" y2="260" stroke-dasharray="3,3"/>
+    <text class="ant-label" x="370" y="265">↓ koaks</text>
+  `;
+}
+function drawGroundPlane(vert, rad) {
+  const vPx = vert * 400;
+  const rPx = rad * 250;
+  return `
+    <line class="ant-bone" x1="360" y1="280" x2="360" y2="${280 - vPx}" stroke-linecap="round"/>
+    <line class="ant-bone-2" x1="360" y1="280" x2="${360 - rPx}" y2="${300}" stroke-linecap="round"/>
+    <line class="ant-bone-2" x1="360" y1="280" x2="${360 + rPx}" y2="${300}" stroke-linecap="round"/>
+    <line class="ant-bone-2" x1="360" y1="280" x2="${360 - rPx * 0.6}" y2="${290}" stroke-linecap="round"/>
+    <line class="ant-bone-2" x1="360" y1="280" x2="${360 + rPx * 0.6}" y2="${290}" stroke-linecap="round"/>
+    <circle cx="360" cy="280" r="6" fill="var(--accent-deep)"/>
+    <text class="ant-label" x="380" y="${280 - vPx/2}">vertikal ${(vert*100).toFixed(1)} cm</text>
+    <text class="ant-label" x="${360 + rPx + 5}" y="305">radialer (4×, 45° ned)</text>
+  `;
+}
+function drawJPole(long, short) {
+  const lPx = long * 300;
+  const sPx = short * 300;
+  return `
+    <line class="ant-bone" x1="340" y1="280" x2="340" y2="${280 - lPx}" stroke-linecap="round"/>
+    <line class="ant-bone-2" x1="380" y1="280" x2="380" y2="${280 - sPx}" stroke-linecap="round"/>
+    <line class="ant-boom" x1="340" y1="280" x2="380" y2="280"/>
+    <circle cx="350" cy="${280 - 30}" r="4" fill="var(--accent-deep)"/>
+    <text class="ant-label" x="320" y="${280 - lPx/2}" text-anchor="end">lang 3λ/4</text>
+    <text class="ant-label" x="395" y="${280 - sPx/2}">kort λ/4</text>
+    <text class="ant-label" x="365" y="${280 - 25}">feed-tap →</text>
+    <text class="ant-label" x="360" y="295" text-anchor="middle">short-bar</text>
+  `;
+}
+function drawYagi(elements, boomLen) {
+  const boomPx = boomLen * 250;
+  const startX = (720 - boomPx) / 2;
+  let svg = `<line class="ant-boom" x1="${startX}" y1="160" x2="${startX + boomPx}" y2="160" stroke-width="3"/>`;
+  elements.forEach((e, i) => {
+    const x = startX + e.pos * 250;
+    const halfPx = e.len * 125;
+    const color = e.name === 'Driven' ? 'var(--accent)' : (e.name === 'Refl' ? 'var(--blue)' : 'var(--ink-soft)');
+    svg += `<line x1="${x}" y1="${160 - halfPx}" x2="${x}" y2="${160 + halfPx}" stroke="${color}" stroke-width="${e.name === 'Driven' ? 3 : 2}" stroke-linecap="round"/>`;
+    svg += `<text class="ant-label" x="${x}" y="${160 + halfPx + 14}" text-anchor="middle">${e.name}</text>`;
+    svg += `<text class="ant-label" x="${x}" y="${160 - halfPx - 6}" text-anchor="middle">${(e.len * 100).toFixed(1)} cm</text>`;
+  });
+  return svg;
+}
+function drawQFH(D, L) {
+  const dPx = D * 350;
+  const lPx = L * 200;
+  const cx = 360;
+  const top = 60;
+  return `
+    <ellipse cx="${cx}" cy="${top}" rx="${dPx/2}" ry="${dPx/8}" fill="none" class="ant-bone"/>
+    <ellipse cx="${cx}" cy="${top + lPx}" rx="${dPx/2}" ry="${dPx/8}" fill="none" class="ant-bone"/>
+    <path d="M ${cx - dPx/2} ${top} Q ${cx + dPx/4} ${top + lPx*0.3}, ${cx + dPx/2} ${top + lPx}" class="ant-bone" fill="none"/>
+    <path d="M ${cx + dPx/2} ${top} Q ${cx - dPx/4} ${top + lPx*0.3}, ${cx - dPx/2} ${top + lPx}" class="ant-bone-2" fill="none"/>
+    <path d="M ${cx - dPx/2} ${top + 5} Q ${cx + dPx/4} ${top + lPx*0.4}, ${cx + dPx/2} ${top + lPx - 5}" class="ant-bone" fill="none" stroke-dasharray="3,3" opacity="0.5"/>
+    <text class="ant-label" x="${cx}" y="${top + lPx + 30}" text-anchor="middle">diam ${(D*100).toFixed(1)} cm · høyde ${(L*100).toFixed(1)} cm</text>
+    <text class="ant-label" x="${cx + dPx/2 + 10}" y="${top + lPx/2}">4 helixer, 0.5 omdr.</text>
+  `;
+}
+function drawHelix(D, L, turns) {
+  const dPx = D * 300;
+  const lPx = L * 200;
+  const cx = 360;
+  const top = 50;
+  let s = `<rect x="${cx - dPx}" y="${top + lPx + 10}" width="${dPx * 2}" height="20" fill="var(--bg-soft)" stroke="var(--ink-soft)"/>`;
+  s += `<text class="ant-label" x="${cx}" y="${top + lPx + 50}" text-anchor="middle">reflektor 0.8λ × 0.8λ</text>`;
+  for (let t = 0; t < 100; t++) {
+    const u = t / 100;
+    const angle = u * turns * 2 * Math.PI;
+    const x = cx + (dPx/2) * Math.sin(angle);
+    const y = top + u * lPx;
+    if (t === 0) s += `<path d="M ${x} ${y}`; else s += ` L ${x} ${y}`;
+  }
+  s += `" fill="none" class="ant-bone"/>`;
+  s += `<text class="ant-label" x="${cx + dPx/2 + 10}" y="${top + lPx/2}">${turns} omdr · D=${(D*100).toFixed(1)} cm</text>`;
+  return s;
+}
+function drawDiscone(discR, coneH, coneBaseR) {
+  const rPx = discR * 350;
+  const hPx = coneH * 350;
+  const baseR = coneBaseR * 350;
+  const cx = 360, topY = 100;
+  let s = '';
+  // disc
+  for (let i = 0; i < 8; i++) {
+    const a = (i * 45) * Math.PI / 180;
+    const x = cx + rPx * Math.cos(a);
+    const y = topY + rPx * Math.sin(a) * 0.3;
+    s += `<line class="ant-bone" x1="${cx}" y1="${topY}" x2="${x}" y2="${y}" stroke-linecap="round"/>`;
+  }
+  // cone
+  for (let i = 0; i < 8; i++) {
+    const a = (i * 45) * Math.PI / 180;
+    const x = cx + baseR * Math.cos(a);
+    const y = topY + hPx + baseR * Math.sin(a) * 0.3;
+    s += `<line class="ant-bone-2" x1="${cx}" y1="${topY + 15}" x2="${x}" y2="${y}" stroke-linecap="round"/>`;
+  }
+  s += `<text class="ant-label" x="${cx}" y="${topY - 10}" text-anchor="middle">disk: ${(discR*100).toFixed(1)} cm radius</text>`;
+  s += `<text class="ant-label" x="${cx}" y="${topY + hPx + 25}" text-anchor="middle">kjegle: ${(coneH*100).toFixed(1)} cm høyde</text>`;
+  return s;
+}
+
+['ant-type', 'ant-freq', 'ant-vf', 'ant-d'].forEach(id => {
+  $(id).addEventListener('input', calc);
+  $(id).addEventListener('change', calc);
+});
+calc();
+</script>
+</body>
+</html>

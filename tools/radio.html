@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="no" spellcheck="false">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Radioamatør-toolkit — Heming Westad</title>
+<meta name="description" content="Norsk bandplan, prefikser, Q-koder og en interaktiv Morse-trener. For deg som vurderer amatørlisens.">
+<meta name="author" content="Heming Westad">
+<link rel="canonical" href="https://hemingwestad.no/tools/radio.html">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="/favicon.ico" sizes="any">
+<meta name="theme-color" content="#b8552e">
+<meta property="og:title" content="Radioamatør — Heming Westad">
+<meta property="og:description" content="Bandplan, prefikser, Q-koder, Morse-trener.">
+<meta property="og:image" content="https://hemingwestad.no/og-image.png">
+<meta property="og:url" content="https://hemingwestad.no/tools/radio.html">
+<meta property="og:type" content="website">
+<meta property="og:locale" content="nb_NO">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..700;1,9..144,400&family=Inter+Tight:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/style.css">
+<style>
+  .morse-display {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 1.6rem;
+    text-align: center;
+    padding: 1.5rem;
+    background: var(--bg-card);
+    border: 1px solid var(--rule);
+    margin: 1rem 0;
+    min-height: 4rem;
+    letter-spacing: 0.1em;
+  }
+  .morse-keyer {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.5rem;
+    margin: 1rem 0;
+  }
+  .morse-keyer button {
+    padding: 1.5rem;
+    font-size: 1.2rem;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .morse-keyer button:active { background: var(--accent); color: #fff; }
+  .qcode-search { margin: 1rem 0; }
+  .bandplan-table td { font-family: 'JetBrains Mono', monospace; }
+  .bandplan-table td.use { font-family: var(--font-body); }
+</style>
+</head>
+<body>
+<header>
+  <div class="logo"><a href="/">Heming Westad<span class="dot">.</span></a></div>
+  <nav>
+    <ul>
+      <li><a href="/">heim</a></li>
+      <li><a href="/tools.html" class="current">verktøy</a></li>
+      <li><a href="/projects.html">prosjekter</a></li>
+      <li><a href="/now.html">nå</a></li>
+      <li><a href="/about.html">om</a></li>
+    </ul>
+  </nav>
+</header>
+
+<main>
+  <div class="page-meta fade-up">
+    <span>Radio-toolkit</span>
+    <span>NRRL · ITU · IARU R1</span>
+    <span>Bandplan · Morse · Q-koder</span>
+  </div>
+
+  <h1 class="fade-up">Radio-<em>toolkit</em>.</h1>
+  <p class="lede fade-up">
+    Norsk bandplan, prefiks-database, Q-koder og en Morse-trener som faktisk piper i nettleseren.
+    For deg som vurderer amatørlisens eller bare vil ha rask oppslag.
+  </p>
+
+  <div class="tabs">
+    <button class="tab active" data-tab="bandplan">Bandplan</button>
+    <button class="tab" data-tab="prefixes">Prefikser</button>
+    <button class="tab" data-tab="qcodes">Q-koder</button>
+    <button class="tab" data-tab="morse">Morse-trener</button>
+  </div>
+
+  <!-- Bandplan -->
+  <div class="tab-panel active" data-panel="bandplan">
+    <p>Forenklet norsk/IARU R1-bandplan. For full bandplan se <a href="https://www.nrrl.no" target="_blank" rel="noopener">NRRL</a>.</p>
+    <table class="data-table bandplan-table" id="bandplan-table">
+      <thead>
+        <tr><th>Bånd</th><th>Frekvens (MHz)</th><th>Mode</th><th class="use">Typisk bruk</th></tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+  <!-- Prefiks -->
+  <div class="tab-panel" data-panel="prefixes">
+    <p>Land/prefix-database. Skriv inn en call-sign (f.eks. "LA1ABC") for å finne hvor det kommer fra.</p>
+    <div class="panel">
+      <div class="field-row">
+        <div class="field">
+          <label>Call-sign eller prefiks</label>
+          <input type="text" id="prefix-input" placeholder="f.eks. LA, OH3, K1, JA, VK" maxlength="10" style="text-transform: uppercase;">
+        </div>
+      </div>
+    </div>
+    <div id="prefix-result"></div>
+    <h2 class="section-header">Vanlige nordiske/europeiske</h2>
+    <table class="data-table" id="prefix-table">
+      <thead><tr><th>Prefiks</th><th>Land</th><th>ITU-sone</th></tr></thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+  <!-- Q-koder -->
+  <div class="tab-panel" data-panel="qcodes">
+    <p>Q-koder er forkortelser brukt i CW og fone-trafikk. Søk etter koden eller betydningen.</p>
+    <div class="panel">
+      <div class="field">
+        <label>Søk</label>
+        <input type="search" id="qcode-search" placeholder="QSO, QRP, frekvens, …">
+      </div>
+    </div>
+    <table class="data-table" id="qcode-table">
+      <thead><tr><th>Q-kode</th><th>Spørsmål</th><th>Svar / mening</th></tr></thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+  <!-- Morse -->
+  <div class="tab-panel" data-panel="morse">
+    <p>Morse-trener. Pip i nettleseren via Web Audio. Hør koden, prøv keyer, eller lær alfabetet.</p>
+
+    <div class="panel">
+      <div class="field-row">
+        <div class="field">
+          <label>WPM (ord per minutt) <span class="help-tip" data-tip="20 WPM er standard for trening. Begynnere ofte 5-10. Konteststandard 25-35.">?</span></label>
+          <input type="number" id="morse-wpm" value="15" min="3" max="40" step="1">
+        </div>
+        <div class="field">
+          <label>Tone (Hz)</label>
+          <input type="number" id="morse-freq" value="700" min="300" max="1200" step="10">
+        </div>
+      </div>
+    </div>
+
+    <h2 class="section-header">Tekst → Morse</h2>
+    <div class="panel">
+      <div class="field">
+        <label>Skriv inn tekst</label>
+        <textarea id="morse-input" rows="2" placeholder="CQ CQ CQ DE LA1ABC">CQ CQ DE LA1ABC PSE K</textarea>
+      </div>
+      <div class="morse-display" id="morse-out">— · — · / — — · — / —· · / · — / —· — · ·</div>
+      <div style="display:flex;gap:0.5rem;flex-wrap:wrap;">
+        <button id="morse-play">Spill av</button>
+        <button id="morse-stop" class="secondary">Stopp</button>
+        <button id="morse-random" class="secondary">Tilfeldig 5-tegn-gruppe</button>
+      </div>
+    </div>
+
+    <h2 class="section-header">Keyer (klikk eller hold mellomrom)</h2>
+    <div class="morse-keyer">
+      <button id="keyer-dot">·  (DIT)</button>
+      <button id="keyer-dash">—  (DAH)</button>
+    </div>
+    <div class="muted small">Hold "1" for prikk, "2" for strek. Eller mellomrom for "iambic"-veksling.</div>
+
+    <h2 class="section-header">Alfabetet</h2>
+    <table class="data-table" id="morse-alphabet">
+      <tbody></tbody>
+    </table>
+  </div>
+
+  <hr>
+  <p class="muted small">
+    Hvis du vil ta amatørlisens i Norge: <a href="https://www.nkom.no" target="_blank" rel="noopener">Nkom</a> har info om eksamen.
+    Norske kurs gjennom <a href="https://www.nrrl.no" target="_blank" rel="noopener">NRRL</a> og lokale grupper.
+  </p>
+</main>
+
+<footer>
+  <div class="footer-content">
+    <div>© 2026 — Heming Westad</div>
+    <div>Trondheim · <a href="https://github.com/hemingwestad-glitch/Nettside-public">kildekode</a></div>
+  </div>
+</footer>
+
+<script src="/common.js"></script>
+<script>
+const $ = id => document.getElementById(id);
+
+/* ─── Bandplan-data ─── */
+const BANDS = [
+  ['160m', '1.810-1.840', 'CW', 'CW only — internasjonalt'],
+  ['160m', '1.840-2.000', 'SSB/digi', 'SSB nedre, digital'],
+  ['80m',  '3.500-3.580', 'CW', 'CW kontest + DX'],
+  ['80m',  '3.580-3.600', 'Digital', 'FT8 (3.573), PSK (3.580)'],
+  ['80m',  '3.600-3.800', 'SSB', 'Fone-aktivitet kveld/natt'],
+  ['40m',  '7.000-7.040', 'CW', 'CW DX-vindu'],
+  ['40m',  '7.040-7.100', 'Digital', 'FT8 (7.074), kontest'],
+  ['40m',  '7.100-7.200', 'SSB', 'Hovedfone'],
+  ['20m',  '14.000-14.070', 'CW', 'CW kontest, EME'],
+  ['20m',  '14.070-14.100', 'Digital', 'FT8 (14.074), PSK'],
+  ['20m',  '14.100-14.350', 'SSB', 'Hovedbånd for DX'],
+  ['15m',  '21.000-21.150', 'CW', 'CW'],
+  ['15m',  '21.150-21.450', 'SSB', 'SSB DX'],
+  ['10m',  '28.000-28.300', 'CW/digi', 'CW + digital'],
+  ['10m',  '28.300-29.000', 'SSB', 'SSB / FM 29.500-29.700'],
+  ['6m',   '50.000-50.500', 'CW/digi', 'Sporadisk E + Aurora'],
+  ['6m',   '50.500-52.000', 'SSB/FM', 'IARU R1 hovedbånd'],
+  ['4m',   '70.000-70.500', 'Diverse', 'Norge: 70.0-70.5 (begrenset)'],
+  ['2m',   '144.000-144.150', 'CW/SSB', 'CW + EME + SSB DX'],
+  ['2m',   '144.150-145.200', 'SSB/digi', 'SSB + APRS 144.800'],
+  ['2m',   '145.200-145.800', 'FM', 'FM repeatere (-600 kHz)'],
+  ['2m',   '145.800-146.000', 'Satellitt', 'ISS APRS 145.825, AMSAT'],
+  ['70cm', '430-432', 'Diverse', 'Repeatere, EME 432'],
+  ['70cm', '432-435', 'SSB/CW', 'Smalbånd, satellitt'],
+  ['70cm', '435-438', 'Satellitt', 'Satellitt-nedlinker'],
+  ['70cm', '438-440', 'FM', 'FM repeatere (-7.6 MHz)'],
+  ['23cm', '1240-1300', 'Diverse', 'Smal- og bredbånd, DATV'],
+  ['13cm', '2300-2450', 'Diverse', 'Smal- og bredbånd, Wi-Fi-overlapp'],
+];
+$('bandplan-table').querySelector('tbody').innerHTML = BANDS.map(([band, freq, mode, use]) =>
+  `<tr><td><strong>${band}</strong></td><td>${freq}</td><td>${mode}</td><td class="use">${use}</td></tr>`
+).join('');
+
+/* ─── Prefiks-database (forkortet) ─── */
+const PREFIXES = [
+  ['LA-LB', 'Norge', 14], ['JX', 'Jan Mayen', 14], ['JW', 'Svalbard', 18],
+  ['SM', 'Sverige', 14], ['OH', 'Finland', 15], ['OZ', 'Danmark', 14], ['TF', 'Island', 17],
+  ['G', 'England', 14], ['M', 'England', 14], ['EI', 'Irland', 14],
+  ['DL-DR', 'Tyskland', 14], ['F', 'Frankrike', 14], ['I', 'Italia', 15],
+  ['EA', 'Spania', 14], ['CT', 'Portugal', 14], ['ON', 'Belgia', 14],
+  ['PA', 'Nederland', 14], ['HB', 'Sveits', 14], ['OE', 'Østerrike', 15],
+  ['LZ', 'Bulgaria', 20], ['SP', 'Polen', 15], ['OK-OL', 'Tsjekkia', 15],
+  ['UA-UI', 'Russland EU', 16], ['R', 'Russland', 18], ['UR', 'Ukraina', 16],
+  ['K', 'USA', 5], ['W', 'USA', 5], ['N', 'USA', 5], ['AA-AL', 'USA', 5],
+  ['VE', 'Canada', 3], ['VA', 'Canada', 3],
+  ['XE', 'Mexico', 6], ['LU', 'Argentina', 14], ['PY', 'Brasil', 11], ['CE', 'Chile', 14],
+  ['JA-JS', 'Japan', 25], ['VK', 'Australia', 29], ['ZL', 'New Zealand', 32],
+  ['BY', 'Kina', 24], ['HL', 'Sør-Korea', 25], ['9V', 'Singapore', 28],
+  ['VR', 'Hong Kong', 24], ['BV', 'Taiwan', 24],
+  ['ZS', 'Sør-Afrika', 38], ['EA8', 'Kanariøyene', 33], ['EA9', 'Ceuta', 33],
+  ['CN', 'Marokko', 33], ['SU', 'Egypt', 38],
+  ['4X', 'Israel', 39], ['JY', 'Jordan', 39], ['A6', 'Forente Arabiske Emirater', 39],
+];
+$('prefix-table').querySelector('tbody').innerHTML = PREFIXES.slice(0, 25).map(([p, c, z]) =>
+  `<tr><td><strong>${p}</strong></td><td>${c}</td><td class="num">${z}</td></tr>`
+).join('');
+
+$('prefix-input').addEventListener('input', e => {
+  const q = e.target.value.toUpperCase().trim();
+  if (!q) { $('prefix-result').innerHTML = ''; return; }
+  // Match lengste prefix
+  const matches = PREFIXES
+    .filter(([p]) => {
+      const parts = p.split('-');
+      return parts.some(pp => q.startsWith(pp));
+    })
+    .sort((a, b) => b[0].length - a[0].length);
+  if (matches.length) {
+    const [p, c, z] = matches[0];
+    $('prefix-result').innerHTML = `<div class="panel"><strong>${q}</strong> = ${c} (ITU-sone ${z}, prefiks-gruppe ${p})</div>`;
+  } else {
+    $('prefix-result').innerHTML = `<div class="panel muted">Fant ikke prefiks "${q}" i den korte tabellen. Sjekk <a href="https://www.qrz.com" target="_blank" rel="noopener">QRZ.com</a> for full database.</div>`;
+  }
+});
+
+/* ─── Q-koder ─── */
+const QCODES = [
+  ['QRA', 'Hva er ditt callsign?', 'Mitt callsign er …'],
+  ['QRG', 'Hvilken frekvens?', 'Frekvensen er … kHz'],
+  ['QRK', 'Hvor lesbar er signalet mitt?', 'Lesbarhet 1-5'],
+  ['QRL', 'Er du opptatt?', 'Jeg er opptatt — sett deg ikke her'],
+  ['QRM', 'Forstyrres du av annen stasjon?', 'Ja, forstyrret av QRM'],
+  ['QRN', 'Forstyrres du av statisk støy?', 'Ja, QRN'],
+  ['QRO', 'Skal jeg øke effekt?', 'Øk effekt'],
+  ['QRP', 'Skal jeg redusere effekt?', 'Reduser effekt (lav-effekt operasjon)'],
+  ['QRQ', 'Skal jeg sende fortere?', 'Send fortere'],
+  ['QRS', 'Skal jeg sende langsommere?', 'Send langsommere'],
+  ['QRT', 'Skal jeg avslutte?', 'Jeg avslutter (slutter sending)'],
+  ['QRU', 'Har du noe til meg?', 'Jeg har ingenting til deg'],
+  ['QRV', 'Er du klar?', 'Jeg er klar'],
+  ['QRX', 'Når kaller du igjen?', 'Kaller igjen kl …'],
+  ['QRZ', 'Hvem kalte meg?', 'Du ble kalt av …'],
+  ['QSA', 'Hvor sterkt er signalet?', 'Styrke 1-5'],
+  ['QSB', 'Fader signalet mitt?', 'Ja, signalet fader (QSB)'],
+  ['QSL', 'Bekrefter du mottak?', 'Jeg bekrefter (QSL-kort)'],
+  ['QSO', 'Kan du kommunisere med …?', 'Direkte kommunikasjon / forbindelse'],
+  ['QSP', 'Vil du formidle?', 'Jeg formidler videre'],
+  ['QSY', 'Skal jeg bytte frekvens?', 'Bytt til frekvens …'],
+  ['QTH', 'Hvor er du?', 'Min posisjon er …'],
+  ['QTR', 'Hva er korrekt tid?', 'Korrekt tid er …'],
+];
+function renderQ(filter = '') {
+  const f = filter.toLowerCase();
+  const list = QCODES.filter(([q, a, b]) =>
+    q.toLowerCase().includes(f) || a.toLowerCase().includes(f) || b.toLowerCase().includes(f)
+  );
+  $('qcode-table').querySelector('tbody').innerHTML = list.map(([q, a, b]) =>
+    `<tr><td><strong>${q}</strong></td><td>${a}</td><td class="muted small">${b}</td></tr>`
+  ).join('');
+}
+renderQ();
+$('qcode-search').addEventListener('input', e => renderQ(e.target.value));
+
+/* ─── Morse ─── */
+const MORSE = {
+  'A':'.-','B':'-...','C':'-.-.','D':'-..','E':'.','F':'..-.','G':'--.','H':'....',
+  'I':'..','J':'.---','K':'-.-','L':'.-..','M':'--','N':'-.','O':'---','P':'.--.',
+  'Q':'--.-','R':'.-.','S':'...','T':'-','U':'..-','V':'...-','W':'.--','X':'-..-',
+  'Y':'-.--','Z':'--..',
+  '0':'-----','1':'.----','2':'..---','3':'...--','4':'....-',
+  '5':'.....','6':'-....','7':'--...','8':'---..','9':'----.',
+  '.':'.-.-.-',',':'--..--','?':'..--..','/':'-..-.','=':'-...-',
+  'Æ':'.-.-','Ø':'---.','Å':'.--.-'
+};
+const NORWEGIAN = ['A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z','Æ','Ø','Å','0','1','2','3','4','5','6','7','8','9'];
+$('morse-alphabet').querySelector('tbody').innerHTML = NORWEGIAN.reduce((rows, ch, i) => {
+  const m = MORSE[ch] || '';
+  if (i % 4 === 0) rows.push([]);
+  rows[rows.length - 1].push([ch, m]);
+  return rows;
+}, []).map(row =>
+  '<tr>' + row.map(([c, m]) => `<td><strong>${c}</strong> <span class="muted">${m.replace(/-/g,'—').replace(/\./g,'·')}</span></td>`).join('') + '</tr>'
+).join('');
+
+function textToMorse(text) {
+  return text.toUpperCase().split('').map(c => {
+    if (c === ' ') return '/';
+    return MORSE[c] || '';
+  }).filter(Boolean).join(' ');
+}
+
+$('morse-input').addEventListener('input', () => {
+  $('morse-out').textContent = textToMorse($('morse-input').value).replace(/-/g,'—').replace(/\./g,'·');
+});
+$('morse-out').textContent = textToMorse($('morse-input').value).replace(/-/g,'—').replace(/\./g,'·');
+
+$('morse-random').addEventListener('click', () => {
+  const groups = 3;
+  let s = '';
+  for (let g = 0; g < groups; g++) {
+    for (let i = 0; i < 5; i++) s += NORWEGIAN[Math.floor(Math.random() * 26)];
+    s += ' ';
+  }
+  $('morse-input').value = s.trim();
+  $('morse-input').dispatchEvent(new Event('input'));
+});
+
+// Web Audio
+let audioCtx = null;
+function ensureAudio() {
+  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  return audioCtx;
+}
+let activeOsc = null;
+function tone(durationMs, freq) {
+  const ctx = ensureAudio();
+  return new Promise(resolve => {
+    const o = ctx.createOscillator();
+    const g = ctx.createGain();
+    o.frequency.value = freq;
+    o.connect(g); g.connect(ctx.destination);
+    g.gain.setValueAtTime(0, ctx.currentTime);
+    g.gain.linearRampToValueAtTime(0.2, ctx.currentTime + 0.005);
+    g.gain.setValueAtTime(0.2, ctx.currentTime + durationMs / 1000 - 0.01);
+    g.gain.linearRampToValueAtTime(0, ctx.currentTime + durationMs / 1000);
+    o.start();
+    o.stop(ctx.currentTime + durationMs / 1000 + 0.02);
+    activeOsc = o;
+    setTimeout(resolve, durationMs);
+  });
+}
+function silence(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+let playing = false;
+async function playMorse() {
+  if (playing) return;
+  playing = true;
+  const wpm = +$('morse-wpm').value;
+  const freq = +$('morse-freq').value;
+  const dit = 1200 / wpm; // ms
+  const text = $('morse-input').value.toUpperCase();
+  for (const c of text) {
+    if (!playing) break;
+    if (c === ' ') { await silence(dit * 4); continue; }
+    const m = MORSE[c];
+    if (!m) continue;
+    for (const sym of m) {
+      if (!playing) break;
+      await tone(sym === '.' ? dit : dit * 3, freq);
+      await silence(dit);
+    }
+    await silence(dit * 2);
+  }
+  playing = false;
+}
+
+$('morse-play').addEventListener('click', playMorse);
+$('morse-stop').addEventListener('click', () => { playing = false; if (activeOsc) try { activeOsc.stop(); } catch(e){} });
+
+// Keyer
+$('keyer-dot').addEventListener('click', () => { const wpm=+$('morse-wpm').value; tone(1200/wpm, +$('morse-freq').value); });
+$('keyer-dash').addEventListener('click', () => { const wpm=+$('morse-wpm').value; tone(3*1200/wpm, +$('morse-freq').value); });
+document.addEventListener('keydown', e => {
+  if (e.repeat) return;
+  if (e.key === '1') { e.preventDefault(); const wpm=+$('morse-wpm').value; tone(1200/wpm, +$('morse-freq').value); }
+  if (e.key === '2') { e.preventDefault(); const wpm=+$('morse-wpm').value; tone(3*1200/wpm, +$('morse-freq').value); }
+});
+</script>
+</body>
+</html>

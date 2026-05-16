@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="no" spellcheck="false">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fly-verktøy — Heming Westad</title>
+<meta name="description" content="METAR/TAF, krysswind, density altitude, vekt og balanse for småfly. Skreddersydd for ENVA/ENNO/ENRO.">
+<meta name="author" content="Heming Westad">
+<link rel="canonical" href="https://hemingwestad.no/tools/aviation.html">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="/favicon.ico" sizes="any">
+<meta name="theme-color" content="#b8552e">
+<meta property="og:title" content="Fly-verktøy — Heming Westad">
+<meta property="og:description" content="METAR, krysswind, density altitude, vekt + balanse.">
+<meta property="og:image" content="https://hemingwestad.no/og-image.png">
+<meta property="og:url" content="https://hemingwestad.no/tools/aviation.html">
+<meta property="og:type" content="website">
+<meta property="og:locale" content="nb_NO">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..700;1,9..144,400&family=Inter+Tight:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/style.css">
+<style>
+  .metar-raw {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.85rem;
+    background: var(--bg-soft);
+    padding: 0.6rem 0.8rem;
+    border-left: 3px solid var(--blue);
+    word-break: break-all;
+    line-height: 1.5;
+  }
+  .runway-svg { width: 100%; max-width: 480px; height: 240px; background: var(--bg-card); border: 1px solid var(--rule); }
+  .wb-chart { background: var(--bg-card); border: 1px solid var(--rule); width: 100%; height: 280px; }
+</style>
+</head>
+<body>
+<header>
+  <div class="logo"><a href="/">Heming Westad<span class="dot">.</span></a></div>
+  <nav>
+    <ul>
+      <li><a href="/">heim</a></li>
+      <li><a href="/tools.html" class="current">verktøy</a></li>
+      <li><a href="/projects.html">prosjekter</a></li>
+      <li><a href="/now.html">nå</a></li>
+      <li><a href="/about.html">om</a></li>
+    </ul>
+  </nav>
+</header>
+
+<main>
+  <div class="page-meta fade-up">
+    <span>Fly-verktøy</span>
+    <span>METAR · krysswind · DA · W&amp;B</span>
+    <span>Norske flyplasser</span>
+  </div>
+
+  <h1 class="fade-up">Fly-<em>verktøy</em>.</h1>
+  <p class="lede fade-up">
+    For lavkostnads-flygere og GA-piloter. Live METAR fra AVINOR, krysswind-/headwind-dekomponering, density altitude og en enkel vekt+balanse-kalkulator.
+  </p>
+
+  <div class="tabs">
+    <button class="tab active" data-tab="metar">METAR</button>
+    <button class="tab" data-tab="wind">Vind &amp; bane</button>
+    <button class="tab" data-tab="density">Density altitude</button>
+    <button class="tab" data-tab="wb">Vekt &amp; balanse</button>
+  </div>
+
+  <!-- METAR -->
+  <div class="tab-panel active" data-panel="metar">
+    <div class="panel">
+      <div class="panel-title">Velg flyplass</div>
+      <div class="field-row">
+        <div class="field">
+          <label>ICAO-kode</label>
+          <select id="metar-icao">
+            <option value="ENGM">ENGM — Oslo lufthavn Gardermoen</option>
+            <option value="ENVA" selected>ENVA — Trondheim Værnes</option>
+            <option value="ENBR">ENBR — Bergen Flesland</option>
+            <option value="ENZV">ENZV — Stavanger Sola</option>
+            <option value="ENBO">ENBO — Bodø</option>
+            <option value="ENTC">ENTC — Tromsø Langnes</option>
+            <option value="ENAL">ENAL — Ålesund Vigra</option>
+            <option value="ENKR">ENKR — Kristiansund Kvernberget</option>
+            <option value="ENNO">ENNO — Notodden</option>
+            <option value="ENRO">ENRO — Røros</option>
+            <option value="ENRY">ENRY — Rygge</option>
+            <option value="ENTO">ENTO — Sandefjord Torp</option>
+            <option value="ENAN">ENAN — Andøya</option>
+            <option value="ENEV">ENEV — Harstad/Narvik Evenes</option>
+            <option value="ENAT">ENAT — Alta</option>
+            <option value="custom">— Egen ICAO —</option>
+          </select>
+        </div>
+        <div class="field" id="custom-icao-field" style="display:none;">
+          <label>Egen ICAO-kode</label>
+          <input type="text" id="metar-custom" maxlength="4" style="text-transform:uppercase;" placeholder="ENGM">
+        </div>
+        <div class="field" style="align-self: flex-end;">
+          <button id="metar-fetch">Hent METAR</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="metar-out" style="margin-top:1rem;"></div>
+  </div>
+
+  <!-- Vind &amp; bane -->
+  <div class="tab-panel" data-panel="wind">
+    <p>Krysswind- og headwind-komponenter for valgt rullebane. Du kan også importere vind fra hentet METAR i forrige fane.</p>
+    <div class="panel">
+      <div class="field-row">
+        <div class="field">
+          <label>Banretning (heading, °)</label>
+          <input type="number" id="rwy-hdg" value="270" step="1" min="0" max="360">
+        </div>
+        <div class="field">
+          <label>Vindretning (FROM, °)</label>
+          <input type="number" id="wind-dir" value="240" step="1" min="0" max="360">
+        </div>
+        <div class="field">
+          <label>Vindhastighet (knop)</label>
+          <input type="number" id="wind-kt" value="15" step="1" min="0">
+        </div>
+        <div class="field">
+          <label>Vindkast (knop, valgfritt)</label>
+          <input type="number" id="wind-gust" value="0" step="1" min="0">
+        </div>
+      </div>
+    </div>
+
+    <div class="stat-grid">
+      <div class="stat blue"><div class="stat-label">Motvind</div><div class="stat-value" id="hw">—</div></div>
+      <div class="stat accent"><div class="stat-label">Krysswind</div><div class="stat-value" id="xw">—</div></div>
+      <div class="stat"><div class="stat-label">Krysswind-vinkel</div><div class="stat-value" id="xw-ang">—</div></div>
+      <div class="stat"><div class="stat-label">Maks med gust</div><div class="stat-value" id="xw-gust">—</div></div>
+    </div>
+
+    <h2 class="section-header">Bane-visualisering</h2>
+    <svg class="runway-svg" id="rwy-svg" viewBox="0 0 480 240"></svg>
+
+    <p class="muted small" id="rwy-verdict"></p>
+  </div>
+
+  <!-- Density altitude -->
+  <div class="tab-panel" data-panel="density">
+    <p>Density altitude = trykkalitude korrigert for temperatur (og fuktighet). Høyere DA = mindre løft, lengre TORA, redusert klatreytelse.</p>
+    <div class="panel">
+      <div class="field-row">
+        <div class="field">
+          <label>Flyplass-elevasjon (fot)</label>
+          <input type="number" id="da-elev" value="42" step="1">
+        </div>
+        <div class="field">
+          <label>QNH (hPa)</label>
+          <input type="number" id="da-qnh" value="1013" step="1">
+        </div>
+        <div class="field">
+          <label>OAT — utetemperatur (°C)</label>
+          <input type="number" id="da-oat" value="15" step="0.5">
+        </div>
+        <div class="field">
+          <label>Duggpunkt (°C, valgfritt)</label>
+          <input type="number" id="da-dewpt" value="5" step="0.5">
+        </div>
+      </div>
+    </div>
+
+    <div class="stat-grid">
+      <div class="stat"><div class="stat-label">Trykkalitude</div><div class="stat-value" id="pa">—</div></div>
+      <div class="stat blue"><div class="stat-label">Density altitude</div><div class="stat-value" id="da">—</div></div>
+      <div class="stat accent"><div class="stat-label">ISA-avvik</div><div class="stat-value" id="isa-dev">—</div></div>
+      <div class="stat"><div class="stat-label">Luft-tetthet</div><div class="stat-value" id="rho-air">—</div></div>
+    </div>
+
+    <p class="muted small">
+      Tommelfingerregel: hvert 1000 fot DA over 0 fot øker take-off run med ~12% og senker klatrerate med ~7%.
+    </p>
+  </div>
+
+  <!-- Vekt &amp; balanse -->
+  <div class="tab-panel" data-panel="wb">
+    <p>Enkel W&amp;B for C172 (eller endre dataen for andre fly). Plotter envelopen.</p>
+    <div class="panel">
+      <div class="field-row">
+        <div class="field">
+          <label>Tomvekt (lbs)</label>
+          <input type="number" id="wb-empty" value="1500" step="10">
+        </div>
+        <div class="field">
+          <label>Tomvekt-arm (in)</label>
+          <input type="number" id="wb-empty-arm" value="39" step="0.1">
+        </div>
+        <div class="field">
+          <label>Pilot+passasjer foran (lbs)</label>
+          <input type="number" id="wb-front" value="320" step="10">
+        </div>
+        <div class="field">
+          <label>Passasjerer bak (lbs)</label>
+          <input type="number" id="wb-rear" value="160" step="10">
+        </div>
+        <div class="field">
+          <label>Bagasje (lbs)</label>
+          <input type="number" id="wb-baggage" value="20" step="5">
+        </div>
+        <div class="field">
+          <label>Fuel (US gal)</label>
+          <input type="number" id="wb-fuel" value="40" step="1">
+        </div>
+      </div>
+    </div>
+
+    <div class="stat-grid">
+      <div class="stat"><div class="stat-label">Ramp weight</div><div class="stat-value" id="wb-total">—</div></div>
+      <div class="stat blue"><div class="stat-label">CG</div><div class="stat-value" id="wb-cg">—</div></div>
+      <div class="stat accent"><div class="stat-label">Status</div><div class="stat-value" id="wb-status">—</div></div>
+      <div class="stat"><div class="stat-label">Margin vs MTOW</div><div class="stat-value" id="wb-margin">—</div></div>
+    </div>
+
+    <h2 class="section-header">CG-envelope (C172R)</h2>
+    <svg class="wb-chart" id="wb-svg" viewBox="0 0 700 280"></svg>
+
+    <p class="muted small">
+      Default-armer er for C172R. For andre fly: oppdater armene i koden eller bytt flytype senere.
+      MTOW C172R: 2450 lbs, forward CG ved 35", aft CG ved 47.3" ved 2450 lbs.
+    </p>
+  </div>
+
+  <hr>
+  <p class="muted small">
+    METAR via AVINOR Flyværtjenester (offentlig API). Aldri bruk som eneste kilde for flygebeslutninger — sjekk alltid offisielle kilder fra Avinor og flygeleder/AFIS.
+  </p>
+</main>
+
+<footer>
+  <div class="footer-content">
+    <div>© 2026 — Heming Westad</div>
+    <div>Trondheim · <a href="https://github.com/hemingwestad-glitch/Nettside-public">kildekode</a></div>
+  </div>
+</footer>
+
+<script src="/common.js"></script>
+<script>
+const $ = id => document.getElementById(id);
+
+/* ─── METAR ─── */
+$('metar-icao').addEventListener('change', e => {
+  $('custom-icao-field').style.display = e.target.value === 'custom' ? '' : 'none';
+});
+$('metar-fetch').addEventListener('click', fetchMetar);
+
+async function fetchMetar() {
+  const sel = $('metar-icao').value;
+  const icao = sel === 'custom' ? $('metar-custom').value.toUpperCase().trim() : sel;
+  if (!icao || icao.length !== 4) { alert('Skriv inn en 4-bokstavers ICAO-kode'); return; }
+  const out = $('metar-out');
+  out.innerHTML = '<p class="muted">Henter…</p>';
+  try {
+    // CheckWX-stil API — kan også bruke aviationweather.gov
+    const r = await fetch(`https://aviationweather.gov/api/data/metar?ids=${icao}&format=raw&taf=false`);
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    const raw = (await r.text()).trim();
+    if (!raw) throw new Error('Ingen data');
+    const parsed = parseMetar(raw);
+    out.innerHTML = renderMetar(raw, parsed, icao);
+    // Vind til Vind+bane-fanen
+    if (parsed.wind) {
+      $('wind-dir').value = parsed.wind.dir;
+      $('wind-kt').value = parsed.wind.kt;
+      $('wind-gust').value = parsed.wind.gust || 0;
+      calcWind();
+    }
+    // OAT/QNH til DA-fanen hvis vi har det
+    if (parsed.temp != null) $('da-oat').value = parsed.temp;
+    if (parsed.qnh != null) $('da-qnh').value = parsed.qnh;
+    if (parsed.dewpt != null) $('da-dewpt').value = parsed.dewpt;
+    calcDA();
+  } catch (e) {
+    out.innerHTML = `<p class="muted">Kunne ikke hente METAR for ${icao}: ${e.message}. Du kan også sjekke <a href="https://avinor.no/flightweather/" target="_blank" rel="noopener">Avinor Flyværtjenester</a>.</p>`;
+  }
+}
+
+function parseMetar(s) {
+  const o = { raw: s };
+  // Wind: dddff(Ggg)KT  eller VRB
+  let m = s.match(/\b(VRB|\d{3})(\d{2,3})(?:G(\d{2,3}))?KT\b/);
+  if (m) {
+    o.wind = { dir: m[1] === 'VRB' ? 0 : +m[1], kt: +m[2], gust: m[3] ? +m[3] : 0, variable: m[1] === 'VRB' };
+  }
+  // Visibility: 4-cifret, eller "CAVOK"
+  if (/CAVOK/.test(s)) { o.vis = 'CAVOK'; }
+  else { m = s.match(/\b(\d{4})\b/); if (m && +m[1] <= 9999) o.vis = +m[1] + ' m'; }
+  // Temp/dewpt: tt/dd (M for minus)
+  m = s.match(/\s(M?\d{2})\/(M?\d{2})\s/);
+  if (m) {
+    o.temp = m[1].startsWith('M') ? -(+m[1].slice(1)) : +m[1];
+    o.dewpt = m[2].startsWith('M') ? -(+m[2].slice(1)) : +m[2];
+  }
+  // QNH: Qhhhh
+  m = s.match(/\bQ(\d{4})\b/);
+  if (m) o.qnh = +m[1];
+  // Skyer
+  o.clouds = [];
+  const cloudRe = /\b(FEW|SCT|BKN|OVC)(\d{3})(CB|TCU)?\b/g;
+  while ((m = cloudRe.exec(s)) !== null) {
+    o.clouds.push({ cover: m[1], height: +m[2] * 100, type: m[3] || '' });
+  }
+  return o;
+}
+
+function renderMetar(raw, p, icao) {
+  const coverName = { FEW: 'spredt', SCT: 'noe', BKN: 'overskyet', OVC: 'fullstendig overskyet' };
+  return `
+    <div class="metar-raw">${raw}</div>
+    <h2 class="section-header">${icao} — tolket</h2>
+    <table class="data-table">
+      <tbody>
+        ${p.wind ? `<tr><td>Vind</td><td class="num">${p.wind.variable ? 'VARIABEL' : p.wind.dir + '°'} ${p.wind.kt} kt${p.wind.gust ? ' g' + p.wind.gust : ''}</td></tr>` : ''}
+        ${p.vis ? `<tr><td>Sikt</td><td class="num">${p.vis}</td></tr>` : ''}
+        ${p.temp != null ? `<tr><td>Temp / Duggpunkt</td><td class="num">${p.temp}° / ${p.dewpt}°C</td></tr>` : ''}
+        ${p.qnh != null ? `<tr><td>QNH</td><td class="num">${p.qnh} hPa</td></tr>` : ''}
+        ${p.clouds.length ? `<tr><td>Skyer</td><td>${p.clouds.map(c => coverName[c.cover] + ' ' + c.height + ' ft' + (c.type ? ' (' + c.type + ')' : '')).join(', ')}</td></tr>` : ''}
+      </tbody>
+    </table>
+    <p class="muted small" style="margin-top:0.5rem;">Verdier overført til de andre fanene.</p>
+  `;
+}
+
+/* ─── Vind &amp; bane ─── */
+function calcWind() {
+  const rwy = +$('rwy-hdg').value;
+  const wd = +$('wind-dir').value;
+  const ws = +$('wind-kt').value;
+  const wg = +$('wind-gust').value || 0;
+  const angle = ((wd - rwy + 540) % 360) - 180; // -180..180
+  const angleAbs = Math.abs(angle);
+  const hw = ws * Math.cos(angle * Math.PI / 180);
+  const xw = ws * Math.sin(angle * Math.PI / 180);
+  $('hw').innerHTML = (hw >= 0 ? '+' : '') + hw.toFixed(1) + '<span class="stat-unit">kt</span>';
+  $('xw').innerHTML = Math.abs(xw).toFixed(1) + '<span class="stat-unit">kt ' + (xw >= 0 ? 'høyre' : 'venstre') + '</span>';
+  $('xw-ang').innerHTML = angleAbs.toFixed(0) + '<span class="stat-unit">°</span>';
+  if (wg) {
+    const xwG = wg * Math.sin(angle * Math.PI / 180);
+    $('xw-gust').innerHTML = Math.abs(xwG).toFixed(1) + '<span class="stat-unit">kt</span>';
+  } else {
+    $('xw-gust').innerHTML = '—';
+  }
+  // Verdict
+  const xwMax = Math.max(Math.abs(xw), Math.abs(wg * Math.sin(angle * Math.PI / 180) || 0));
+  let v = '';
+  if (xwMax < 5) v = 'Lett krysswind. Greit for de fleste.';
+  else if (xwMax < 12) v = 'Moderat krysswind. Krever oppmerksomhet.';
+  else if (xwMax < 17) v = 'Sterk krysswind. Demoreglene fra POH gjelder.';
+  else v = 'Meget sterk krysswind. Vurder annen rullebane eller annet sted.';
+  if (hw < 0) v += ' MEDVIND langs banen — vurder å snu (' + (180 + rwy) % 360 + '°).';
+  $('rwy-verdict').textContent = v;
+  drawRunway(rwy, wd, ws, xw, hw);
+}
+
+function drawRunway(rwy, wd, ws, xw, hw) {
+  const W = 480, H = 240, cx = W/2, cy = H/2;
+  let s = '';
+  // Rullebane
+  s += `<g transform="rotate(${rwy - 360} ${cx} ${cy})">`;
+  s += `<rect x="${cx-30}" y="${cy-90}" width="60" height="180" fill="#3d3833" rx="3"/>`;
+  s += `<line x1="${cx}" y1="${cy-90}" x2="${cx}" y2="${cy+90}" stroke="#f5f1ea" stroke-width="1" stroke-dasharray="8,8"/>`;
+  // Bane-nummer
+  const num = Math.round(rwy/10).toString().padStart(2, '0');
+  const numOpp = Math.round(((rwy + 180) % 360)/10).toString().padStart(2, '0');
+  s += `<text x="${cx}" y="${cy+80}" text-anchor="middle" fill="#f5f1ea" font-family="JetBrains Mono" font-size="16" font-weight="600">${num}</text>`;
+  s += `<g transform="rotate(180 ${cx} ${cy-80})"><text x="${cx}" y="${cy-80}" text-anchor="middle" fill="#f5f1ea" font-family="JetBrains Mono" font-size="16" font-weight="600">${numOpp}</text></g>`;
+  s += `</g>`;
+  // Vind-pil (peker MED vinden, fra wd)
+  const windArrowAngle = wd; // FROM-retning betyr pilen peker mot bane fra wd
+  const ax = cx + 120 * Math.sin((wd) * Math.PI / 180);
+  const ay = cy - 120 * Math.cos((wd) * Math.PI / 180);
+  s += `<g transform="rotate(${wd + 180} ${ax} ${ay})">`;
+  s += `<line x1="${ax}" y1="${ay - 50}" x2="${ax}" y2="${ay + 20}" stroke="var(--accent)" stroke-width="3"/>`;
+  s += `<polygon points="${ax-8},${ay-50} ${ax+8},${ay-50} ${ax},${ay-65}" fill="var(--accent)"/>`;
+  s += `</g>`;
+  s += `<text x="${ax}" y="${ay + 40}" text-anchor="middle" fill="var(--accent)" font-family="JetBrains Mono" font-size="13">${ws} kt FRA ${wd}°</text>`;
+  // Kompass-ring
+  s += `<circle cx="${cx}" cy="${cy}" r="105" fill="none" stroke="var(--rule)" stroke-width="0.5"/>`;
+  for (const a of [0, 90, 180, 270]) {
+    const labels = { 0: 'N', 90: 'E', 180: 'S', 270: 'W' };
+    const tx = cx + 115 * Math.sin(a * Math.PI / 180);
+    const ty = cy - 115 * Math.cos(a * Math.PI / 180) + 4;
+    s += `<text x="${tx}" y="${ty}" text-anchor="middle" fill="var(--ink-faint)" font-family="JetBrains Mono" font-size="11">${labels[a]}</text>`;
+  }
+  $('rwy-svg').innerHTML = s;
+}
+
+['rwy-hdg','wind-dir','wind-kt','wind-gust'].forEach(id => $(id).addEventListener('input', calcWind));
+
+/* ─── Density altitude ─── */
+function calcDA() {
+  const elev = +$('da-elev').value;
+  const qnh = +$('da-qnh').value;
+  const oat = +$('da-oat').value;
+  const dewpt = +$('da-dewpt').value;
+
+  const pa = elev + (1013.25 - qnh) * 30; // ca 30 ft/hPa
+  const isaTemp = 15 - 1.98 * pa / 1000; // ISA temp ved trykkalitude (C)
+  const isaDev = oat - isaTemp;
+  const da = pa + 120 * isaDev;
+  // Luft-tetthet (kg/m³) — utvidet
+  const P = qnh * Math.exp(-elev * 0.3048 / 8434);
+  const T = oat + 273.15;
+  const es = 6.1078 * Math.exp(17.27 * oat / (oat + 237.3));
+  const e = es * Math.max(0, Math.min(1, (dewpt > oat ? 1 : Math.exp((dewpt - oat) * 17.27 / (oat + 237.3)))));
+  const Pd = P * 100 - e * 100;
+  const rho = Pd / (287.058 * T) + (e * 100) / (461.495 * T);
+
+  $('pa').innerHTML = pa.toFixed(0) + '<span class="stat-unit">ft</span>';
+  $('da').innerHTML = da.toFixed(0) + '<span class="stat-unit">ft</span>';
+  $('isa-dev').innerHTML = (isaDev >= 0 ? '+' : '') + isaDev.toFixed(1) + '<span class="stat-unit">°C</span>';
+  $('rho-air').innerHTML = rho.toFixed(3) + '<span class="stat-unit">kg/m³</span>';
+}
+['da-elev','da-qnh','da-oat','da-dewpt'].forEach(id => $(id).addEventListener('input', calcDA));
+
+/* ─── Vekt &amp; balanse (C172R standard) ─── */
+const WB_ARMS = {
+  front: 37,    // pilot+pax foran
+  rear: 73,     // bak-seter
+  baggage: 95,  // bagage area 1
+  fuelGal: 48,  // ved 6 lbs/gal
+};
+const MTOW = 2450;
+const ENVELOPE = [
+  // [arm (in), weight (lb)]
+  [35.0, 1500], [35.0, 1950], [39.5, 2450], [47.3, 2450], [47.3, 1500], [35.0, 1500]
+];
+
+function calcWB() {
+  const empty = +$('wb-empty').value;
+  const eArm = +$('wb-empty-arm').value;
+  const front = +$('wb-front').value;
+  const rear = +$('wb-rear').value;
+  const bag = +$('wb-baggage').value;
+  const fuelGal = +$('wb-fuel').value;
+  const fuel = fuelGal * 6;
+
+  const total = empty + front + rear + bag + fuel;
+  const moment = empty * eArm + front * WB_ARMS.front + rear * WB_ARMS.rear + bag * WB_ARMS.baggage + fuel * WB_ARMS.fuelGal;
+  const cg = moment / total;
+
+  $('wb-total').innerHTML = total.toFixed(0) + '<span class="stat-unit">lbs</span>';
+  $('wb-cg').innerHTML = cg.toFixed(2) + '<span class="stat-unit">in</span>';
+  const inEnv = pointInEnvelope(cg, total, ENVELOPE);
+  const overMTOW = total > MTOW;
+  $('wb-status').innerHTML = (inEnv && !overMTOW)
+    ? '<span style="color:var(--green)">✓ OK</span>'
+    : '<span style="color:var(--accent)">✗ UTENFOR</span>';
+  $('wb-margin').innerHTML = (MTOW - total).toFixed(0) + '<span class="stat-unit">lbs</span>';
+  drawWBChart(cg, total);
+}
+
+function pointInEnvelope(x, y, poly) {
+  let inside = false;
+  for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
+    const xi = poly[i][0], yi = poly[i][1];
+    const xj = poly[j][0], yj = poly[j][1];
+    if (((yi > y) !== (yj > y)) && (x < (xj - xi) * (y - yi) / (yj - yi) + xi)) inside = !inside;
+  }
+  return inside;
+}
+
+function drawWBChart(cg, total) {
+  const W = 700, H = 280;
+  const m = { l: 60, r: 20, t: 16, b: 36 };
+  const w = W - m.l - m.r, h = H - m.t - m.b;
+  const xMin = 32, xMax = 50;
+  const yMin = 1400, yMax = 2500;
+  const xS = x => m.l + (x - xMin) / (xMax - xMin) * w;
+  const yS = y => m.t + h - (y - yMin) / (yMax - yMin) * h;
+
+  let s = '';
+  // Grid
+  for (let x = 32; x <= 50; x += 2) {
+    s += `<line x1="${xS(x)}" y1="${m.t}" x2="${xS(x)}" y2="${m.t + h}" stroke="#e6e0d2" stroke-width="0.5"/>`;
+    s += `<text x="${xS(x)}" y="${m.t + h + 14}" text-anchor="middle" fill="#9a9087" font-family="JetBrains Mono" font-size="10">${x}</text>`;
+  }
+  for (let y = 1400; y <= 2500; y += 200) {
+    s += `<line x1="${m.l}" y1="${yS(y)}" x2="${m.l + w}" y2="${yS(y)}" stroke="#e6e0d2" stroke-width="0.5"/>`;
+    s += `<text x="${m.l - 6}" y="${yS(y)+3}" text-anchor="end" fill="#9a9087" font-family="JetBrains Mono" font-size="10">${y}</text>`;
+  }
+  s += `<text x="${m.l + w/2}" y="${H - 4}" text-anchor="middle" fill="#6b645b" font-family="JetBrains Mono" font-size="11">CG (inches aft of datum)</text>`;
+  s += `<text x="14" y="${m.t + h/2}" fill="#6b645b" font-family="JetBrains Mono" font-size="11" transform="rotate(-90 14 ${m.t + h/2})">Weight (lbs)</text>`;
+  // Envelope
+  const pts = ENVELOPE.map(([x, y]) => `${xS(x)},${yS(y)}`).join(' ');
+  s += `<polygon points="${pts}" fill="rgba(90,107,62,0.12)" stroke="var(--green)" stroke-width="1.5"/>`;
+  // Current point
+  if (cg >= xMin && cg <= xMax && total >= yMin && total <= yMax) {
+    s += `<circle cx="${xS(cg)}" cy="${yS(total)}" r="6" fill="var(--accent)"/>`;
+    s += `<text x="${xS(cg) + 10}" y="${yS(total) - 8}" fill="var(--accent-deep)" font-family="JetBrains Mono" font-size="11">${cg.toFixed(1)}", ${total.toFixed(0)} lb</text>`;
+  }
+  // MTOW-linje
+  s += `<line x1="${m.l}" y1="${yS(MTOW)}" x2="${m.l + w}" y2="${yS(MTOW)}" stroke="var(--accent)" stroke-width="1" stroke-dasharray="4,3"/>`;
+  s += `<text x="${m.l + w - 5}" y="${yS(MTOW) - 3}" text-anchor="end" fill="var(--accent)" font-family="JetBrains Mono" font-size="10">MTOW ${MTOW} lb</text>`;
+  $('wb-svg').innerHTML = s;
+}
+['wb-empty','wb-empty-arm','wb-front','wb-rear','wb-baggage','wb-fuel'].forEach(id => $(id).addEventListener('input', calcWB));
+
+calcWind();
+calcDA();
+calcWB();
+</script>
+</body>
+</html>
