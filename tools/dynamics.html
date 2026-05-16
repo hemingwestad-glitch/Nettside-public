@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="no">
+<html lang="no" spellcheck="false">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -862,7 +862,174 @@ function step(dt_real) {
     simT += dt_sim;
   }
 
-  // Oppdater kropper
-  const bodies = currentSystem.bodies(state, p);
   for (let i = 0; i < bodies.length && i < sceneObjects.bodies.length; i++) {
-    const b = bodies[
+    const b = bodies[i];
+    sceneObjects.bodies[i].position.set(
+      b.pos[0] * currentSystem.scale,
+      b.pos[1] * currentSystem.scale,
+      b.pos[2] * currentSystem.scale
+    );
+  }
+
+  // Oppdater stenger
+  if (currentSystem.rods) {
+    const rods = currentSystem.rods(state, p);
+    for (let i = 0; i < rods.length && i < sceneObjects.rods.length; i++) {
+      const r = rods[i];
+      const arr = sceneObjects.rods[i].geometry.attributes.position.array;
+      arr[0] = r.from[0] * currentSystem.scale; arr[1] = r.from[1] * currentSystem.scale; arr[2] = r.from[2] * currentSystem.scale;
+      arr[3] = r.to[0] * currentSystem.scale;   arr[4] = r.to[1] * currentSystem.scale;   arr[5] = r.to[2] * currentSystem.scale;
+      sceneObjects.rods[i].geometry.attributes.position.needsUpdate = true;
+    }
+  }
+
+  // Oppdater trails
+  if (showTrail) {
+    for (const trail of sceneObjects.trails) {
+      const b = bodies[trail.bodyIdx];
+      if (!b) continue;
+      const arr = trail.positions;
+      const i = trail.idx * 3;
+      arr[i] = b.pos[0] * currentSystem.scale;
+      arr[i + 1] = b.pos[1] * currentSystem.scale;
+      arr[i + 2] = b.pos[2] * currentSystem.scale;
+      trail.idx = (trail.idx + 1) % currentSystem.trailLen;
+      trail.count = Math.min(trail.count + 1, currentSystem.trailLen);
+
+      // For å vise trail riktig (sirkulær buffer), reorder:
+      const reordered = new Float32Array(trail.count * 3);
+      const start = trail.count < currentSystem.trailLen ? 0 : trail.idx;
+      for (let j = 0; j < trail.count; j++) {
+        const src = ((start + j) % currentSystem.trailLen) * 3;
+        reordered[j * 3] = arr[src];
+        reordered[j * 3 + 1] = arr[src + 1];
+        reordered[j * 3 + 2] = arr[src + 2];
+      }
+      trail.line.geometry.setAttribute('position', new THREE.BufferAttribute(reordered, 3));
+      trail.line.geometry.attributes.position.needsUpdate = true;
+      trail.line.geometry.setDrawRange(0, trail.count);
+      trail.line.geometry.computeBoundingSphere();
+    }
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   ANIMASJONS-LOOP
+   ═══════════════════════════════════════════════════════════════════════ */
+
+let lastT = performance.now();
+function animate() {
+  requestAnimationFrame(animate);
+  const now = performance.now();
+  const dt = Math.min((now - lastT) / 1000, 0.1);
+  lastT = now;
+
+  if (playing && currentSystem) step(dt);
+
+  controls.update();
+  renderer.render(scene, camera);
+
+  if (currentSystem) updateSimStats();
+}
+animate();
+
+/* ═══════════════════════════════════════════════════════════════════════
+   UI
+   ═══════════════════════════════════════════════════════════════════════ */
+
+const sysBtns = document.getElementById('system-buttons');
+sysBtns.innerHTML = Object.entries(SYSTEMS).map(([key, sys]) => `
+  <button class="sys-btn" data-sys="${key}">${sys.name}</button>
+`).join('');
+
+sysBtns.addEventListener('click', e => {
+  const btn = e.target.closest('.sys-btn');
+  if (btn) setupSystem(btn.dataset.sys);
+});
+
+document.getElementById('btn-play').addEventListener('click', e => {
+  playing = !playing;
+  e.target.textContent = playing ? 'Pause' : 'Spill';
+});
+
+// "Nullstill" = bruk gjeldende savedInitialState igjen (samme bane fra start)
+document.getElementById('btn-reset').addEventListener('click', () => {
+  if (savedInitialState) {
+    forcedInitialState = savedInitialState;
+  }
+  reset();
+});
+
+// "Nytt init" = trekke nye tilfeldige startbetingelser
+document.getElementById('btn-random').addEventListener('click', () => {
+  forcedInitialState = null;
+  reset();
+});
+
+// Kopier startbetingelser
+document.getElementById('btn-copy-init').addEventListener('click', () => {
+  if (!savedInitialState) return;
+  const txt = Array.from(savedInitialState).map(v => v.toFixed(10)).join(',');
+  navigator.clipboard.writeText(txt).then(() => {
+    const btn = document.getElementById('btn-copy-init');
+    const orig = btn.textContent;
+    btn.textContent = 'Kopiert ✓';
+    setTimeout(() => btn.textContent = orig, 1200);
+  });
+});
+
+// Gjenskap fra clipboard
+document.getElementById('btn-replay-init').addEventListener('click', async () => {
+  try {
+    const txt = await navigator.clipboard.readText();
+    const nums = txt.split(',').map(s => parseFloat(s.trim())).filter(n => !isNaN(n));
+    if (nums.length === 0) return alert('Fant ingen tall i clipboard.');
+    forcedInitialState = new Float64Array(nums);
+    reset();
+  } catch (e) {
+    alert('Kunne ikke lese clipboard: ' + e.message);
+  }
+});
+
+// Funksjon: skriv tilstandsvektoren med labels
+function renderInitialConditions(p) {
+  const target = document.getElementById('initial-cond');
+  if (!target) return;
+  const labels = currentSystem.stateLabels || null;
+  const arr = Array.from(savedInitialState);
+  let out = `System: ${currentSystem.name}\nt = 0\n\n`;
+  if (labels) {
+    arr.forEach((v, i) => {
+      out += `${(labels[i] || ('y' + i)).padEnd(8)} = ${v.toFixed(6)}\n`;
+    });
+  } else {
+    arr.forEach((v, i) => {
+      out += `y[${String(i).padStart(2,'0')}] = ${v.toFixed(6)}\n`;
+    });
+  }
+  out += '\nParametre:\n';
+  for (const k in p) out += `${k.padEnd(8)} = ${(+p[k]).toFixed(4)}\n`;
+  target.textContent = out;
+}
+
+document.getElementById('btn-trail').addEventListener('click', e => {
+  showTrail = !showTrail;
+  e.target.textContent = showTrail ? 'Skjul spor' : 'Vis spor';
+  for (const t of sceneObjects.trails) {
+    t.line.visible = showTrail;
+  }
+});
+
+document.getElementById('time-scale').addEventListener('input', e => {
+  timeScale = +e.target.value;
+  document.getElementById('time-scale-val').textContent = timeScale.toFixed(2) + '×';
+});
+
+// Velg første
+setupSystem('lorenz');
+
+// Sim info
+updateSimInfo();
+</script>
+</body>
+</html>

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="no">
+<html lang="no" spellcheck="false">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -657,5 +657,43 @@
       behavior: 'smooth'
     });
     update();
-    // Ignorer scroll-events i 600ms mens smooth scroll pågår
-    setTimeout(() => { isProgScrolling = false; }
+    setTimeout(() => { isProgScrolling = false; }, 600);
+  }
+
+  function update() {
+    const s = SLIDES[current] || { title: '', text: '' };
+    caption.innerHTML =
+      `<span class="step">Bilde ${current + 1} / ${total}</span>` +
+      `<span class="cap-title">${s.title}</span>` +
+      `${s.text}`;
+    dotsCont.querySelectorAll('.carousel-dot').forEach((d, i) => {
+      d.classList.toggle('active', i === current);
+    });
+    prev.disabled = current === 0;
+    next.disabled = current === total - 1;
+  }
+
+  prev.addEventListener('click', () => goTo(current - 1));
+  next.addEventListener('click', () => goTo(current + 1));
+
+  // Sync når brukeren scroller manuelt (men ikke når vi nettopp har programmert scroll)
+  let scrollTimeout;
+  track.addEventListener('scroll', () => {
+    if (isProgScrolling) return;
+    clearTimeout(scrollTimeout);
+    scrollTimeout = setTimeout(() => {
+      const w = track.clientWidth;
+      if (w === 0) return;
+      const i = Math.round(track.scrollLeft / w);
+      if (i !== current && i >= 0 && i < total) {
+        current = i;
+        update();
+      }
+    }, 100);
+  });
+
+  update();
+})();
+</script>
+</body>
+</html>
