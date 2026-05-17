@@ -212,8 +212,7 @@ async function fetchTrondheimTide() {
 
 function parseTidalWater(text) {
   if (!text) return null;
-  const lines = text.split('
-');
+  const lines = text.split('\n');
   const data = [];
   for (const line of lines) {
     // Headers: AAR MND DAG TIM MIN SURGE TIDE TOTAL ...
