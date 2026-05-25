@@ -43,13 +43,38 @@
     <span>Kilde: MET Norway</span>
   </div>
 
-  <h1 class="fade-up">Tidevann i <em>Trondheim</em>.</h1>
+  <h1 class="fade-up">Tidevann i <em id="harbor-name">Trondheim</em>.</h1>
   <p class="lede fade-up">
     Trondheimsfjorden har en av de mest markante tidevannsforskjellene på
     norskekysten — opp mot 3 meter mellom flo og fjære. Variasjonen er
     nesten utelukkende drevet av månens M2-komponent (12,42 timers periode),
     med små bidrag fra solen og månens elliptiske bane.
   </p>
+
+  <div class="panel" style="margin-bottom: 1rem;">
+    <div class="panel-title">Velg havn</div>
+    <div class="field-row">
+      <div class="field">
+        <label>Norsk havn (MET tidalwater)</label>
+        <select id="harbor-select">
+          <option value="trondheim" selected>Trondheim</option>
+          <option value="oslo">Oslo</option>
+          <option value="bergen">Bergen</option>
+          <option value="stavanger">Stavanger</option>
+          <option value="kristiansand">Kristiansand</option>
+          <option value="aalesund">Ålesund</option>
+          <option value="kristiansund">Kristiansund</option>
+          <option value="bodo">Bodø</option>
+          <option value="narvik">Narvik</option>
+          <option value="harstad">Harstad</option>
+          <option value="tromso">Tromsø</option>
+          <option value="hammerfest">Hammerfest</option>
+          <option value="honningsvag">Honningsvåg</option>
+          <option value="vardo">Vardø</option>
+        </select>
+      </div>
+    </div>
+  </div>
 
   <div class="tabs">
     <button class="tab active" data-tab="live">Live</button>
@@ -188,6 +213,8 @@
     <div>© 2026 — Heming Westad</div>
     <div>Trondheim · <a href="https://github.com/hemingwestad-glitch/Nettside-public">kildekode</a></div>
   </div>
+
+  <div class="footer-disclaimer">Bygd sammen med Claude (Anthropic) som pair-programmer. Designvalg og fakta er mine.</div>
 </footer>
 
 <script src="/common.js"></script>
@@ -196,10 +223,15 @@
 
 /* === LIVE DATA === */
 
+let CURRENT_HARBOR = 'trondheim';
+const HARBOR_NAMES = {
+  trondheim: 'Trondheim', oslo: 'Oslo', bergen: 'Bergen', stavanger: 'Stavanger',
+  kristiansand: 'Kristiansand', aalesund: 'Ålesund', kristiansund: 'Kristiansund',
+  bodo: 'Bodø', narvik: 'Narvik', harstad: 'Harstad', tromso: 'Tromsø',
+  hammerfest: 'Hammerfest', honningsvag: 'Honningsvåg', vardo: 'Vardø'
+};
 async function fetchTrondheimTide() {
-  // Vi går via en CORS-vennlig proxy hvis nødvendig.
-  // MET tillater stort sett requests fra nettleseren.
-  const url = 'https://api.met.no/weatherapi/tidalwater/1.1/?harbor=trondheim';
+  const url = `https://api.met.no/weatherapi/tidalwater/1.1/?harbor=${encodeURIComponent(CURRENT_HARBOR)}`;
   try {
     const r = await fetch(url);
     if (!r.ok) return null;
@@ -564,6 +596,14 @@ async function init() {
     </div>
   `).join('');
 }
+
+document.getElementById('harbor-select').addEventListener('change', e => {
+  CURRENT_HARBOR = e.target.value;
+  const niceName = HARBOR_NAMES[CURRENT_HARBOR] || CURRENT_HARBOR;
+  document.getElementById('harbor-name').textContent = niceName;
+  document.title = `Tidevann i ${niceName} — Heming Westad`;
+  init();
+});
 
 init();
 </script>

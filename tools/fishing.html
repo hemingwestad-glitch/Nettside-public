@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Fiskeforhold — Heming Westad</title>
+<title id="page-title">Fiskeforhold — Heming Westad</title>
 <meta name="description" content="Live vær, lufttrykktrend og fiskeindeks fra MET Norway. Skreddersydd for fjellørret.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -43,11 +43,11 @@
     <span>MET Norway</span>
   </div>
 
-  <h1 class="fade-up">Fiske<em>forhold</em>.</h1>
+  <h1 class="fade-up">Fiske<em>forhold</em> <span id="loc-headline" style="color: var(--ink-dim); font-weight: 300; font-size: 0.7em;">for Trondheim</span>.</h1>
   <p class="lede fade-up">
-    Live vær, lufttrykktrend og månefase. Indeks 0&ndash;100 basert på trykkendring,
-    vind, nedbør og lysforhold. Skreddersydd for fjellørret, men fungerer for de
-    fleste arter.
+    Live vær, lufttrykktrend og månefase for <span id="loc-lede">Trondheim</span>.
+    Indeks 0&ndash;100 basert på trykkendring, vind, nedbør og lysforhold.
+    Skreddersydd for fjellørret, men fungerer for de fleste arter.
   </p>
 
   <div class="panel">
@@ -108,6 +108,8 @@
     <div>© 2026 — Heming Westad</div>
     <div>Trondheim · <a href="https://github.com/hemingwestad-glitch/Nettside-public">kildekode</a></div>
   </div>
+
+  <div class="footer-disclaimer">Bygd sammen med Claude (Anthropic) som pair-programmer. Designvalg og fakta er mine.</div>
 </footer>
 
 <script src="/common.js"></script>
@@ -201,13 +203,24 @@ document.getElementById('preset').addEventListener('change', e => {
     const [lat, lon, name] = e.target.value.split(',');
     document.getElementById('lat').value = lat;
     document.getElementById('lon').value = lon;
-    document.getElementById('loc-name').textContent = name;
+    updateLocationName(name);
   }
 });
 
+function updateLocationName(name) {
+  document.getElementById('loc-name').textContent = name;
+  const headline = document.getElementById('loc-headline');
+  const lede = document.getElementById('loc-lede');
+  if (headline) headline.textContent = 'for ' + name;
+  if (lede) lede.textContent = name;
+  const title = document.getElementById('page-title');
+  if (title) title.textContent = `Fiskeforhold ${name} — Heming Westad`;
+}
+
 document.getElementById('fetch').addEventListener('click', async () => {
   const btn = document.getElementById('fetch');
-  btn.disabled = true; btn.textContent = 'Henter...';
+  const locName = document.getElementById('loc-name').textContent || 'lokasjon';
+  btn.disabled = true; btn.textContent = `Henter ${locName}...`;
   try {
     const lat = +document.getElementById('lat').value;
     const lon = +document.getElementById('lon').value;

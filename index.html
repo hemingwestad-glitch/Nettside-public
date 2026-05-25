@@ -94,6 +94,14 @@
     gjerne hvis du har lyst.
   </p>
 
+  <p class="fade-up">
+    Jeg bygger ting fordi jeg liker det. Mest med Python og litt elektronikk,
+    men det meste her på siden er rein HTML/CSS/JS for at det skal gå kjapt å åpne
+    fra fjellhytta på dårlig dekning. Hvis noe er feil, eller du vil snakke om
+    satellitter, ballistikk eller hvorfor M2-komponenten dominerer i Trondheimsfjorden
+    &mdash; <a href="mailto:heming@hemingwestad.no">si fra</a>.
+  </p>
+
   <h2 class="section-header">Live fra Trondheim <span class="count">over hodet vårt</span></h2>
 
   <div class="live-ticker fade-up" id="home-ticker">
@@ -119,7 +127,7 @@
     </div>
   </div>
 
-  <h2 class="section-header">Verktøy <span class="count">åpne for alle</span></h2>
+  <h2 class="section-header">Utvalgte verktøy <span class="count">5 av 17</span></h2>
 
   <div class="tool-grid">
     <a href="tools/space.html" class="tool">
@@ -128,17 +136,27 @@
         <span class="tool-tag">Romfart</span>
       </div>
       <h3>Satellitt-arbeidsbord</h3>
-      <p>Live tracker i 3D med banekurver, TLE-leser, link budget, antenner, Doppler og pass-prediksjoner over Trondheim. Med radio-frekvenser per satellitt.</p>
+      <p>Live 3D-tracker med banekurver, TLE-leser, link budget, antenner, Doppler og pass-prediksjoner. Med radio-frekvenser per satellitt.</p>
       <span class="tool-action">Åpne →</span>
     </a>
 
-    <a href="tools/dynamics.html" class="tool">
+    <a href="tools/aviation.html" class="tool">
       <div class="tool-header">
-        <span class="tool-icon">∮</span>
-        <span class="tool-tag">Fysikk</span>
+        <span class="tool-icon">✈</span>
+        <span class="tool-tag">GA</span>
       </div>
-      <h3>Dynamikk-sandkasse</h3>
-      <p>Numerisk integrasjon i 3D. Tre-legeme, dobbel pendel, Lorenz-attraktor, kjede-pendel. Skru på startbetingelser, se det utfolde seg.</p>
+      <h3>Fly-verktøy</h3>
+      <p>METAR for norske flyplasser, krysswind/headwind, density altitude og vekt &amp; balanse for småfly.</p>
+      <span class="tool-action">Åpne →</span>
+    </a>
+
+    <a href="tools/wind.html" class="tool">
+      <div class="tool-header">
+        <span class="tool-icon">↗</span>
+        <span class="tool-tag">Skyting</span>
+      </div>
+      <h3>Ballistikk</h3>
+      <p>RK4 med G1/G7 drag-modell. Vind, lufttetthet, helning, Coriolis. Norske jaktladninger og avlivningskrav.</p>
       <span class="tool-action">Åpne →</span>
     </a>
 
@@ -152,59 +170,22 @@
       <span class="tool-action">Åpne →</span>
     </a>
 
-    <a href="tools/power.html" class="tool">
-      <div class="tool-header">
-        <span class="tool-icon">⚡</span>
-        <span class="tool-tag">Strøm</span>
-      </div>
-      <h3>Strømpriser NO3</h3>
-      <p>Spot-pris for Midt-Norge. Døgnkurve, billigste timer i dag og i morgen, 7-dagers oversikt.</p>
-      <span class="tool-action">Åpne →</span>
-    </a>
-
-    <a href="tools/wind.html" class="tool">
-      <div class="tool-header">
-        <span class="tool-icon">↗</span>
-        <span class="tool-tag">Skyting</span>
-      </div>
-      <h3>Ballistikk</h3>
-      <p>RK4 med G1/G7 drag-modell. Sidevind, lufttetthet, høyde. Norske jaktladninger og avlivningskrav.</p>
-      <span class="tool-action">Åpne →</span>
-    </a>
-
     <a href="tools/fishing.html" class="tool">
       <div class="tool-header">
         <span class="tool-icon">~</span>
         <span class="tool-tag">Fiske</span>
       </div>
       <h3>Fiskeforhold</h3>
-      <p>Vær fra MET Norway, månefase, lufttrykktrend. Skreddersydd for fjellørret.</p>
-      <span class="tool-action">Åpne →</span>
-    </a>
-
-    <a href="tools/hunting.html" class="tool">
-      <div class="tool-header">
-        <span class="tool-icon">↟</span>
-        <span class="tool-tag">Jakt</span>
-      </div>
-      <h3>Jaktkalender</h3>
-      <p>Norske jakttider for klauvdyr. Sesongstatus, daggry og skumring per dag.</p>
-      <span class="tool-action">Åpne →</span>
-    </a>
-
-    <a href="tools/sun.html" class="tool">
-      <div class="tool-header">
-        <span class="tool-icon">☉</span>
-        <span class="tool-tag">Astro</span>
-      </div>
-      <h3>Sol og måne</h3>
-      <p>Soloppgang, gylden time, månefase. Lokal tid, valgfri lokasjon.</p>
+      <p>Vær fra MET Norway, månefase, lufttrykktrend. Skreddersydd for fjellørret, men funker for de fleste arter.</p>
       <span class="tool-action">Åpne →</span>
     </a>
   </div>
 
-  <p class="muted small" style="margin-top: 1.25rem;">
-    <a href="tools.html">Se alle verktøy</a> &middot;
+  <p style="margin: 1.5rem 0 2rem; text-align: center;">
+    <a href="tools.html" class="btn" style="font-size: 0.9rem; padding: 0.75rem 1.5rem;">Se alle 17 verktøy →</a>
+  </p>
+
+  <p class="muted small" style="margin-top: 1.25rem; text-align: center;">
     <a href="projects.html">Pågående prosjekter</a> &middot;
     <a href="now.html">Hva som skjer nå</a>
   </p>
@@ -232,6 +213,8 @@
     <div>© 2026 — Heming Westad</div>
     <div>Trondheim · <a href="https://github.com/hemingwestad-glitch/Nettside-public">kildekode</a></div>
   </div>
+
+  <div class="footer-disclaimer">Bygd sammen med Claude (Anthropic) som pair-programmer. Designvalg og fakta er mine.</div>
 </footer>
 
 <script src="common.js"></script>

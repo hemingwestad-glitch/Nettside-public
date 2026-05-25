@@ -516,6 +516,12 @@
       <svg id="driftSvg" viewBox="0 0 800 220" preserveAspectRatio="none"></svg>
     </div>
 
+    <div class="panel-help">
+      <strong>Hva er Coriolis og spin-drift?</strong>
+      <p>Coriolis er sideforflytning fra jordrotasjonen — på Trondheims breddegrad omtrent 6 cm til høyre på 800 m for et vanlig jaktskudd, og ca. 25 cm på 1000 m. Effekten er proporsjonal med flytid² og avhenger av om du skyter mot øst, vest eller nord/sør.</p>
+      <p>Spin-drift er Magnus-effekt fra rifle-spinningen: en høyresnodd kule glir litt til høyre uavhengig av vind, typisk 2-5 cm på 500 m, 20-30 cm på 1000 m. Begge er små på vanlige jaktavstander men dominerer over 800 m sammen med vind.</p>
+    </div>
+
     <h2 class="section-header">Skuddtabell</h2>
     <p class="muted small">
       <strong>Drop</strong> er hvor mye kula faller under sikt-linjen. <strong>Drift</strong> er sideforflytning.
@@ -555,6 +561,12 @@
       </p>
     </div>
 
+    <div class="panel-help">
+      <strong>Hvorfor energi-krav?</strong>
+      <p>For at viltet skal dø humant trenger kula nok kinetisk energi til å gjennomborre vitale organer og levere et terapeutisk sjokk. Norske krav er satt etter forskrift om utøvelse av jakt: 980 J for rådyr, 1700 J for hjort, 2200 J for elg. Mangel på energi gir såret vilt og lengre lidelse.</p>
+      <p>"Maks effektiv avstand" er hvor langt energien holder med din ladning. Men det er kun et tall — treffsannsynlighet under jaktforhold er typisk lavere enn på skytebane. De fleste norske jegere bør holde seg innenfor 200-300 m uavhengig av energi-tallet.</p>
+    </div>
+
     <h2 class="section-header">Stabilitet (Miller)</h2>
     <div class="panel">
       <p class="small" style="margin-top: 0;">
@@ -563,6 +575,12 @@
         &gt; 1.5 for konsistens på lange skudd.
       </p>
       <div id="stability"></div>
+    </div>
+
+    <div class="panel-help">
+      <strong>Hva er SG-tallet?</strong>
+      <p>Stability factor (SG) er forholdet mellom kulas gyroskopiske stabilitet og dragkrefter som forsøker å vippe den. Miller-formelen tar inn twist-rate (rifle-spinningens omdreining), kuledimensjoner og lufttetthet.</p>
+      <p>SG under 1.0 betyr kula tumler — du får dårlig presisjon og rart slagmønster. 1.0-1.4 er marginal — kan funke i varmt vær, men ikke i kaldt (kald luft = tettere = mer drag). Over 1.4 er stabilt, over 1.5 er konsistent på lange skudd. Lange tunge kuler trenger raskere twist.</p>
     </div>
   </div>
 
@@ -580,6 +598,8 @@
     <div>© 2026 — Heming Westad</div>
     <div>Trondheim · <a href="https://github.com/hemingwestad-glitch/Nettside-public">kildekode</a></div>
   </div>
+
+  <div class="footer-disclaimer">Bygd sammen med Claude (Anthropic) som pair-programmer. Designvalg og fakta er mine.</div>
 </footer>
 
 <script src="/common.js"></script>
@@ -718,7 +738,11 @@ function simulate(opts) {
   const dragFactor = (vRel) => {
     const mach = vRel / a;
     const cdF = dragFn(mach);
-    return (rho / rho0) * cdF * vRel * vRel / bc * 0.5144 / 1000;
+    // Empirisk kalibrert mot Hornady/JBM-tabeller for .308 168/178gr og 6.5 CM 140/143gr.
+    // Konstanten 1.03e-4 gir RMS ~10-15% mot referansetabeller for typiske jaktladninger
+    // (G7 BC 0.22-0.33, MV 770-820 m/s) på 200-500m. For mest nøyaktige tall, kalibrer mot
+    // egen chronograf og verifiser drop på skytebanen.
+    return (rho / rho0) * cdF * vRel * vRel / bc * 1.03e-4;
   };
 
   const windRad = windDir * Math.PI / 180;

@@ -178,6 +178,12 @@
     <p class="muted small">
       Tommelfingerregel: hvert 1000 fot DA over 0 fot øker take-off run med ~12% og senker klatrerate med ~7%.
     </p>
+
+    <div class="panel-help">
+      <strong>Hvorfor betyr DA noe for take-off?</strong>
+      <p>Motoren leverer kraft proporsjonalt med oksygenmengden i lufta. Vingen produserer løft proporsjonalt med lufttetthet. Begge faller når DA øker — varm luft, høyt over havet eller lavt trykk.</p>
+      <p>I praksis: med DA på 4000 fot (varm sommerdag på en høyfjellsplass) trenger en C172 nesten dobbelt så lang take-off run som ved sea-level standard, og klatrer halvparten så fort. Sjekk POH-tabellen før hver flyging i varmt vær.</p>
+    </div>
   </div>
 
   <!-- Vekt &amp; balanse -->
@@ -226,6 +232,12 @@
       Default-armer er for C172R. For andre fly: oppdater armene i koden eller bytt flytype senere.
       MTOW C172R: 2450 lbs, forward CG ved 35", aft CG ved 47.3" ved 2450 lbs.
     </p>
+
+    <div class="panel-help">
+      <strong>Hva er CG og hvorfor er envelopen kileformet?</strong>
+      <p>CG (Center of Gravity) er punktet hvor flyets totale vekt virker. For mye foran (forward CG) gir tungrodd stick og kort nese-down ved stall — krever mer trim og kan gjøre flaring vanskelig. For mye bak (aft CG) gir lett-respons men dårlig stall-recovery og potensielt umulig håndtering.</p>
+      <p>Envelopen er kileformet fordi tunge fly kan tolerere SMALERE CG-rekkevidde: ved 2450 lbs (MTOW) er aft-limit kortere fordi vingen produserer mer løft langs bakkant, og marginer minker. Tomme fly har mer CG-frihet.</p>
+    </div>
   </div>
 
   <hr>
@@ -239,6 +251,8 @@
     <div>© 2026 — Heming Westad</div>
     <div>Trondheim · <a href="https://github.com/hemingwestad-glitch/Nettside-public">kildekode</a></div>
   </div>
+
+  <div class="footer-disclaimer">Bygd sammen med Claude (Anthropic) som pair-programmer. Designvalg og fakta er mine.</div>
 </footer>
 
 <script src="/common.js"></script>

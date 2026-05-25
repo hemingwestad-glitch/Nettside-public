@@ -22,115 +22,7 @@
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="../style.css">
 <style>
-  /* ─── Mørkt sci-fi-tema for hele space.html ────────────────────────── */
-  :root {
-    --bg: #0a0d14;
-    --bg-alt: rgba(10, 13, 20, 0.9);
-    --bg-soft: rgba(13, 24, 32, 0.75);
-    --bg-card: rgba(13, 24, 32, 0.65);
-    --rule: rgba(124, 193, 183, 0.18);
-    --rule-soft: rgba(124, 193, 183, 0.10);
-    --ink: #d9e4e8;
-    --ink-soft: #b8c7d3;
-    --ink-dim: #7c8d96;
-    --ink-faint: #5f7c84;
-    --accent: #7cc1b7;
-    --accent-soft: #9ad5cb;
-    --accent-deep: #4c8f7d;
-    --blue: #6a98a7;
-    --blue-deep: #527984;
-    --green: #7ebc92;
-  }
-  body { background: #0a0d14 !important; color: #d9e4e8; }
-  body::before { opacity: 0.08 !important; mix-blend-mode: screen; }
-  header { border-bottom-color: rgba(124, 193, 183, 0.18); }
-  .logo a { color: #e9f3f5; }
-  .logo a:hover { color: var(--accent-soft); }
-  .logo .dot { color: var(--accent-soft); }
-  nav a { color: #9db4be; }
-  nav a:hover { color: #e9f3f5; }
-  nav a.current { color: #e9f3f5; }
-  nav a.current::after { background: var(--accent-soft); }
-  main h1, main h2, main h3, main h4 { color: #e9f3f5; }
-  main h1 em { color: var(--accent-soft); }
-  main p { color: #b8c7d3; }
-  .lede { color: #d6e0e4 !important; }
-  .page-meta { color: #7c8d96; border-bottom-color: rgba(124, 193, 183, 0.15); }
-  .section-header { border-bottom-color: rgba(124, 193, 183, 0.2); }
-  .section-header .count { color: #7c8d96; }
-  hr { border-top-color: rgba(124, 193, 183, 0.15); }
-  a { color: var(--accent-soft); text-decoration-color: rgba(217, 123, 79, 0.4); }
-  a:hover { text-decoration-color: var(--accent-soft); }
-  strong { color: #e9f3f5; }
-  .tabs { border-bottom-color: rgba(124, 193, 183, 0.2); }
-  .tab { color: #7c8d96; }
-  .tab:hover { color: #d6e0e4; }
-  .tab.active { color: #e9f3f5; border-bottom-color: var(--accent-soft); }
-  .panel {
-    background: rgba(13, 24, 32, 0.7);
-    border: 1px solid rgba(124, 193, 183, 0.15);
-    color: #d6e0e4;
-  }
-  .panel-title { color: #9db4be; border-bottom-color: rgba(124, 193, 183, 0.15); }
-  .stat-grid { background: rgba(124, 193, 183, 0.08); border-color: rgba(124, 193, 183, 0.15); }
-  .stat { background: rgba(13, 24, 32, 0.95); }
-  .stat-label { color: #7c8d96; }
-  .stat-value { color: #e9f3f5; }
-  .stat.accent .stat-value { color: var(--accent-soft); }
-  .stat.blue .stat-value { color: #7fb0c4; }
-  .stat.green .stat-value { color: #9fcf6f; }
-  .stat-unit { color: #7c8d96; }
-  .data-table { color: #d6e0e4; }
-  .data-table th { color: #9db4be; background: rgba(124, 193, 183, 0.08); }
-  .data-table td { border-bottom-color: rgba(124, 193, 183, 0.1); }
-  .data-table tr:hover td { background: rgba(124, 193, 183, 0.06); }
-  input[type="number"], input[type="text"], input[type="search"], select, textarea {
-    background: rgba(2,8,15,0.6);
-    color: #e9f3f5;
-    border: 1px solid rgba(124, 193, 183, 0.25);
-  }
-  input:focus, select:focus, textarea:focus {
-    border-color: var(--accent-soft);
-    background: rgba(2,8,15,0.85);
-  }
-  button, .btn {
-    background: rgba(124, 193, 183, 0.18);
-    color: #e9f3f5;
-    border: 1px solid rgba(124, 193, 183, 0.4);
-  }
-  button:hover, .btn:hover {
-    background: var(--accent-soft);
-    color: #0a0d14;
-    border-color: var(--accent-soft);
-  }
-  button.secondary, .btn.secondary {
-    background: transparent;
-    color: #d6e0e4;
-    border-color: rgba(124, 193, 183, 0.3);
-  }
-  button.secondary:hover { background: rgba(124, 193, 183, 0.18); color: #e9f3f5; }
-  label { color: #7c8d96; }
-  .chart {
-    background: rgba(13, 24, 32, 0.7);
-    border: 1px solid rgba(124, 193, 183, 0.15);
-  }
-  .chart-title { color: #9db4be; border-bottom-color: rgba(124, 193, 183, 0.15); }
-  footer { border-top-color: rgba(124, 193, 183, 0.18); color: #7c8d96; }
-  footer a { color: #9db4be; }
-  footer a:hover { color: var(--accent-soft); }
-  code { background: rgba(124, 193, 183, 0.12); color: #e9f3f5; }
-  .tag { background: rgba(124, 193, 183, 0.15); color: #d6e0e4; }
-  .muted { color: #7c8d96 !important; }
-  .uses-table { border-top-color: rgba(124, 193, 183, 0.18); }
-  .uses-table .row { border-bottom-color: rgba(124, 193, 183, 0.1); }
-  .uses-table .label { color: #7c8d96; }
-  .uses-table .value { color: #d6e0e4; }
-  .event { border-bottom-color: rgba(124, 193, 183, 0.1); }
-  .event-time { color: #b8c7d3; }
-  .event-meta { color: #7c8d96; }
-  .event:hover { background: rgba(124, 193, 183, 0.06); }
-
-  /* Globe canvas: WebGL-canvas må ligge inne, men ikke blokkeres av overlays */
+  /* Globe canvas: WebGL stjernehimmel — beholder mørk for kontrast mot jorda. */
   .sat-canvas {
     position: relative;
     aspect-ratio: 16/10;
@@ -160,19 +52,18 @@
     position: relative;
     z-index: 1;
   }
+  /* "Hva betyr dette?"-boks — samme stil som tools/meteor-guide.html .tip-box */
   .panel-help {
     margin-top: 1rem;
-    padding: 0.9rem 1rem;
-    background: rgba(13, 24, 32, 0.78);
-    border-left: 3px solid var(--accent);
-    border-radius: 0.85rem;
-    box-shadow: inset 0 0 0 1px rgba(124, 193, 183, 0.06);
+    padding: 0.8rem 1rem;
+    background: var(--bg-soft);
+    border-left: 3px solid var(--blue);
     color: var(--ink-soft);
   }
   .panel-help strong {
     display: block;
     margin-bottom: 0.3rem;
-    color: var(--accent-soft);
+    color: var(--blue-deep);
     font-family: var(--font-mono);
     font-size: 0.72rem;
     text-transform: uppercase;
@@ -180,103 +71,57 @@
   }
   .panel-help p { margin: 0; font-size: 0.88rem; line-height: 1.55; color: var(--ink-soft); }
   .help-btn {
-    background: rgba(255,255,255,0.08);
-    border: 1px solid rgba(255,255,255,0.14);
+    background: var(--bg-card);
+    border: 1px solid var(--rule);
     border-radius: 999px;
-    width: 1.7rem; height: 1.7rem;
+    width: 1.5rem; height: 1.5rem;
     display: inline-flex;
     align-items: center; justify-content: center;
-    color: #fff;
-    font-size: 0.9rem; font-weight: 700;
+    color: var(--ink-dim);
+    font-size: 0.85rem; font-weight: 600;
     cursor: pointer;
     margin-left: 0.4rem;
   }
-  .help-btn:hover { background: rgba(255,255,255,0.12); }
+  .help-btn:hover { background: var(--accent); color: #fff; border-color: var(--accent); }
+  /* Mission-log + monitor-card: lyse i papp-tema men tydelig "instrument"-aktig */
   .mission-log {
     max-height: 14rem;
     overflow-y: auto;
-    border: 1px solid rgba(255,255,255,0.08);
-    background: rgba(2,8,15,0.9);
-    border-radius: 0.9rem;
-    padding: 0.85rem;
+    border: 1px solid var(--rule);
+    background: var(--bg-card);
+    padding: 0.65rem 0.85rem;
     font-family: 'JetBrains Mono', monospace;
     font-size: 0.82rem;
-    color: #d9e4e8;
+    color: var(--ink-soft);
   }
   .mission-log .log-entry {
     display: grid;
     grid-template-columns: auto 1fr;
     gap: 0.75rem;
-    padding: 0.5rem 0;
-    border-bottom: 1px solid rgba(255,255,255,0.05);
+    padding: 0.4rem 0;
+    border-bottom: 1px solid var(--rule-soft);
   }
   .mission-log .log-entry:last-child { border-bottom: none; }
-  .mission-log .log-time { color: #7cc1b7; min-width: 4.5rem; }
+  .mission-log .log-time { color: var(--accent); min-width: 4.5rem; }
   .monitor-card {
     padding: 0.9rem 1rem;
-    background: rgba(13, 24, 32, 0.78);
-    border: 1px solid rgba(124, 193, 183, 0.18);
-    border-radius: 0.9rem;
-    color: #d9e4e8;
+    background: var(--bg-card);
+    border: 1px solid var(--rule);
+    color: var(--ink-soft);
   }
   .monitor-card h4 {
     margin-top: 0;
     margin-bottom: 0.7rem;
-    color: #e9f3f5;
+    color: var(--ink);
     font-family: 'JetBrains Mono', monospace;
-    font-size: 0.78rem;
+    font-size: 0.74rem;
     font-weight: 500;
     text-transform: uppercase;
     letter-spacing: 0.12em;
-    border-bottom: 1px solid rgba(124, 193, 183, 0.2);
+    border-bottom: 1px solid var(--rule-soft);
     padding-bottom: 0.4rem;
   }
-  .monitor-card small { display: block; color: #9db4be; font-size: 0.75rem; }
-  .monitor-card p { color: #b8c7d3; }
-  .monitor-card .muted { color: #8398a3; }
-  .monitor-card label {
-    color: #9db4be;
-    font-size: 0.7rem;
-  }
-  .monitor-card input[type="number"],
-  .monitor-card input[type="text"],
-  .monitor-card input[type="search"],
-  .monitor-card select {
-    background: rgba(0,0,0,0.35);
-    color: #e9f3f5;
-    border: 1px solid rgba(124, 193, 183, 0.25);
-  }
-  .monitor-card input:focus,
-  .monitor-card select:focus {
-    border-color: #7cc1b7;
-    background: rgba(0,0,0,0.5);
-  }
-  .monitor-card button,
-  .monitor-card .btn,
-  .monitor-card button.secondary {
-    background: rgba(124, 193, 183, 0.15);
-    color: #e9f3f5;
-    border: 1px solid rgba(124, 193, 183, 0.4);
-  }
-  .monitor-card button:hover,
-  .monitor-card button.secondary:hover {
-    background: #7cc1b7;
-    color: #0a0d14;
-    border-color: #7cc1b7;
-  }
-  .monitor-card .data-table {
-    color: #d9e4e8;
-  }
-  .monitor-card .data-table th {
-    color: #9db4be;
-    background: rgba(124, 193, 183, 0.08);
-  }
-  .monitor-card .data-table td {
-    border-bottom-color: rgba(124, 193, 183, 0.12);
-  }
-  .monitor-card .data-table tr:hover td {
-    background: rgba(124, 193, 183, 0.08);
-  }
+  .monitor-card small { display: block; color: var(--ink-faint); font-size: 0.75rem; }
   .instrument-panel {
     background: linear-gradient(180deg, #15110d 0%, #1a1612 100%);
     border: 1px solid #2b2520;
@@ -317,13 +162,13 @@
   }
   .ant-visual { margin-top: 1rem; gap: 0.75rem; display: grid; }
   .visual-row { display: grid; grid-template-columns: 6rem 1fr auto; gap: 0.75rem; align-items: center; }
-  .visual-label { color: #b8c7d3; font-size: 0.82rem; }
-  .visual-bar { position: relative; height: 0.8rem; background: rgba(255,255,255,0.08); border-radius: 999px; overflow: hidden; }
+  .visual-label { color: var(--ink-soft); font-size: 0.82rem; }
+  .visual-bar { position: relative; height: 0.8rem; background: var(--bg-soft); border: 1px solid var(--rule-soft); overflow: hidden; }
   .visual-bar span {
-    display: block; height: 100%; border-radius: 999px;
-    background: linear-gradient(90deg, rgba(182,85,46,0.95), rgba(255,183,119,0.85));
+    display: block; height: 100%;
+    background: linear-gradient(90deg, var(--accent), var(--accent-soft));
   }
-  .visual-value { font-family: 'JetBrains Mono', monospace; font-size: 0.78rem; color: #eef3f7; }
+  .visual-value { font-family: 'JetBrains Mono', monospace; font-size: 0.78rem; color: var(--ink-soft); }
   .canvas-overlay {
     position: absolute;
     pointer-events: none;
@@ -1024,6 +869,8 @@
     <div>© 2026 — Heming Westad</div>
     <div>Trondheim · <a href="https://github.com/hemingwestad-glitch/Nettside-public">kildekode</a></div>
   </div>
+
+  <div class="footer-disclaimer">Bygd sammen med Claude (Anthropic) som pair-programmer. Designvalg og fakta er mine.</div>
 </footer>
 
 <script src="../common.js"></script>

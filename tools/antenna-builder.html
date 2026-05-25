@@ -105,6 +105,13 @@
     <div class="stat"><div class="stat-label">3 dB åpning</div><div class="stat-value" id="ant-bw">—</div></div>
   </div>
 
+  <div class="panel-help">
+    <strong>Hva betyr gain og 3 dB åpning?</strong>
+    <p>Gain (dBi) er hvor mye sterkere signalet er i antennens hovedretning sammenliknet med en teoretisk isotrop antenne (en som stråler likt i alle retninger). +3 dBi er dobbelt så sterkt, +10 dBi er 10×. En dipol gir 2.15 dBi, en 5-elements yagi rundt 9 dBi, en 7-elements ca. 11 dBi.</p>
+    <p>3 dB åpning er vinkelen hvor signalet faller med 3 dB (halve effekten). En dipol har ~78° i én plan og 360° i den andre — du peker den ikke. En yagi har typisk 40-60° — du må peile mot satellitten. Aksial helix har 30-40° — krever motorisert antennetracker for satellitt-pass.</p>
+    <p>Tommelfingerregel: mer gain = mindre åpning. Doblet gain → halvert vinkel. Velg etter behov: bredt mottak (QFH) eller målrettet (yagi).</p>
+  </div>
+
   <h2 class="section-header">Geometri</h2>
   <div id="ant-svg-wrap"><svg class="geom-svg" id="ant-svg" viewBox="0 0 720 320"></svg></div>
 
@@ -131,6 +138,8 @@
     <div>© 2026 — Heming Westad</div>
     <div>Trondheim · <a href="https://github.com/hemingwestad-glitch/Nettside-public">kildekode</a></div>
   </div>
+
+  <div class="footer-disclaimer">Bygd sammen med Claude (Anthropic) som pair-programmer. Designvalg og fakta er mine.</div>
 </footer>
 
 <script src="/common.js"></script>
