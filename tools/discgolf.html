@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="no" spellcheck="false">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Frisbeegolf-simulator: se kastebanen ovenfra og fra siden. Flight-tall, plast, slitasje, armfart, vind og hyzer-vinkel.">
+<title>Frisbeegolf-simulator — Heming Westad</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..700;1,9..144,400&family=Inter+Tight:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<meta name="author" content="Heming Westad">
+<link rel="canonical" href="https://hemingwestad.no/tools/discgolf.html">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="/favicon.ico" sizes="any">
+<meta name="theme-color" content="#b8552e">
+<meta property="og:title" content="Frisbeegolf-simulator — Heming Westad">
+<meta property="og:description" content="Se kastebanen ovenfra og fra siden. Flight-tall, plast, armfart, vind.">
+<meta property="og:image" content="https://hemingwestad.no/og-image.png">
+<meta property="og:url" content="https://hemingwestad.no/tools/discgolf.html">
+<meta property="og:type" content="website">
+<meta property="og:locale" content="nb_NO">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="/style.css">
+<style>
+.dg-views {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(19rem, 1fr));
+  gap: 1.25rem;
+  margin: 1rem 0 1.5rem;
+}
+.dg-canvas-wrap {
+  background: var(--bg-card);
+  border: 1px solid var(--rule);
+}
+.dg-canvas-wrap canvas { display: block; width: 100%; height: auto; }
+.dg-actions { display: flex; gap: 0.5rem; flex-wrap: wrap; margin: 1rem 0; align-items: center; }
+.dg-ghost-note { font-family: var(--font-mono); font-size: 0.7rem; color: var(--ink-faint); }
+</style>
+</head>
+<body>
+<header>
+  <div class="logo"><a href="/">Heming Westad<span class="dot">.</span></a></div>
+  <nav>
+    <ul>
+      <li><a href="/">heim</a></li>
+      <li><a href="/tools.html" class="current">verktøy</a></li>
+      <li><a href="/projects.html">prosjekter</a></li>
+      <li><a href="/now.html">nå</a></li>
+      <li><a href="/about.html">om</a></li>
+    </ul>
+  </nav>
+</header>
+
+<main>
+  <div class="page-meta fade-up">
+    <span>Frisbeegolf</span>
+    <span>Kastebane-simulator</span>
+  </div>
+
+  <h1 class="fade-up">Frisbeegolf<em>-simulator</em>.</h1>
+  <p class="lede fade-up">
+    Tast inn flight-tallene (speed / glide / turn / fade), velg plast, slitasje
+    og armfart — og se banen ovenfra og fra siden. Modellen er forenklet, men
+    fanger S-kurven: high-speed turn tidlig, fade på slutten.
+  </p>
+
+  <div class="panel fade-up">
+    <div class="panel-title">Disc og flight-tall</div>
+    <div class="field-row">
+      <div class="field">
+        <label>Forhåndsvalg</label>
+        <select id="disc">
+          <option value="">Egendefinert</option>
+          <optgroup label="Distance drivere">
+            <option value="12,5,-1,3">Destroyer (12/5/-1/3)</option>
+            <option value="11,5,-1,3">Wraith (11/5/-1/3)</option>
+            <option value="13,6,-2,2">Shryke (13/6/-2/2)</option>
+            <option value="9,4,-2,2">Valkyrie (9/4/-2/2)</option>
+          </optgroup>
+          <optgroup label="Fairway drivere">
+            <option value="9,3,0,4">Firebird (9/3/0/4)</option>
+            <option value="9,5,0,2">Thunderbird (9/5/0/2)</option>
+            <option value="7,5,0,1" selected>Teebird (7/5/0/1)</option>
+            <option value="7,5,-2,1">Leopard3 (7/5/-2/1)</option>
+            <option value="7,7,-1,1">River (7/7/-1/1)</option>
+          </optgroup>
+          <optgroup label="Midrange">
+            <option value="5,4,-1,1">Buzzz (5/4/-1/1)</option>
+            <option value="5,4,0,3">Roc3 (5/4/0/3)</option>
+            <option value="5,5,0,0">Mako3 (5/5/0/0)</option>
+            <option value="4,3,0,3">Zone (4/3/0/3)</option>
+          </optgroup>
+          <optgroup label="Puttere">
+            <option value="2,3,0,1">P2 / Aviar (2/3/0/1)</option>
+            <option value="3,3,0,2">Luna (3/3/0/2)</option>
+            <option value="2,4,0,1">Judge (2/4/0/1)</option>
+          </optgroup>
+        </select>
+      </div>
+      <div class="field"><label>Speed (1–14)</label><input type="number" id="speed" value="7" min="1" max="14" step="0.5"></div>
+      <div class="field"><label>Glide (1–7)</label><input type="number" id="glide" value="5" min="1" max="7" step="0.5"></div>
+      <div class="field"><label>Turn (−5–+1)</label><input type="number" id="turn" value="0" min="-5" max="1" step="0.5"></div>
+      <div class="field"><label>Fade (0–5)</label><input type="number" id="fade" value="1" min="0" max="5" step="0.5"></div>
+    </div>
+    <div class="field-row">
+      <div class="field">
+        <label>Plast</label>
+        <select id="plastic">
+          <option value="-0.3">Base (DX, Pro-D, Retro)</option>
+          <option value="-0.15">Mellomklasse (Pro, Gold)</option>
+          <option value="0" selected>Premium (Star, Champion, Lucid)</option>
+          <option value="0.3">Ekstra stiv / Halo</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Slitasje: <span id="wear-val">ny</span></label>
+        <input type="range" id="wear" min="0" max="10" value="0" step="1">
+      </div>
+      <div class="field">
+        <label>Armfart: <span id="vkmh-val">95</span> km/t</label>
+        <input type="range" id="vkmh" min="55" max="150" value="95" step="1">
+      </div>
+      <div class="field">
+        <label>Hyzer-vinkel: <span id="hyzer-val">0</span>°</label>
+        <input type="range" id="hyzer" min="-25" max="25" value="0" step="1">
+      </div>
+    </div>
+    <div class="field-row">
+      <div class="field">
+        <label>Kast</label>
+        <select id="hand">
+          <option value="1" selected>Høyre backhand (RHBH)</option>
+          <option value="-1">Venstre backhand (LHBH)</option>
+          <option value="-1">Høyre forehand (RHFH)</option>
+          <option value="1">Venstre forehand (LHFH)</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Vind: <span id="wind-val">0</span> m/s</label>
+        <input type="range" id="wind" min="-8" max="8" value="0" step="1">
+      </div>
+      <div class="field" style="justify-content:flex-end">
+        <label>&nbsp;</label>
+        <button id="throwBtn">Kast! →</button>
+      </div>
+      <div class="field" style="justify-content:flex-end">
+        <label>&nbsp;</label>
+        <button class="secondary" id="freezeBtn">Frys banen</button>
+      </div>
+    </div>
+    <p class="dg-ghost-note" id="ghost-note">Frys inntil tre baner for å sammenligne discer.</p>
+  </div>
+
+  <h2 class="section-header">Resultat <span class="count" id="shape-label">—</span></h2>
+  <div class="stat-grid">
+    <div class="stat accent"><div class="stat-label">Lengde</div><div class="stat-value" id="st-dist">—</div></div>
+    <div class="stat"><div class="stat-label">Sideveis landing</div><div class="stat-value" id="st-lat">—</div></div>
+    <div class="stat blue"><div class="stat-label">Apex-høyde</div><div class="stat-value" id="st-apex">—</div></div>
+    <div class="stat"><div class="stat-label">Flytid</div><div class="stat-value" id="st-time">—</div></div>
+  </div>
+
+  <div class="dg-views">
+    <div class="dg-canvas-wrap">
+      <div class="chart-title">Ovenfra — tee nederst</div>
+      <canvas id="topView" width="460" height="600"></canvas>
+    </div>
+    <div class="dg-canvas-wrap">
+      <div class="chart-title">Fra siden — høydeprofil</div>
+      <canvas id="sideView" width="460" height="280"></canvas>
+    </div>
+  </div>
+
+  <div class="panel-help">
+    <strong>Hva betyr flight-tallene?</strong>
+    <p><span class="mono">Speed</span> er hvor hardt discen må kastes for å fly som
+    oppgitt — ikke hvor langt den går. En 12-speed kastet for svakt oppfører seg
+    som mer overstabil og fader tidlig.</p>
+    <p><span class="mono">Turn</span> (negativ = mer) styrer high-speed-delen: discen
+    vrir mot høyre tidlig i flukten for RHBH. <span class="mono">Fade</span> styrer
+    slutten: discen bremser, mister løft på venstre side og dykker mot venstre.
+    Sammen gir de S-kurven.</p>
+    <p>Motvind øker den effektive luftfarten — discen blir «mer understabil» og
+    turner mer. Medvind gjør det motsatte. Slitt baseplast mister stabilitet over
+    tid og blir flippy — derfor sykler man discer.</p>
+  </div>
+
+  <hr>
+  <p class="muted small">
+    Forenklet modell kalibrert mot typiske flight-charts (ikke full aerodynamikk —
+    ingen presesjon eller gyrodynamikk). Tall fra produsentene er heller ikke
+    standardiserte, så bruk dette som intuisjon, ikke fasit.
+  </p>
+</main>
+
+<footer>
+  <div class="footer-content">
+    <div>© 2026 — Heming Westad</div>
+    <div>Trondheim · <a href="https://github.com/hemingwestad-glitch/Nettside-public">kildekode</a></div>
+  </div>
+
+  <div class="footer-disclaimer">Bygd sammen med Claude (Anthropic) som pair-programmer. Designvalg og fakta er mine.</div>
+</footer>
+
+<script src="/common.js"></script>
+<script>
+/* ─── Frisbeegolf flight-simulator ──────────────────────────────────────
+   Forenklet kinematisk modell: discen følger en heading som roteres av
+   to momenter — high-speed turn (når v/v0 er høy) og low-speed fade
+   (når discen bremser). Kalibrert mot typiske flight-charts.
+   ─────────────────────────────────────────────────────────────────── */
+
+const SIM = {
+  drag: 0.30,        // hastighets-decay, dempes av glide
+  dragGlide: 0.14,
+  kTurn: 0.095,      // rad/s per turn-enhet ved full fart
+  kFade: 0.420,      // rad/s per fade-enhet ved lav fart
+  liftBase: 0.70,
+  liftGlide: 0.060,
+  launchVz: 0.13,    // andel av v0 oppover ved release
+  dt: 0.04
+};
+
+function simulate(p) {
+  // p: speed, glide, turn, fade, vkmh, hyzer, wind (+ = motvind), mirror,
+  //    plasticShift, wear (0-10)
+  const v0 = Math.max(8, p.vkmh / 3.6) * (1 - Math.abs(p.hyzer) * 0.004);
+  const reqKmh = 70 + 5.5 * p.speed;
+  const ratio = Math.min(1.25, Math.max(0.4, p.vkmh / reqKmh));
+
+  let effTurn = p.turn + p.plasticShift - p.wear * 0.12 - p.wind * 0.35 + p.hyzer * 0.10;
+  let effFade = Math.max(0, p.fade + p.plasticShift * 0.5 + p.hyzer * 0.05);
+  if (ratio < 1) effTurn += (1 - ratio) * 3.5;   // underpowered → mer stabil
+  else effTurn -= (ratio - 1) * 3.0;             // overpowered → mer flippy
+  effTurn = Math.min(1.5, effTurn);
+
+  const c = SIM.drag / (1 + SIM.dragGlide * p.glide);
+  const g = 9.81;
+  let x = 0, y = 0, z = 1.5, th = 0, v = v0;
+  let vz = v0 * SIM.launchVz;
+  let apex = z, t = 0;
+  const pts = [{ x: 0, y: 0, z }];
+
+  while (t < 14 && z > 0) {
+    const f = v / v0;
+    const wHi = Math.max(0, Math.min(1, (f - 0.55) / 0.40));
+    const wLo = Math.max(0, Math.min(1, (0.75 - f) / 0.35));
+    // +om svinger mot +x (høyre for RHBH)
+    const om = (-effTurn) * SIM.kTurn * wHi * wHi
+             - effFade * SIM.kFade * wLo * wLo;
+    th += om * SIM.dt;
+    const vg = Math.max(2, v - p.wind * 0.6); // bakkefart påvirkes av vind
+    x += Math.sin(th) * vg * SIM.dt;
+    y += Math.cos(th) * vg * SIM.dt;
+    const lift = g * Math.min(1, f * (SIM.liftBase + SIM.liftGlide * p.glide));
+    vz += (lift - g) * SIM.dt
+        - 1.6 * wLo * wLo * (0.4 + effFade * 0.25) * SIM.dt;
+    z = Math.max(0, z + vz * SIM.dt);
+    v *= Math.exp(-c * SIM.dt);
+    t += SIM.dt;
+    if (z > apex) apex = z;
+    pts.push({ x: x * p.mirror, y, z });
+  }
+  return { pts, dist: y, lat: x * p.mirror, apex, time: t,
+           effTurn, effFade, ratio };
+}
+
+function classifyShape(r) {
+  const maxRight = Math.max(...r.pts.map(q => q.x));
+  const end = r.lat;
+  if (maxRight > 5 && end < -3) return 'S-kurve (flex)';
+  if (maxRight > 8 && end > 0) return 'understabil — turner over';
+  if (end < -15) return 'overstabil — hard fade';
+  if (Math.abs(end) < 5 && maxRight < 4) return 'rett';
+  return end < 0 ? 'stabil med fade' : 'svakt understabil';
+}
+
+/* ─── DOM og tegning ─────────────────────────────────────────────── */
+if (typeof document !== 'undefined') {
+(function () {
+  const $ = id => document.getElementById(id);
+  const css = v => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+  const C = {
+    accent: css('--accent') || '#b8552e',
+    ink: css('--ink') || '#161310',
+    faint: css('--ink-faint') || '#9a9087',
+    hair: css('--rule-hair') || '#e6e0d2',
+    soft: css('--rule-soft') || '#cdc6b6',
+    blue: css('--blue') || '#2f4855',
+    green: css('--green') || '#5a6b3e'
+  };
+  const GHOST_COLORS = [C.blue, C.green, '#c89832'];
+  let ghosts = [];   // { pts, label }
+  let anim = null;
+
+  const RANGE = { dist: 140, lat: 45, height: 30 };
+
+  function readParams() {
+    return {
+      speed: +$('speed').value, glide: +$('glide').value,
+      turn: +$('turn').value, fade: +$('fade').value,
+      vkmh: +$('vkmh').value, hyzer: +$('hyzer').value,
+      wind: +$('wind').value, mirror: +$('hand').value,
+      plasticShift: +$('plastic').value, wear: +$('wear').value
+    };
+  }
+
+  function setupCanvas(cv) {
+    const dpr = window.devicePixelRatio || 1;
+    const w = cv.clientWidth || +cv.getAttribute('width');
+    const h = w * (+cv.getAttribute('height') / +cv.getAttribute('width'));
+    cv.width = w * dpr; cv.height = h * dpr;
+    const ctx = cv.getContext('2d');
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    return { ctx, w, h };
+  }
+
+  /* Ovenfra: tee nederst i midten, +x mot høyre, distanse oppover */
+  function topXY(q, w, h) {
+    const pad = 24;
+    return {
+      px: w / 2 + q.x / RANGE.lat * (w / 2 - pad),
+      py: h - pad - q.y / RANGE.dist * (h - 2 * pad)
+    };
+  }
+
+  /* Fra siden: distanse mot høyre, høyde oppover */
+  function sideXY(q, w, h) {
+    const pad = 24;
+    return {
+      px: pad + q.y / RANGE.dist * (w - 2 * pad),
+      py: h - pad - q.z / RANGE.height * (h - 2 * pad)
+    };
+  }
+
+  function grid(ctx, w, h, proj, labelEvery) {
+    ctx.font = '10px "JetBrains Mono", monospace';
+    ctx.fillStyle = C.faint;
+    ctx.strokeStyle = C.hair;
+    ctx.lineWidth = 1;
+    for (let d = 0; d <= RANGE.dist; d += 10) {
+      const a = proj({ x: -RANGE.lat, y: d, z: 0 }, w, h);
+      const b = proj({ x: RANGE.lat, y: d, z: RANGE.height }, w, h);
+      ctx.beginPath();
+      if (proj === topXY) { ctx.moveTo(a.px, a.py); ctx.lineTo(b.px, a.py); }
+      else { ctx.moveTo(a.px, h - 24); ctx.lineTo(a.px, 24); }
+      ctx.strokeStyle = d % 50 === 0 ? C.soft : C.hair;
+      ctx.stroke();
+      if (d % labelEvery === 0 && d > 0) {
+        if (proj === topXY) ctx.fillText(d + ' m', 4, a.py - 2);
+        else ctx.fillText(d + '', a.px - 8, h - 10);
+      }
+    }
+    if (proj === topXY) {
+      // senterlinje
+      const t0 = topXY({ x: 0, y: 0, z: 0 }, w, h);
+      const t1 = topXY({ x: 0, y: RANGE.dist, z: 0 }, w, h);
+      ctx.setLineDash([3, 5]);
+      ctx.strokeStyle = C.soft;
+      ctx.beginPath(); ctx.moveTo(t0.px, t0.py); ctx.lineTo(t1.px, t1.py); ctx.stroke();
+      ctx.setLineDash([]);
+      // tee
+      ctx.fillStyle = C.ink;
+      ctx.fillRect(t0.px - 7, t0.py - 2, 14, 4);
+    } else {
+      // bakkelinje + høyde-labels
+      const g0 = sideXY({ x: 0, y: 0, z: 0 }, w, h);
+      const g1 = sideXY({ x: 0, y: RANGE.dist, z: 0 }, w, h);
+      ctx.strokeStyle = C.ink;
+      ctx.beginPath(); ctx.moveTo(g0.px, g0.py); ctx.lineTo(g1.px, g1.py); ctx.stroke();
+      ctx.fillStyle = C.faint;
+      for (let z = 10; z <= RANGE.height; z += 10) {
+        const p = sideXY({ x: 0, y: 0, z }, w, h);
+        ctx.fillText(z + ' m', 2, p.py + 3);
+      }
+    }
+  }
+
+  function drawPath(ctx, pts, proj, w, h, color, width, upTo) {
+    const n = upTo === undefined ? pts.length : upTo;
+    ctx.strokeStyle = color;
+    ctx.lineWidth = width;
+    ctx.lineJoin = 'round';
+    ctx.beginPath();
+    for (let i = 0; i < n; i++) {
+      const p = proj(pts[i], w, h);
+      i === 0 ? ctx.moveTo(p.px, p.py) : ctx.lineTo(p.px, p.py);
+    }
+    ctx.stroke();
+  }
+
+  function render(progress) {
+    const r = current;
+    for (const [cv, proj] of [[$('topView'), topXY], [$('sideView'), sideXY]]) {
+      const { ctx, w, h } = setupCanvas(cv);
+      ctx.clearRect(0, 0, w, h);
+      grid(ctx, w, h, proj, proj === topXY ? 20 : 50);
+      ghosts.forEach((gh, i) => {
+        ctx.globalAlpha = 0.55;
+        drawPath(ctx, gh.pts, proj, w, h, GHOST_COLORS[i % 3], 1.5);
+        ctx.globalAlpha = 1;
+      });
+      const upTo = progress === undefined ? undefined
+                 : Math.max(2, Math.floor(r.pts.length * progress));
+      drawPath(ctx, r.pts, proj, w, h, C.accent, 2.5, upTo);
+      // landingspunkt / disc-posisjon
+      const q = r.pts[(upTo === undefined ? r.pts.length : upTo) - 1];
+      const p = proj(q, w, h);
+      ctx.fillStyle = C.accent;
+      ctx.beginPath(); ctx.arc(p.px, p.py, 4, 0, Math.PI * 2); ctx.fill();
+    }
+  }
+
+  let current = null;
+
+  function update() {
+    const p = readParams();
+    current = simulate(p);
+    $('st-dist').innerHTML = current.dist.toFixed(0) + '<span class="stat-unit">m</span>';
+    const lat = current.lat;
+    $('st-lat').innerHTML = (lat >= 0 ? '+' : '−') + Math.abs(lat).toFixed(0)
+      + '<span class="stat-unit">m ' + (lat >= 0 ? 'høyre' : 'venstre') + '</span>';
+    $('st-apex').innerHTML = current.apex.toFixed(1) + '<span class="stat-unit">m</span>';
+    $('st-time').innerHTML = current.time.toFixed(1) + '<span class="stat-unit">s</span>';
+    $('shape-label').textContent = classifyShape(current)
+      + (current.ratio < 0.85 ? ' · for lite fart for discen' : '');
+    render();
+  }
+
+  function throwAnim() {
+    if (anim) cancelAnimationFrame(anim);
+    const t0 = performance.now();
+    const dur = Math.max(1200, current.time * 450);
+    function frame(now) {
+      const pr = Math.min(1, (now - t0) / dur);
+      render(pr);
+      if (pr < 1) anim = requestAnimationFrame(frame);
+    }
+    anim = requestAnimationFrame(frame);
+  }
+
+  /* events */
+  $('disc').addEventListener('change', e => {
+    if (!e.target.value) return;
+    const [s, g, t, f] = e.target.value.split(',').map(Number);
+    $('speed').value = s; $('glide').value = g; $('turn').value = t; $('fade').value = f;
+    update();
+  });
+  ['speed', 'glide', 'turn', 'fade'].forEach(id =>
+    $(id).addEventListener('input', () => { $('disc').value = ''; update(); }));
+  ['plastic', 'hand'].forEach(id => $(id).addEventListener('change', update));
+  const WEAR_LABELS = ['ny', 'ny', 'litt brukt', 'litt brukt', 'brukt', 'brukt',
+                       'godt brukt', 'godt brukt', 'sykla', 'sykla', 'beat to death'];
+  [['wear', v => WEAR_LABELS[v]], ['vkmh', v => v], ['hyzer', v => v],
+   ['wind', v => (v > 0 ? '+' + v + ' mot' : v < 0 ? v + ' med' : '0')]]
+    .forEach(([id, fmt]) => $(id).addEventListener('input', e => {
+      $(id + '-val').textContent = fmt(+e.target.value);
+      update();
+    }));
+  $('throwBtn').addEventListener('click', throwAnim);
+  $('freezeBtn').addEventListener('click', () => {
+    if (!current) return;
+    ghosts.push({ pts: current.pts });
+    if (ghosts.length > 3) ghosts.shift();
+    $('ghost-note').textContent = ghosts.length + ' frosne baner — trykk igjen for å fryse flere (maks 3, eldste ryker).';
+    render();
+  });
+  window.addEventListener('resize', () => current && render());
+
+  update();
+  throwAnim();
+})();
+}
+</script>
+</body>
+</html>

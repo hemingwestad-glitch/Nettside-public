@@ -93,7 +93,7 @@
 
     <h2 class="section-header">Vannstand neste 72 timer</h2>
     <div class="chart">
-      <div class="chart-title">Total vannstand (TIDE + SURGE) ved Trondheim havn — m over middelvannstand</div>
+      <div class="chart-title">Total vannstand (TIDE + SURGE) ved <span id="chart-harbor-name">Trondheim</span> — m over middelvannstand</div>
       <svg id="chart-live" viewBox="0 0 800 320" preserveAspectRatio="none"></svg>
     </div>
 
@@ -203,7 +203,7 @@
   <hr>
   <p class="muted small">
     Live data fra <a href="https://api.met.no/weatherapi/tidalwater/1.1/documentation" target="_blank" rel="noopener">MET Norway tidalwater API</a>,
-    som bruker Kartverkets harmoniske analyse for Trondheim havn.
+    som bruker Kartverkets harmoniske analyse for hver av de 14 hovedhavnene.
     Verdiene er i meter over middelvannstand (NN2000 referanse).
   </p>
 </main>
@@ -601,6 +601,11 @@ document.getElementById('harbor-select').addEventListener('change', e => {
   CURRENT_HARBOR = e.target.value;
   const niceName = HARBOR_NAMES[CURRENT_HARBOR] || CURRENT_HARBOR;
   document.getElementById('harbor-name').textContent = niceName;
+  const chartName = document.getElementById('chart-harbor-name');
+  if (chartName) chartName.textContent = niceName;
+  // Oppdater page-meta også
+  const metaCells = document.querySelectorAll('.page-meta span');
+  if (metaCells.length >= 2) metaCells[1].textContent = niceName + ' havn';
   document.title = `Tidevann i ${niceName} — Heming Westad`;
   init();
 });

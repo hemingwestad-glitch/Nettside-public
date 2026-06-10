@@ -74,18 +74,51 @@
 
 <main>
   <div class="page-meta fade-up">
-    <span>63.4305° N, 10.3951° E</span>
-    <span>Trondheim</span>
-    <span>Sist oppdatert <span data-today></span></span>
+    <span><span style="color:var(--ink-faint)">POS</span>&nbsp;63.43° N · 10.40° E</span>
+    <span><span style="color:var(--ink-faint)">LOC</span>&nbsp;Trondheim</span>
+    <span><span style="color:var(--ink-faint)">UPD</span>&nbsp;<span data-today></span></span>
   </div>
 
-  <h1 class="fade-up">Hei, jeg heter <em>Heming</em>.</h1>
+  <div class="hero">
+    <svg class="hero-art" viewBox="0 0 420 300" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <!-- høydekoter -->
+      <g stroke="#1a1814" stroke-opacity="0.15">
+        <ellipse cx="300" cy="180" rx="95" ry="58" transform="rotate(-14 300 180)"/>
+        <ellipse cx="298" cy="178" rx="72" ry="42" transform="rotate(-14 298 178)"/>
+        <ellipse cx="296" cy="176" rx="50" ry="28" transform="rotate(-14 296 176)"/>
+        <ellipse cx="294" cy="174" rx="30" ry="16" transform="rotate(-14 294 174)"/>
+        <ellipse cx="292" cy="172" rx="13" ry="7" transform="rotate(-14 292 172)"/>
+      </g>
+      <text x="287" y="160" font-family="'JetBrains Mono',monospace" font-size="8" fill="#1a1814" fill-opacity="0.45">612</text>
+      <!-- graticule -->
+      <g stroke="#1a1814" stroke-opacity="0.09">
+        <path d="M0 60h420M0 150h420M0 240h420M70 0v300M210 0v300M350 0v300"/>
+      </g>
+      <g stroke="#1a1814" stroke-opacity="0.35">
+        <path d="M70 55v10M65 60h10M210 145v10M205 150h10M350 235v10M345 240h10"/>
+      </g>
+      <!-- ground track -->
+      <path d="M-10 210C70 130 150 96 220 102s130 52 210 22" stroke="#b8552e" stroke-width="1.5" stroke-dasharray="6 5"/>
+      <circle cx="220" cy="102" r="3.5" fill="#b8552e"/>
+      <circle cx="220" cy="102" r="8" stroke="#b8552e" stroke-opacity="0.4"/>
+      <text x="233" y="98" font-family="'JetBrains Mono',monospace" font-size="9" fill="#1a1814" fill-opacity="0.6" letter-spacing="1">METEOR M2-4</text>
+      <text x="233" y="110" font-family="'JetBrains Mono',monospace" font-size="8" fill="#1a1814" fill-opacity="0.4" letter-spacing="1">137.90 MHz · LRPT</text>
+      <!-- nordpil -->
+      <g stroke="#1a1814" stroke-opacity="0.5">
+        <path d="M395 32v24"/>
+        <path d="M395 30l-5 9h10z" fill="#1a1814" fill-opacity="0.5"/>
+      </g>
+      <text x="391" y="72" font-family="'JetBrains Mono',monospace" font-size="9" fill="#1a1814" fill-opacity="0.55">N</text>
+    </svg>
 
-  <p class="lede fade-up">
-    Flyingeniørstudent ved NTNU og programdirektør i Orbit NTNU. Når jeg ikke
-    holder på med skole eller småsatellitter, er jeg på elgjakt eller fisker
-    fjellørret.
-  </p>
+    <h1 class="fade-up">Hei, jeg heter<br><em>Heming</em>.</h1>
+
+    <p class="lede fade-up">
+      Flyingeniørstudent ved NTNU og programdirektør i Orbit NTNU. Når jeg ikke
+      holder på med skole eller småsatellitter, er jeg på elgjakt eller fisker
+      fjellørret.
+    </p>
+  </div>
 
   <p class="fade-up">
     Denne siden er først og fremst en samling med <strong>verktøy jeg bruker selv</strong>
@@ -127,62 +160,72 @@
     </div>
   </div>
 
-  <h2 class="section-header">Utvalgte verktøy <span class="count">5 av 17</span></h2>
+  <h2 class="section-header">Utvalgte verktøy <span class="count">6 av 18</span></h2>
 
   <div class="tool-grid">
     <a href="tools/space.html" class="tool">
       <div class="tool-header">
-        <span class="tool-icon">◐</span>
-        <span class="tool-tag">Romfart</span>
+        <span class="tool-icon"></span>
+        <span class="tool-tag">Romfart · 3D · Live</span>
       </div>
       <h3>Satellitt-arbeidsbord</h3>
       <p>Live 3D-tracker med banekurver, TLE-leser, link budget, antenner, Doppler og pass-prediksjoner. Med radio-frekvenser per satellitt.</p>
-      <span class="tool-action">Åpne →</span>
+      <div class="tool-action"><span>Åpne</span><span>→</span></div>
     </a>
 
     <a href="tools/aviation.html" class="tool">
       <div class="tool-header">
-        <span class="tool-icon">✈</span>
-        <span class="tool-tag">GA</span>
+        <span class="tool-icon"></span>
+        <span class="tool-tag">GA · METAR · W&amp;B</span>
       </div>
       <h3>Fly-verktøy</h3>
       <p>METAR for norske flyplasser, krysswind/headwind, density altitude og vekt &amp; balanse for småfly.</p>
-      <span class="tool-action">Åpne →</span>
+      <div class="tool-action"><span>Åpne</span><span>→</span></div>
     </a>
 
     <a href="tools/wind.html" class="tool">
       <div class="tool-header">
-        <span class="tool-icon">↗</span>
-        <span class="tool-tag">Skyting</span>
+        <span class="tool-icon"></span>
+        <span class="tool-tag">Skyting · RK4 · G1/G7</span>
       </div>
       <h3>Ballistikk</h3>
       <p>RK4 med G1/G7 drag-modell. Vind, lufttetthet, helning, Coriolis. Norske jaktladninger og avlivningskrav.</p>
-      <span class="tool-action">Åpne →</span>
+      <div class="tool-action"><span>Åpne</span><span>→</span></div>
     </a>
 
     <a href="tools/tides.html" class="tool">
       <div class="tool-header">
-        <span class="tool-icon">≈</span>
-        <span class="tool-tag">Hav</span>
+        <span class="tool-icon"></span>
+        <span class="tool-tag">Hav · M2 · Kartverket</span>
       </div>
       <h3>Tidevann i Trondheim</h3>
       <p>Live tidevannsdata fra Kartverket og Fourier-sandkasse for de harmoniske komponentene. Se månens M2 og solens S2 i opphav.</p>
-      <span class="tool-action">Åpne →</span>
+      <div class="tool-action"><span>Åpne</span><span>→</span></div>
     </a>
 
     <a href="tools/fishing.html" class="tool">
       <div class="tool-header">
-        <span class="tool-icon">~</span>
-        <span class="tool-tag">Fiske</span>
+        <span class="tool-icon"></span>
+        <span class="tool-tag">Fiske · MET · Måne</span>
       </div>
       <h3>Fiskeforhold</h3>
       <p>Vær fra MET Norway, månefase, lufttrykktrend. Skreddersydd for fjellørret, men funker for de fleste arter.</p>
-      <span class="tool-action">Åpne →</span>
+      <div class="tool-action"><span>Åpne</span><span>→</span></div>
+    </a>
+
+    <a href="tools/discgolf.html" class="tool">
+      <div class="tool-header">
+        <span class="tool-icon"></span>
+        <span class="tool-tag">Frisbeegolf · Ny</span>
+      </div>
+      <h3>Frisbeegolf-simulator</h3>
+      <p>Se kastebanen ovenfra og fra siden. Flight-tall, plast, slitasje, armfart, vind og hyzer-vinkel. Sammenlign discer.</p>
+      <div class="tool-action"><span>Åpne</span><span>→</span></div>
     </a>
   </div>
 
   <p style="margin: 1.5rem 0 2rem; text-align: center;">
-    <a href="tools.html" class="btn" style="font-size: 0.9rem; padding: 0.75rem 1.5rem;">Se alle 17 verktøy →</a>
+    <a href="tools.html" class="btn" style="font-size: 0.9rem; padding: 0.75rem 1.5rem;">Se alle 18 verktøy →</a>
   </p>
 
   <p class="muted small" style="margin-top: 1.25rem; text-align: center;">

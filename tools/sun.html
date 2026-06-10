@@ -44,7 +44,7 @@
 
   <h1 class="fade-up">Sol og <em>måne</em>.</h1>
   <p class="lede fade-up">
-    Soloppgang, soloppgang/-nedgang, gylden time, blå time. Månefase og
+    Soloppgang og solnedgang, gylden time, blå time. Månefase og
     månestilling. Bruker Meeus-algoritmer for høy presisjon.
   </p>
 
@@ -259,25 +259,29 @@ function moonPosition(jd) {
   const T = jc(jd);
   // Månens midlere lengdegrad
   const L = (218.3164477 + 481267.88123421 * T - 0.0015786 * T*T + T*T*T/538841) % 360;
+  // Midlere elongasjon måne–sol
+  const D = (297.8501921 + 445267.1114034 * T - 0.0018819 * T*T + T*T*T/545868) % 360;
   // Månens midlere anomali
   const Mp = (134.9633964 + 477198.8675055 * T + 0.0087414 * T*T + T*T*T/69699) % 360;
   // Sols midlere anomali
   const M = (357.5291092 + 35999.0502909 * T - 0.0001536 * T*T) % 360;
   // Månens argument av breddegrad
   const F = (93.2720950 + 483202.0175233 * T - 0.0036539 * T*T) % 360;
-  // Forenklet — bruker bare et par dominerende ledd
-  const Lr = L * RAD, Mpr = Mp * RAD, Mr = M * RAD, Fr = F * RAD;
-  // Lengdegrad-korreksjon (bueminutter)
+  const Dr = D * RAD, Mpr = Mp * RAD, Mr = M * RAD, Fr = F * RAD;
+  // Lengdegrad-korreksjon — dominerende ledd fra Meeus tabell 47.A (grader)
   const dL = 6.289 * Math.sin(Mpr)
-           - 1.274 * Math.sin(2*Lr - Mpr - Mr*0) // forenklet
-           + 0.658 * Math.sin(2*Lr)
+           + 1.274 * Math.sin(2*Dr - Mpr)
+           + 0.658 * Math.sin(2*Dr)
+           + 0.214 * Math.sin(2*Mpr)
            - 0.186 * Math.sin(Mr)
-           - 0.059 * Math.sin(2*Mpr - 2*Lr*0)
-           - 0.057 * Math.sin(Mpr - 2*Lr + Mr*0);
-  // Breddegrad-korreksjon
+           - 0.114 * Math.sin(2*Fr)
+           - 0.059 * Math.sin(2*Mpr - 2*Dr)
+           - 0.057 * Math.sin(Mpr - 2*Dr + Mr);
+  // Breddegrad-korreksjon — Meeus tabell 47.B
   const beta = 5.128 * Math.sin(Fr)
              + 0.281 * Math.sin(Mpr + Fr)
-             + 0.278 * Math.sin(Mpr - Fr);
+             + 0.278 * Math.sin(Mpr - Fr)
+             + 0.173 * Math.sin(2*Dr - Fr);
   const lambda = (L + dL) * RAD;
   const betaR = beta * RAD;
   // Konverter til RA/dec via ekliptikk

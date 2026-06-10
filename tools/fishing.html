@@ -134,7 +134,7 @@ function moonPhase(date) {
 function moonName(p) {
   if (p < 0.03 || p > 0.97) return 'Nymåne';
   if (p < 0.22) return 'Tiltakende sigd';
-  if (p < 0.28) return 'Halvmåne (vox.)';
+  if (p < 0.28) return 'Halvmåne (voks.)';
   if (p < 0.47) return 'Tiltakende fullmåne';
   if (p < 0.53) return 'Fullmåne';
   if (p < 0.72) return 'Avtagende fullmåne';
@@ -268,11 +268,11 @@ document.getElementById('fetch').addEventListener('click', async () => {
     }));
     renderChart(document.getElementById('chart-press'), pressPts, 'Lufttrykk', 'var(--blue)', 'hPa');
 
-    const tempPts = series.slice(0, 24).map(s => ({
+    const windPts = series.slice(0, 24).map(s => ({
       t: new Date(s.time),
       v: s.data.instant.details.wind_speed
     }));
-    renderChart(document.getElementById('chart-wind'), tempPts, 'Vindhastighet', 'var(--accent)', 'm/s');
+    renderChart(document.getElementById('chart-wind'), windPts, 'Vindhastighet', 'var(--accent)', 'm/s');
 
     document.getElementById('results').style.display = '';
   } catch (e) {
@@ -281,6 +281,36 @@ document.getElementById('fetch').addEventListener('click', async () => {
     btn.disabled = false; btn.textContent = 'Hent vær';
   }
 });
+
+// Les koordinater fra URL-hash hvis tilstede (f.eks. fra kart-verktøyet)
+// Format: #LAT,LON eller #LAT,LON,Navn
+if (location.hash) {
+  const m = location.hash.match(/#?(-?\d+\.?\d*),(-?\d+\.?\d*)(?:,(.+))?/);
+  if (m) {
+    document.getElementById('lat').value = m[1];
+    document.getElementById('lon').value = m[2];
+    document.getElementById('preset').value = 'custom';
+    const name = m[3] ? decodeURIComponent(m[3]) : `${m[1]}°, ${m[2]}°`;
+    updateLocationName(name);
+  }
+}
+
+// Auto-fetch ved start
+document.getElementById('fetch').click();
+</script>
+</body>
+</html>
+LON eller #LAT,LON,Navn
+if (location.hash) {
+  const m = location.hash.match(/#?(-?\d+\.?\d*),(-?\d+\.?\d*)(?:,(.+))?/);
+  if (m) {
+    document.getElementById('lat').value = m[1];
+    document.getElementById('lon').value = m[2];
+    document.getElementById('preset').value = 'custom';
+    const name = m[3] ? decodeURIComponent(m[3]) : `${m[1]}°, ${m[2]}°`;
+    updateLocationName(name);
+  }
+}
 
 // Auto-fetch ved start
 document.getElementById('fetch').click();
