@@ -15,3 +15,6 @@ node_modules/
 # Interne notater og previews (ikke deploy)
 AUDIT.md
 preview-*.html
+
+# Interne notater (ikke deploy)
+REVIEW.md
