@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="description" content="Frisbeegolf-simulator: se kastebanen ovenfra og fra siden. Flight-tall, plast, slitasje, armfart, vind og hyzer-vinkel.">
+<meta name="description" content="Frisbeegolf-simulator med stivlegeme-aerodynamikk: gyroskopisk presesjon, hyzer/anhyzer, høydeforskjell, vind — og en wiki om CFD, meshing og y+.">
 <title>Frisbeegolf-simulator — Heming Westad</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -14,7 +14,7 @@
 <link rel="icon" href="/favicon.ico" sizes="any">
 <meta name="theme-color" content="#b8552e">
 <meta property="og:title" content="Frisbeegolf-simulator — Heming Westad">
-<meta property="og:description" content="Se kastebanen ovenfra og fra siden. Flight-tall, plast, armfart, vind.">
+<meta property="og:description" content="Stivlegeme-aerodynamikk med gyroskopisk presesjon. Og en wiki om hvorfor full CFD av en disc er et mareritt.">
 <meta property="og:image" content="https://hemingwestad.no/og-image.png">
 <meta property="og:url" content="https://hemingwestad.no/tools/discgolf.html">
 <meta property="og:type" content="website">
@@ -26,15 +26,54 @@
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(19rem, 1fr));
   gap: 1.25rem;
-  margin: 1rem 0 1.5rem;
+  margin: 1rem 0 0.75rem;
 }
 .dg-canvas-wrap {
   background: var(--bg-card);
   border: 1px solid var(--rule);
 }
 .dg-canvas-wrap canvas { display: block; width: 100%; height: auto; }
-.dg-actions { display: flex; gap: 0.5rem; flex-wrap: wrap; margin: 1rem 0; align-items: center; }
 .dg-ghost-note { font-family: var(--font-mono); font-size: 0.7rem; color: var(--ink-faint); }
+.dg-telemetry {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--ink-dim);
+  margin: 0 0 1.5rem;
+  letter-spacing: 0.02em;
+}
+/* Wiki */
+.wiki details {
+  border: 1px solid var(--rule-soft);
+  border-bottom: none;
+  background: var(--bg-card);
+}
+.wiki details:last-of-type { border-bottom: 1px solid var(--rule-soft); }
+.wiki summary {
+  cursor: pointer;
+  padding: 0.85rem 1.1rem;
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--ink);
+  list-style: none;
+}
+.wiki summary::-webkit-details-marker { display: none; }
+.wiki summary::before { content: '+ '; color: var(--accent); }
+.wiki details[open] summary::before { content: '− '; }
+.wiki details[open] summary { border-bottom: 1px solid var(--rule-hair); }
+.wiki .wiki-body { padding: 0.9rem 1.1rem 1.1rem; }
+.wiki .wiki-body p { font-size: 0.92rem; line-height: 1.6; }
+.wiki .wiki-body ul { max-width: var(--measure); font-size: 0.92rem; line-height: 1.6; padding-left: 1.2rem; }
+.wiki .wiki-body li { margin-bottom: 0.4rem; }
+.wiki .formula {
+  font-family: var(--font-mono);
+  font-size: 0.84rem;
+  background: var(--bg-alt);
+  padding: 0.6rem 0.9rem;
+  margin: 0.6rem 0;
+  display: inline-block;
+}
 </style>
 </head>
 <body>
@@ -54,14 +93,15 @@
 <main>
   <div class="page-meta fade-up">
     <span>Frisbeegolf</span>
-    <span>Kastebane-simulator</span>
+    <span>6-DOF-lite · RK4</span>
+    <span>Gyroskopisk presesjon</span>
   </div>
 
   <h1 class="fade-up">Frisbeegolf<em>-simulator</em>.</h1>
   <p class="lede fade-up">
-    Tast inn flight-tallene (speed / glide / turn / fade), velg plast, slitasje
-    og armfart — og se banen ovenfra og fra siden. Modellen er forenklet, men
-    fanger S-kurven: high-speed turn tidlig, fade på slutten.
+    Stivlegeme-modell med ekte aerodynamiske koeffisienter: turn og fade er
+    ikke programmert inn — de <em>oppstår</em> av gyroskopisk presesjon når
+    pitch-momentet flytter seg med angrepsvinkelen. Integrert med RK4.
   </p>
 
   <div class="panel fade-up">
@@ -75,7 +115,7 @@
             <option value="12,5,-1,3">Destroyer (12/5/-1/3)</option>
             <option value="11,5,-1,3">Wraith (11/5/-1/3)</option>
             <option value="13,6,-2,2">Shryke (13/6/-2/2)</option>
-            <option value="9,4,-2,2">Valkyrie (9/4/-2/2)</option>
+            <option value="9,5,-3,1">Sidewinder (9/5/-3/1)</option>
           </optgroup>
           <optgroup label="Fairway drivere">
             <option value="9,3,0,4">Firebird (9/3/0/4)</option>
@@ -121,12 +161,6 @@
         <input type="range" id="vkmh" min="55" max="150" value="95" step="1">
       </div>
       <div class="field">
-        <label>Hyzer-vinkel: <span id="hyzer-val">0</span>°</label>
-        <input type="range" id="hyzer" min="-25" max="25" value="0" step="1">
-      </div>
-    </div>
-    <div class="field-row">
-      <div class="field">
         <label>Kast</label>
         <select id="hand">
           <option value="1" selected>Høyre backhand (RHBH)</option>
@@ -135,6 +169,26 @@
           <option value="1">Venstre forehand (LHFH)</option>
         </select>
       </div>
+    </div>
+    <div class="field-row">
+      <div class="field">
+        <label>Vinkel: <span id="hyzer-val">flat (0°)</span></label>
+        <input type="range" id="hyzer" min="-30" max="30" value="0" step="1">
+      </div>
+      <div class="field">
+        <label>Nese-vinkel: <span id="nose-val">0</span>°</label>
+        <input type="range" id="nose" min="-5" max="10" value="0" step="0.5">
+      </div>
+      <div class="field">
+        <label>Utkastvinkel: <span id="launch-val">9</span>°</label>
+        <input type="range" id="launch" min="0" max="25" value="9" step="1">
+      </div>
+      <div class="field">
+        <label>Høydeforskjell: <span id="elev-val">0</span> m</label>
+        <input type="range" id="elev" min="-30" max="30" value="0" step="1">
+      </div>
+    </div>
+    <div class="field-row">
       <div class="field">
         <label>Vind: <span id="wind-val">0</span> m/s</label>
         <input type="range" id="wind" min="-8" max="8" value="0" step="1">
@@ -148,14 +202,14 @@
         <button class="secondary" id="freezeBtn">Frys banen</button>
       </div>
     </div>
-    <p class="dg-ghost-note" id="ghost-note">Frys inntil tre baner for å sammenligne discer.</p>
+    <p class="dg-ghost-note" id="ghost-note">Hyzer-slideren: venstre = anhyzer (topp mot deg), høyre = hyzer (topp fra deg). Frys inntil tre baner for å sammenligne.</p>
   </div>
 
   <h2 class="section-header">Resultat <span class="count" id="shape-label">—</span></h2>
   <div class="stat-grid">
     <div class="stat accent"><div class="stat-label">Lengde</div><div class="stat-value" id="st-dist">—</div></div>
     <div class="stat"><div class="stat-label">Sideveis landing</div><div class="stat-value" id="st-lat">—</div></div>
-    <div class="stat blue"><div class="stat-label">Apex-høyde</div><div class="stat-value" id="st-apex">—</div></div>
+    <div class="stat blue"><div class="stat-label">Apex over tee</div><div class="stat-value" id="st-apex">—</div></div>
     <div class="stat"><div class="stat-label">Flytid</div><div class="stat-value" id="st-time">—</div></div>
   </div>
 
@@ -165,30 +219,179 @@
       <canvas id="topView" width="460" height="600"></canvas>
     </div>
     <div class="dg-canvas-wrap">
-      <div class="chart-title">Fra siden — høydeprofil</div>
-      <canvas id="sideView" width="460" height="280"></canvas>
+      <div class="chart-title">Fra siden — høydeprofil og terreng</div>
+      <canvas id="sideView" width="460" height="300"></canvas>
     </div>
   </div>
+  <p class="dg-telemetry" id="telemetry">—</p>
 
-  <div class="panel-help">
-    <strong>Hva betyr flight-tallene?</strong>
-    <p><span class="mono">Speed</span> er hvor hardt discen må kastes for å fly som
-    oppgitt — ikke hvor langt den går. En 12-speed kastet for svakt oppfører seg
-    som mer overstabil og fader tidlig.</p>
-    <p><span class="mono">Turn</span> (negativ = mer) styrer high-speed-delen: discen
-    vrir mot høyre tidlig i flukten for RHBH. <span class="mono">Fade</span> styrer
-    slutten: discen bremser, mister løft på venstre side og dykker mot venstre.
-    Sammen gir de S-kurven.</p>
-    <p>Motvind øker den effektive luftfarten — discen blir «mer understabil» og
-    turner mer. Medvind gjør det motsatte. Slitt baseplast mister stabilitet over
-    tid og blir flippy — derfor sykler man discer.</p>
+  <h2 class="section-header">Wiki: hvorfor dette egentlig er vanskelig <span class="count">CFD · meshing · y+</span></h2>
+
+  <p>
+    En frisbee ser enkel ut. Aerodynamisk er den et av de vanskeligste
+    hverdagsobjektene som finnes: en <strong>roterende, kamret vinge uten
+    haleflate</strong>, stabilisert utelukkende av gyroskopisk effekt, i et
+    Reynolds-regime der strømningen ikke kan bestemme seg for om den er laminær
+    eller turbulent. SmarterEveryDay brukte en hel episode (#313) på akkurat
+    dette, og det er skrevet flere avhandlinger om det. Her er hele pakka.
+  </p>
+
+  <div class="wiki">
+    <details open>
+      <summary>01 — Problemet: en roterende vinge uten hale</summary>
+      <div class="wiki-body">
+        <p>Et fly har haleflater som retter opp forstyrrelser. En disc har
+        ingenting — den holdes flat av <strong>spinn</strong>. Med typisk
+        utkast (20–40 m/s, diameter 21 cm) ligger Reynolds-tallet rundt
+        <span class="mono">Re ≈ 2–6 · 10⁵</span>. Det er akkurat i
+        transisjonsområdet der grensesjiktet skifter fra laminært til
+        turbulent — det mest uforutsigbare regimet som finnes. Små endringer i
+        kant-geometri (derfor flyr en slitt disc annerledes!) flytter
+        separasjonspunktet på kuppelen og endrer både løft, drag og moment.</p>
+        <p>I tillegg er strømningen <strong>usymmetrisk</strong>: den ene
+        kanten av discen beveger seg med vinden (advancing side), den andre
+        mot (retreating side), som på et helikopterrotor. Og hele bildet er
+        <strong>ustasjonært</strong> — virvler slipper fra bakkanten i pulser.</p>
+      </div>
+    </details>
+
+    <details>
+      <summary>02 — Gyroskopisk presesjon: hvorfor turn og fade finnes</summary>
+      <div class="wiki-body">
+        <p>Lufta gir discen et <strong>pitch-moment</strong> M(α) som vil
+        vippe nesa opp eller ned, avhengig av angrepsvinkelen α. Men en
+        spinnende disc vipper ikke der momentet dytter — den svarer
+        <strong>90° senere i rotasjonen</strong>. Det er presesjon, samme
+        effekt som holder en sykkel oppreist:</p>
+        <p class="formula">dn/dt = M / (I·ω) — rullrate ∝ moment / spinn</p>
+        <p>Ved høy fart er α liten og M negativt (nese-ned-moment) → discen
+        ruller mot høyre for RHBH: <strong>turn</strong>. Når discen bremser,
+        synker banen mens discen holder samme stilling i rommet — α vokser, M
+        blir positivt → discen ruller venstre: <strong>fade</strong>. Én
+        mekanisme forklarer hele S-kurven. Det er denne ligningen simulatoren
+        over faktisk integrerer.</p>
+        <p>Derfor er hyzer og anhyzer fundamentalt forskjellige: hyzer-vinkelen
+        endrer hvor løftet peker <em>og</em> hvordan α utvikler seg gjennom
+        flukten — en anhyzer «bruker opp» fade-marginen før discen i det hele
+        tatt har bremset.</p>
+      </div>
+    </details>
+
+    <details>
+      <summary>03 — Full CFD-pipeline: fra CAD til konvergert løsning</summary>
+      <div class="wiki-body">
+        <p>Skal du gjøre dette ordentlig (som i avhandlingene), ser pipelinen
+        slik ut:</p>
+        <ul>
+          <li><strong>Geometri:</strong> CAD-modell av discen, gjerne skannet —
+          rim-profilen på tiendedels millimeter betyr noe.</li>
+          <li><strong>Domene:</strong> et beregningsvolum 20–30 diametre stort,
+          så ytterveggene ikke forstyrrer løsningen.</li>
+          <li><strong>Meshing:</strong> overflatemesh på discen (1–5 mm),
+          <strong>prismelag</strong> i grensesjiktet (15–25 lag, vekstrate
+          ~1,2) og polyhedral/hex-celler utover. Typisk 5–30 millioner celler.
+          Så en <strong>mesh-uavhengighetsstudie</strong>: kjør samme case på
+          grovt, medium og fint mesh til kreftene slutter å endre seg —
+          ellers vet du ikke om du har regnet på fysikk eller på mesh.</li>
+          <li><strong>Turbulensmodell:</strong> RANS med SST k-ω er
+          arbeidshesten (håndterer separasjon bedre enn k-ε), gjerne med
+          γ-Re<sub>θ</sub>-transisjonsmodell siden Re ligger i
+          transisjonsområdet. Vil du fange virvelslipp ordentlig, må du opp i
+          DES/LES — tidsoppløst og 10–100× dyrere.</li>
+          <li><strong>Rotasjon:</strong> MRF (multiple reference frame) som
+          snarvei, eller <strong>sliding mesh</strong> der disc-nært mesh
+          fysisk roterer hvert tidssteg — dyrt, men riktig for
+          advancing/retreating-asymmetrien.</li>
+          <li><strong>Konvergens:</strong> residualer ned 3–4 dekader,
+          Courant-tall under kontroll, og krefter/momenter som har flatet ut —
+          ikke bare «den sluttet å krasje».</li>
+        </ul>
+        <p>Én polar (CL, CD, CM over α fra −5° til 30°) blir fort 20–40
+        separate kjøringer. Per spinnrate. Det er derfor det skrives
+        masteroppgaver om dette.</p>
+      </div>
+    </details>
+
+    <details>
+      <summary>04 — y+ forklart: det viktigste tallet i meshet</summary>
+      <div class="wiki-body">
+        <p>Alt drag og separasjonsoppførsel bestemmes i <strong>grensesjiktet</strong>
+        — det millimetertynne laget der lufta bremses fra fristrøm til null på
+        overflaten. <span class="mono">y+</span> er den dimensjonsløse avstanden
+        fra veggen til midten av første mesh-celle:</p>
+        <p class="formula">y+ = u<sub>τ</sub> · y / ν,&nbsp;&nbsp; u<sub>τ</sub> = √(τ<sub>w</sub>/ρ)</p>
+        <ul>
+          <li><span class="mono">y+ &lt; 5</span>: viskøst underlag — strømningen
+          er nesten laminær her.</li>
+          <li><span class="mono">5–30</span>: bufferlag — ingenting gjelder,
+          unngå å havne her.</li>
+          <li><span class="mono">30–300</span>: logaritmisk lag — her kan
+          <strong>veggfunksjoner</strong> modellere profilen i stedet for å
+          løse den.</li>
+        </ul>
+        <p>Vil du fange separasjonen på disc-kuppelen (og det vil du — det er
+        dét som gir pitch-momentet), må grensesjiktet <em>løses</em>, ikke
+        modelleres: <strong>y+ ≈ 1</strong> i første celle. For en disc i 30
+        m/s betyr det første cellehøyde på ~5 mikrometer. Derav prismelagene,
+        derav celletallene, derav regnetiden.</p>
+      </div>
+    </details>
+
+    <details>
+      <summary>05 — Validering: vindtunnel og kastemålinger</summary>
+      <div class="wiki-body">
+        <p>CFD uten validering er bare fargerike bilder. Gullstandarden for
+        disc-aerodynamikk er <strong>Potts &amp; Crowther</strong> (University
+        of Manchester, 2001–2002): vindtunnelmålinger av en roterende disc
+        montert på en kraftbalanse, som parametriserte alle krefter og
+        momenter i <strong>åtte koeffisienter</strong> over angrepsvinkel og
+        spinnrate. Deres hovedfunn: spinnens direkte bidrag til kreftene er
+        lite — det er <em>presesjonen</em> som styrer banen.</p>
+        <p><strong>Hummel (2003, UC Davis)</strong> gikk motsatt vei: filmet
+        ekte kast med høyhastighetskamera, rekonstruerte banene og estimerte
+        koeffisientene som best forklarte dem — og bygde 6-DOF-simulatoren som
+        all senere disc-flight-simulering står på skuldrene til.</p>
+      </div>
+    </details>
+
+    <details>
+      <summary>06 — Hva denne simulatoren gjør (og ærlig: ikke gjør)</summary>
+      <div class="wiki-body">
+        <p><strong>Gjør:</strong> integrerer Newton + gyro-presesjon med RK4
+        (50 steg/s). Krefter fra koeffisientkurver CL(α), CD(α), CM(α) i
+        Hummel/Potts-form, skalert fra flight-tallene. Stilling holdes
+        gyro-låst i rommet bortsett fra presesjonen — en god tilnærming for
+        en rask disc. Vind inngår fysisk i relativ luftfart (derfor blir
+        discer «mer understabile» i motvind her — det følger av q = ½ρv²,
+        ikke av en regel).</p>
+        <p><strong>Ignorerer:</strong> wobble/nutasjon rett etter release,
+        Magnus-krefter (små for discer, jf. Potts &amp; Crowther),
+        CM-hysterese ved dynamisk α-endring, spin-down fra luftfriksjon er
+        bare en enkel eksponential, og koeffisientene er glatte kurver der
+        virkeligheten har knekk ved separasjon. Pluss alt i punkt 01–04:
+        ekte svar krever mesh, ikke matte på 60 fps i nettleseren din.</p>
+      </div>
+    </details>
+
+    <details>
+      <summary>07 — Referanser og videre lesing</summary>
+      <div class="wiki-body">
+        <ul>
+          <li>Hummel, S. (2003): <a href="https://research.engineering.ucdavis.edu/biosport/sample-page/test-page-1/frisbee-flight-simulation-and-throw-biomechanics/" target="_blank" rel="noopener"><em>Frisbee Flight Simulation and Throw Biomechanics</em></a>, UC Davis.</li>
+          <li>Potts, J. R. &amp; Crowther, W. J.: <a href="https://shura.shu.ac.uk/14521/1/Potts%20-%20Aerodynamic%20Performance%20of%20Flying%20Discs%20-%20(AM).pdf" target="_blank" rel="noopener"><em>Aerodynamic Performance of Flying Discs</em></a>, University of Manchester.</li>
+          <li>Crowther &amp; Potts: <a href="https://www.researchgate.net/publication/225330184_Simulation_of_a_spinstabilised_sports_disc" target="_blank" rel="noopener"><em>Simulation of a spin-stabilised sports disc</em></a>.</li>
+          <li>SmarterEveryDay #313: <a href="https://www.youtube.com/watch?v=-0JKHuzJ67A" target="_blank" rel="noopener"><em>Everything About Disc Golf Aerodynamics</em></a> — se denne først.</li>
+          <li>Morrison (USF): <a href="https://digitalcommons.usf.edu/cgi/viewcontent.cgi?article=4817&context=ujmm" target="_blank" rel="noopener"><em>The Aerodynamics of Frisbee Flight</em></a> — fin innføring.</li>
+        </ul>
+      </div>
+    </details>
   </div>
 
   <hr>
   <p class="muted small">
-    Forenklet modell kalibrert mot typiske flight-charts (ikke full aerodynamikk —
-    ingen presesjon eller gyrodynamikk). Tall fra produsentene er heller ikke
-    standardiserte, så bruk dette som intuisjon, ikke fasit.
+    Koeffisientbasert stivlegeme-modell — kalibrert mot formen på publiserte
+    vindtunnelkurver, skalert fra flight-tall som ikke er standardiserte
+    mellom produsenter. Bruk som intuisjon, ikke fasit.
   </p>
 </main>
 
@@ -203,65 +406,155 @@
 
 <script src="/common.js"></script>
 <script>
-/* ─── Frisbeegolf flight-simulator ──────────────────────────────────────
-   Forenklet kinematisk modell: discen følger en heading som roteres av
-   to momenter — high-speed turn (når v/v0 er høy) og low-speed fade
-   (når discen bremser). Kalibrert mot typiske flight-charts.
+/* ─── Frisbeegolf: stivlegeme-modell med gyroskopisk presesjon ──────────
+   Tilstand: posisjon p, hastighet v, disc-normal n (enhetsvektor).
+   Krefter: løft/drag fra CL(α), CD(α); pitch-moment CM(α) presesserer
+   normalen med dn/dt = -T/(I·ω) for RHBH-spinn. RK4-integrasjon.
+   Koeffisientform etter Hummel (2003) og Potts & Crowther.
+   Alt regnes i kanonisk RHBH-ramme; venstre/forehand speiles i x.
    ─────────────────────────────────────────────────────────────────── */
 
-const SIM = {
-  drag: 0.30,        // hastighets-decay, dempes av glide
-  dragGlide: 0.14,
-  kTurn: 0.095,      // rad/s per turn-enhet ved full fart
-  kFade: 0.420,      // rad/s per fade-enhet ved lav fart
-  liftBase: 0.70,
-  liftGlide: 0.060,
-  launchVz: 0.13,    // andel av v0 oppover ved release
-  dt: 0.04
+const DEG = Math.PI / 180;
+
+const DISC = {
+  m: 0.175,            // kg
+  d: 0.211,            // m
+  A: 0.0350,           // m² planform
+  Ia: 1.3e-3,          // kg·m² effektivt (inkl. aerodynamisk rolldemping)
+  rho: 1.225,
+  g: 9.81,
+  spinPerV: 6.5,       // ω0 = spinPerV · v0  (rad/s)
+  spinDecay: 0.04      // s⁻¹
 };
 
-function simulate(p) {
-  // p: speed, glide, turn, fade, vkmh, hyzer, wind (+ = motvind), mirror,
-  //    plasticShift, wear (0-10)
-  const v0 = Math.max(8, p.vkmh / 3.6) * (1 - Math.abs(p.hyzer) * 0.004);
-  const reqKmh = 70 + 5.5 * p.speed;
-  const ratio = Math.min(1.25, Math.max(0.4, p.vkmh / reqKmh));
+/* Flight-tall → koeffisienter (kalibrert, se wiki pkt. 06) */
+function discParams(u) {
+  const stab = u.plasticShift - u.wear * 0.09;   // + = mer overstabil
+  return {
+    CL0: 0.020 + 0.011 * u.glide,
+    CLa: 2.0,                                     // per rad
+    CD0: 0.062 - 0.0018 * u.speed,
+    kD:  3.2,                                     // per rad² (induced drag)
+    a0d: -0.03,                                   // rad, min-drag-vinkel
+    CM0: 0.0042 * (u.turn + stab),                // turn −5..+1
+    CMa: 0.10 + 0.13 * u.fade                     // per rad
+  };
+}
 
-  let effTurn = p.turn + p.plasticShift - p.wear * 0.12 - p.wind * 0.35 + p.hyzer * 0.10;
-  let effFade = Math.max(0, p.fade + p.plasticShift * 0.5 + p.hyzer * 0.05);
-  if (ratio < 1) effTurn += (1 - ratio) * 3.5;   // underpowered → mer stabil
-  else effTurn -= (ratio - 1) * 3.0;             // overpowered → mer flippy
-  effTurn = Math.min(1.5, effTurn);
+/* vektor-hjelpere på [x,y,z] */
+const vadd = (a, b, s) => [a[0] + b[0] * s, a[1] + b[1] * s, a[2] + b[2] * s];
+const vdot = (a, b) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
+const vcross = (a, b) => [a[1]*b[2]-a[2]*b[1], a[2]*b[0]-a[0]*b[2], a[0]*b[1]-a[1]*b[0]];
+const vnorm = a => { const l = Math.hypot(a[0],a[1],a[2]) || 1; return [a[0]/l, a[1]/l, a[2]/l]; };
 
-  const c = SIM.drag / (1 + SIM.dragGlide * p.glide);
-  const g = 9.81;
-  let x = 0, y = 0, z = 1.5, th = 0, v = v0;
-  let vz = v0 * SIM.launchVz;
-  let apex = z, t = 0;
-  const pts = [{ x: 0, y: 0, z }];
+/* Deriverte av tilstand [p(3), v(3), n(3)] */
+function deriv(s, t, P, u) {
+  const v = [s[3], s[4], s[5]];
+  const n = vnorm([s[6], s[7], s[8]]);
+  // relativ luftfart: motvind u.wind > 0 blåser mot -y
+  const va = [v[0], v[1] + u.wind, v[2]];
+  const speed = Math.hypot(va[0], va[1], va[2]);
+  if (speed < 0.5) return [...v, 0, 0, -DISC.g, 0, 0, 0];
+  const vhat = [va[0]/speed, va[1]/speed, va[2]/speed];
+  const sinA = Math.max(-1, Math.min(1, -vdot(vhat, n)));
+  const alpha = Math.asin(sinA);
+  const q = 0.5 * DISC.rho * speed * speed;
 
-  while (t < 14 && z > 0) {
-    const f = v / v0;
-    const wHi = Math.max(0, Math.min(1, (f - 0.55) / 0.40));
-    const wLo = Math.max(0, Math.min(1, (0.75 - f) / 0.35));
-    // +om svinger mot +x (høyre for RHBH)
-    const om = (-effTurn) * SIM.kTurn * wHi * wHi
-             - effFade * SIM.kFade * wLo * wLo;
-    th += om * SIM.dt;
-    const vg = Math.max(2, v - p.wind * 0.6); // bakkefart påvirkes av vind
-    x += Math.sin(th) * vg * SIM.dt;
-    y += Math.cos(th) * vg * SIM.dt;
-    const lift = g * Math.min(1, f * (SIM.liftBase + SIM.liftGlide * p.glide));
-    vz += (lift - g) * SIM.dt
-        - 1.6 * wLo * wLo * (0.4 + effFade * 0.25) * SIM.dt;
-    z = Math.max(0, z + vz * SIM.dt);
-    v *= Math.exp(-c * SIM.dt);
-    t += SIM.dt;
-    if (z > apex) apex = z;
-    pts.push({ x: x * p.mirror, y, z });
+  const CL = P.CL0 + P.CLa * alpha;
+  const CD = P.CD0 + P.kD * (alpha - P.a0d) * (alpha - P.a0d);
+  const CM = P.CM0 + P.CMa * alpha;
+
+  // løftretning: komponent av n vinkelrett på luftstrømmen
+  let lhat = vadd(n, vhat, -vdot(n, vhat));
+  const ll = Math.hypot(lhat[0], lhat[1], lhat[2]);
+  lhat = ll > 1e-6 ? [lhat[0]/ll, lhat[1]/ll, lhat[2]/ll] : [0, 0, 1];
+
+  const FL = q * DISC.A * CL;
+  const FD = q * DISC.A * CD;
+  const ax = (FL * lhat[0] - FD * vhat[0]) / DISC.m;
+  const ay = (FL * lhat[1] - FD * vhat[1]) / DISC.m;
+  const az = (FL * lhat[2] - FD * vhat[2]) / DISC.m - DISC.g;
+
+  // presesjon: pitch-moment om aksen v̂ × n, RHBH-spinn (L = -I·ω·n)
+  const omega = Math.max(30, u.omega0 * Math.exp(-DISC.spinDecay * t));
+  const ep = vcross(vhat, n);
+  const epl = Math.hypot(ep[0], ep[1], ep[2]);
+  let dn = [0, 0, 0];
+  if (epl > 1e-6) {
+    const Tm = q * DISC.A * DISC.d * CM;
+    const k = -Tm / (DISC.Ia * omega) / epl;
+    dn = [ep[0] * k, ep[1] * k, ep[2] * k];
   }
-  return { pts, dist: y, lat: x * p.mirror, apex, time: t,
-           effTurn, effFade, ratio };
+  return [v[0], v[1], v[2], ax, ay, az, dn[0], dn[1], dn[2]];
+}
+
+function rk4Step(s, t, dt, P, u) {
+  const k1 = deriv(s, t, P, u);
+  const k2 = deriv(s.map((x, i) => x + k1[i] * dt / 2), t + dt / 2, P, u);
+  const k3 = deriv(s.map((x, i) => x + k2[i] * dt / 2), t + dt / 2, P, u);
+  const k4 = deriv(s.map((x, i) => x + k3[i] * dt), t + dt, P, u);
+  const out = s.map((x, i) => x + (k1[i] + 2*k2[i] + 2*k3[i] + k4[i]) * dt / 6);
+  const nn = vnorm([out[6], out[7], out[8]]);
+  out[6] = nn[0]; out[7] = nn[1]; out[8] = nn[2];
+  return out;
+}
+
+/* Ett gjennomløp mot gitt bakkefunksjon ground(y) → z */
+function integrate(u, ground) {
+  const P = discParams(u);
+  const v0 = u.vkmh / 3.6;
+  const eps = u.launch * DEG;
+  // hastighet: rett fram (+y), opp med utkastvinkel
+  const v = [0, v0 * Math.cos(eps), v0 * Math.sin(eps)];
+  const vhat = vnorm(v);
+  // normal: start vinkelrett på v, rull med hyzer (+ = hyzer → n mot -x),
+  // pitch med nese-vinkel (+ = nese opp → α0 positiv)
+  const e2 = vnorm(vadd([0, 0, 1], vhat, -vdot([0, 0, 1], vhat))); // "opp" ⊥ v
+  const e3 = vcross(vhat, e2);                                     // høyre
+  const phi = u.hyzer * DEG, th = u.nose * DEG;
+  let n = vadd(vadd([0,0,0], e2, Math.cos(th) * Math.cos(phi)),
+               e3, -Math.cos(th) * Math.sin(phi));
+  n = vnorm(vadd(n, vhat, -Math.sin(th)));
+
+  let s = [0, 0, 1.5, v[0], v[1], v[2], n[0], n[1], n[2]];
+  const dt = 0.02;
+  const pts = [{ x: 0, y: 0, z: 1.5, t: 0 }];
+  let t = 0, apex = 1.5;
+  let alphaRel = null;
+
+  while (t < 16) {
+    s = rk4Step(s, t, dt, P, u);
+    t += dt;
+    if (alphaRel === null) {
+      const vv = vnorm([s[3], s[4] + u.wind, s[5]]);
+      alphaRel = Math.asin(Math.max(-1, Math.min(1, -vdot(vv, [s[6], s[7], s[8]]))));
+    }
+    if (s[2] > apex) apex = s[2];
+    pts.push({ x: s[0], y: s[1], z: s[2], t });
+    if (t > 0.3 && s[2] <= ground(s[1])) break;
+  }
+  return { pts, dist: s[1], lat: s[0], apex, time: t,
+           trimAlpha: -discParams(u).CM0 / discParams(u).CMa, alphaRel };
+}
+
+/* To-pass: først flat bakke for referanselengde, så skrånende terreng */
+function simulate(u) {
+  u.omega0 = DISC.spinPerV * (u.vkmh / 3.6);
+  const flat = integrate(u, () => 0);
+  if (!u.elev) {
+    flat.D0 = flat.dist; flat.elev = 0;
+    flat.pts = flat.pts.map(q => ({ ...q, x: q.x * u.mirror }));
+    flat.lat *= u.mirror;
+    return flat;
+  }
+  const D0 = Math.max(20, flat.dist);
+  // terrenget skråner fra 30 % av flat-lengden fram til landingssonen
+  const ground = y => u.elev * Math.min(1, Math.max(0, (y - 0.3 * D0) / (0.7 * D0)));
+  const r = integrate(u, ground);
+  r.D0 = D0; r.elev = u.elev;
+  r.pts = r.pts.map(q => ({ ...q, x: q.x * u.mirror }));
+  r.lat *= u.mirror;
+  return r;
 }
 
 function classifyShape(r) {
@@ -269,7 +562,7 @@ function classifyShape(r) {
   const end = r.lat;
   if (maxRight > 5 && end < -3) return 'S-kurve (flex)';
   if (maxRight > 8 && end > 0) return 'understabil — turner over';
-  if (end < -15) return 'overstabil — hard fade';
+  if (end < -18) return 'overstabil — hard fade';
   if (Math.abs(end) < 5 && maxRight < 4) return 'rett';
   return end < 0 ? 'stabil med fade' : 'svakt understabil';
 }
@@ -286,20 +579,24 @@ if (typeof document !== 'undefined') {
     hair: css('--rule-hair') || '#e6e0d2',
     soft: css('--rule-soft') || '#cdc6b6',
     blue: css('--blue') || '#2f4855',
-    green: css('--green') || '#5a6b3e'
+    green: css('--green') || '#5a6b3e',
+    terrain: '#d8d0c0'
   };
   const GHOST_COLORS = [C.blue, C.green, '#c89832'];
-  let ghosts = [];   // { pts, label }
+  let ghosts = [];
   let anim = null;
+  let current = null;
 
-  const RANGE = { dist: 140, lat: 45, height: 30 };
+  const RANGE = { dist: 155, lat: 45, zTop: 26 };
 
   function readParams() {
     return {
       speed: +$('speed').value, glide: +$('glide').value,
       turn: +$('turn').value, fade: +$('fade').value,
       vkmh: +$('vkmh').value, hyzer: +$('hyzer').value,
-      wind: +$('wind').value, mirror: +$('hand').value,
+      nose: +$('nose').value, launch: +$('launch').value,
+      elev: +$('elev').value, wind: +$('wind').value,
+      mirror: +$('hand').value,
       plasticShift: +$('plastic').value, wear: +$('wear').value
     };
   }
@@ -314,7 +611,8 @@ if (typeof document !== 'undefined') {
     return { ctx, w, h };
   }
 
-  /* Ovenfra: tee nederst i midten, +x mot høyre, distanse oppover */
+  function zBot() { return Math.min(0, current ? current.elev : 0) - 4; }
+
   function topXY(q, w, h) {
     const pad = 24;
     return {
@@ -323,53 +621,66 @@ if (typeof document !== 'undefined') {
     };
   }
 
-  /* Fra siden: distanse mot høyre, høyde oppover */
   function sideXY(q, w, h) {
     const pad = 24;
+    const zb = zBot();
     return {
       px: pad + q.y / RANGE.dist * (w - 2 * pad),
-      py: h - pad - q.z / RANGE.height * (h - 2 * pad)
+      py: h - pad - (q.z - zb) / (RANGE.zTop - zb) * (h - 2 * pad)
     };
   }
 
-  function grid(ctx, w, h, proj, labelEvery) {
+  function grid(ctx, w, h, proj) {
     ctx.font = '10px "JetBrains Mono", monospace';
     ctx.fillStyle = C.faint;
-    ctx.strokeStyle = C.hair;
     ctx.lineWidth = 1;
     for (let d = 0; d <= RANGE.dist; d += 10) {
-      const a = proj({ x: -RANGE.lat, y: d, z: 0 }, w, h);
-      const b = proj({ x: RANGE.lat, y: d, z: RANGE.height }, w, h);
-      ctx.beginPath();
-      if (proj === topXY) { ctx.moveTo(a.px, a.py); ctx.lineTo(b.px, a.py); }
-      else { ctx.moveTo(a.px, h - 24); ctx.lineTo(a.px, 24); }
       ctx.strokeStyle = d % 50 === 0 ? C.soft : C.hair;
-      ctx.stroke();
-      if (d % labelEvery === 0 && d > 0) {
-        if (proj === topXY) ctx.fillText(d + ' m', 4, a.py - 2);
-        else ctx.fillText(d + '', a.px - 8, h - 10);
+      ctx.beginPath();
+      if (proj === topXY) {
+        const a = topXY({ x: -RANGE.lat, y: d }, w, h);
+        const b = topXY({ x: RANGE.lat, y: d }, w, h);
+        ctx.moveTo(a.px, a.py); ctx.lineTo(b.px, a.py);
+        ctx.stroke();
+        if (d % 20 === 0 && d > 0) ctx.fillText(d + ' m', 4, a.py - 2);
+      } else {
+        const a = sideXY({ y: d, z: zBot() }, w, h);
+        const b = sideXY({ y: d, z: RANGE.zTop }, w, h);
+        ctx.moveTo(a.px, a.py); ctx.lineTo(b.px, b.py);
+        ctx.stroke();
+        if (d % 50 === 0 && d > 0) ctx.fillText(d + '', a.px - 8, h - 10);
       }
     }
     if (proj === topXY) {
-      // senterlinje
-      const t0 = topXY({ x: 0, y: 0, z: 0 }, w, h);
-      const t1 = topXY({ x: 0, y: RANGE.dist, z: 0 }, w, h);
+      const t0 = topXY({ x: 0, y: 0 }, w, h);
+      const t1 = topXY({ x: 0, y: RANGE.dist }, w, h);
       ctx.setLineDash([3, 5]);
       ctx.strokeStyle = C.soft;
       ctx.beginPath(); ctx.moveTo(t0.px, t0.py); ctx.lineTo(t1.px, t1.py); ctx.stroke();
       ctx.setLineDash([]);
-      // tee
       ctx.fillStyle = C.ink;
       ctx.fillRect(t0.px - 7, t0.py - 2, 14, 4);
     } else {
-      // bakkelinje + høyde-labels
-      const g0 = sideXY({ x: 0, y: 0, z: 0 }, w, h);
-      const g1 = sideXY({ x: 0, y: RANGE.dist, z: 0 }, w, h);
+      // terreng: skrå linje fra tee til D0, så flatt
+      const e = current ? current.elev : 0;
+      const D0 = current ? current.D0 : RANGE.dist;
+      const g0 = sideXY({ y: 0, z: 0 }, w, h);
+      const g1 = sideXY({ y: Math.min(D0, RANGE.dist), z: e }, w, h);
+      const g2 = sideXY({ y: RANGE.dist, z: e }, w, h);
+      const gb = sideXY({ y: 0, z: zBot() }, w, h);
+      ctx.fillStyle = C.terrain;
+      ctx.beginPath();
+      ctx.moveTo(g0.px, g0.py); ctx.lineTo(g1.px, g1.py); ctx.lineTo(g2.px, g2.py);
+      ctx.lineTo(g2.px, h - 24 + 24); ctx.lineTo(gb.px, h); ctx.closePath();
+      ctx.globalAlpha = 0.5; ctx.fill(); ctx.globalAlpha = 1;
       ctx.strokeStyle = C.ink;
-      ctx.beginPath(); ctx.moveTo(g0.px, g0.py); ctx.lineTo(g1.px, g1.py); ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(g0.px, g0.py); ctx.lineTo(g1.px, g1.py); ctx.lineTo(g2.px, g2.py);
+      ctx.stroke();
       ctx.fillStyle = C.faint;
-      for (let z = 10; z <= RANGE.height; z += 10) {
-        const p = sideXY({ x: 0, y: 0, z }, w, h);
+      const zb = zBot();
+      for (let z = Math.ceil(zb / 10) * 10; z <= RANGE.zTop; z += 10) {
+        const p = sideXY({ y: 0, z }, w, h);
         ctx.fillText(z + ' m', 2, p.py + 3);
       }
     }
@@ -393,7 +704,7 @@ if (typeof document !== 'undefined') {
     for (const [cv, proj] of [[$('topView'), topXY], [$('sideView'), sideXY]]) {
       const { ctx, w, h } = setupCanvas(cv);
       ctx.clearRect(0, 0, w, h);
-      grid(ctx, w, h, proj, proj === topXY ? 20 : 50);
+      grid(ctx, w, h, proj);
       ghosts.forEach((gh, i) => {
         ctx.globalAlpha = 0.55;
         drawPath(ctx, gh.pts, proj, w, h, GHOST_COLORS[i % 3], 1.5);
@@ -402,7 +713,6 @@ if (typeof document !== 'undefined') {
       const upTo = progress === undefined ? undefined
                  : Math.max(2, Math.floor(r.pts.length * progress));
       drawPath(ctx, r.pts, proj, w, h, C.accent, 2.5, upTo);
-      // landingspunkt / disc-posisjon
       const q = r.pts[(upTo === undefined ? r.pts.length : upTo) - 1];
       const p = proj(q, w, h);
       ctx.fillStyle = C.accent;
@@ -410,19 +720,24 @@ if (typeof document !== 'undefined') {
     }
   }
 
-  let current = null;
-
   function update() {
-    const p = readParams();
-    current = simulate(p);
+    const u = readParams();
+    current = simulate(u);
     $('st-dist').innerHTML = current.dist.toFixed(0) + '<span class="stat-unit">m</span>';
     const lat = current.lat;
     $('st-lat').innerHTML = (lat >= 0 ? '+' : '−') + Math.abs(lat).toFixed(0)
       + '<span class="stat-unit">m ' + (lat >= 0 ? 'høyre' : 'venstre') + '</span>';
     $('st-apex').innerHTML = current.apex.toFixed(1) + '<span class="stat-unit">m</span>';
     $('st-time').innerHTML = current.time.toFixed(1) + '<span class="stat-unit">s</span>';
+    const reqKmh = 70 + 5.5 * u.speed;
     $('shape-label').textContent = classifyShape(current)
-      + (current.ratio < 0.85 ? ' · for lite fart for discen' : '');
+      + (u.vkmh < reqKmh * 0.85 ? ' · for lite fart for discen' : '');
+    $('telemetry').textContent =
+      'α release ' + (current.alphaRel / DEG).toFixed(1) + '°'
+      + ' · trim-α ' + (current.trimAlpha / DEG).toFixed(1) + '°'
+      + ' · spinn ' + Math.round(u.omega0 * 60 / (2 * Math.PI)) + ' rpm'
+      + (current.elev ? ' · landing ' + (current.elev > 0 ? '+' : '') + current.elev + ' m' : '')
+      + ' · RK4 @ 50 Hz';
     render();
   }
 
@@ -450,7 +765,10 @@ if (typeof document !== 'undefined') {
   ['plastic', 'hand'].forEach(id => $(id).addEventListener('change', update));
   const WEAR_LABELS = ['ny', 'ny', 'litt brukt', 'litt brukt', 'brukt', 'brukt',
                        'godt brukt', 'godt brukt', 'sykla', 'sykla', 'beat to death'];
-  [['wear', v => WEAR_LABELS[v]], ['vkmh', v => v], ['hyzer', v => v],
+  const fmtHyzer = v => v > 0 ? v + '° hyzer' : v < 0 ? (-v) + '° anhyzer' : 'flat (0°)';
+  [['wear', v => WEAR_LABELS[v]], ['vkmh', v => v], ['hyzer', fmtHyzer],
+   ['nose', v => v], ['launch', v => v],
+   ['elev', v => (v > 0 ? '+' + v : v)],
    ['wind', v => (v > 0 ? '+' + v + ' mot' : v < 0 ? v + ' med' : '0')]]
     .forEach(([id, fmt]) => $(id).addEventListener('input', e => {
       $(id + '-val').textContent = fmt(+e.target.value);
