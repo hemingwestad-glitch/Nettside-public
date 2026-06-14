@@ -74,6 +74,24 @@
   margin: 0.6rem 0;
   display: inline-block;
 }
+/* Optimaliser-panel */
+.dg-opt { margin-top: 1.25rem; }
+.dg-opt-target { display: none; }
+.dg-opt-locks {
+  display: flex; align-items: center; gap: 0.5rem 1.1rem;
+  flex-wrap: wrap; margin-bottom: 0.7rem;
+}
+.dg-opt-lock-label {
+  font-family: var(--font-mono); font-size: 0.62rem; text-transform: uppercase;
+  letter-spacing: 0.12em; color: var(--ink-dim); margin: 0;
+}
+.dg-opt-lock {
+  display: inline-flex; align-items: center; gap: 0.4rem; margin: 0;
+  font-family: var(--font-body); font-size: 0.86rem; text-transform: none;
+  letter-spacing: 0; color: var(--ink); cursor: pointer;
+}
+.dg-opt-lock input { width: auto; accent-color: var(--accent); cursor: pointer; }
+.dg-opt-result { color: var(--ink-soft); }
 </style>
 </head>
 <body>
@@ -203,6 +221,41 @@
       </div>
     </div>
     <p class="dg-ghost-note" id="ghost-note">Hyzer-slideren: venstre = anhyzer (topp mot deg), høyre = hyzer (topp fra deg). Frys inntil tre baner for å sammenligne.</p>
+  </div>
+
+  <div class="panel fade-up dg-opt">
+    <div class="panel-title">Optimaliser kast</div>
+    <div class="field-row">
+      <div class="field">
+        <label>Mål</label>
+        <select id="opt-mode">
+          <option value="dist" selected>Maks lengde</option>
+          <option value="straight">Rettest linje</option>
+          <option value="target">Treff et mål</option>
+        </select>
+      </div>
+      <div class="field dg-opt-target">
+        <label>Mål-avstand: <span id="opt-tdist-val">100</span> m</label>
+        <input type="range" id="opt-tdist" min="20" max="200" value="100" step="5">
+      </div>
+      <div class="field dg-opt-target">
+        <label>Mål-side: <span id="opt-tlat-val">0</span> m</label>
+        <input type="range" id="opt-tlat" min="-40" max="40" value="0" step="1">
+      </div>
+      <div class="field" style="justify-content:flex-end">
+        <label>&nbsp;</label>
+        <button id="optBtn">Finn beste kast →</button>
+      </div>
+    </div>
+    <div class="dg-opt-locks">
+      <span class="dg-opt-lock-label">Lås (hold fast):</span>
+      <label class="dg-opt-lock"><input type="checkbox" id="lock-hyzer"> vinkel</label>
+      <label class="dg-opt-lock"><input type="checkbox" id="lock-nose"> nese</label>
+      <label class="dg-opt-lock"><input type="checkbox" id="lock-launch"> utkast</label>
+      <label class="dg-opt-lock"><input type="checkbox" id="lock-vkmh"> armfart</label>
+    </div>
+    <p class="dg-ghost-note">Algoritmen varierer de ulåste av vinkel, nese, utkast og armfart for valgt disc og forhold (vind, høyde, plast, slitasje). Lås det du vil holde fast — for eksempel din egen armfart.</p>
+    <p class="dg-telemetry dg-opt-result" id="opt-result" style="margin:0.5rem 0 0">—</p>
   </div>
 
   <h2 class="section-header">Resultat <span class="count" id="shape-label">—</span></h2>
@@ -587,7 +640,28 @@ if (typeof document !== 'undefined') {
   let anim = null;
   let current = null;
 
-  const RANGE = { dist: 155, lat: 45, zTop: 26 };
+  let RANGE = { dist: 155, lat: 45, zTop: 26 };
+
+  /* Auto-skaler: la visningene tilpasse seg hele kastet + frosne baner,
+     med fornuftige minimum så korte kast ikke blir overdrevet. */
+  function computeRange() {
+    let maxY = 40, maxX = 8, maxZ = 8;
+    const scan = pts => {
+      for (const p of pts) {
+        if (p.y > maxY) maxY = p.y;
+        const ax = Math.abs(p.x); if (ax > maxX) maxX = ax;
+        if (p.z > maxZ) maxZ = p.z;
+      }
+    };
+    if (current) scan(current.pts);
+    ghosts.forEach(g => scan(g.pts));
+    const ceilTo = (x, step, min) => Math.max(min, Math.ceil(x / step) * step);
+    RANGE = {
+      dist: ceilTo(maxY * 1.08, 20, 60),
+      lat:  ceilTo(maxX * 1.15, 5, 15),
+      zTop: ceilTo(maxZ * 1.12, 5, 15)
+    };
+  }
 
   function readParams() {
     return {
@@ -700,6 +774,7 @@ if (typeof document !== 'undefined') {
   }
 
   function render(progress) {
+    computeRange();
     const r = current;
     for (const [cv, proj] of [[$('topView'), topXY], [$('sideView'), sideXY]]) {
       const { ctx, w, h } = setupCanvas(cv);
@@ -782,6 +857,107 @@ if (typeof document !== 'undefined') {
     $('ghost-note').textContent = ghosts.length + ' frosne baner — trykk igjen for å fryse flere (maks 3, eldste ryker).';
     render();
   });
+
+  /* ─── Optimaliser: søk over kastvariabler ──────────────────────────
+     Varierer de ulåste av {vinkel, nese, utkast, armfart} for valgt mål.
+     Grovt tilfeldig søk + koordinatnedstigning. Disc og forhold (vind,
+     høyde, plast, slitasje, kasthånd) holdes fast. */
+  const OPT_VARS = {
+    hyzer:  { min: -30, max: 30,  step: 1,   lock: 'lock-hyzer',  read: v => fmtHyzer(v) },
+    nose:   { min: -5,  max: 10,  step: 0.5, lock: 'lock-nose',   read: v => 'nese ' + v + '°' },
+    launch: { min: 0,   max: 25,  step: 1,   lock: 'lock-launch', read: v => 'utkast ' + v + '°' },
+    vkmh:   { min: 55,  max: 150, step: 1,   lock: 'lock-vkmh',   read: v => v + ' km/t' }
+  };
+  const OPT_VAL = { hyzer: fmtHyzer, nose: v => v, launch: v => v, vkmh: v => v };
+
+  function scoreFlight(r, mode, target) {
+    if (mode === 'target')
+      return -Math.hypot(r.dist - target.dist, r.lat - target.lat);
+    if (mode === 'straight') {
+      if (r.dist < 15) return -1e6;                      // ignorer dødball
+      const maxAbsLat = Math.max(...r.pts.map(p => Math.abs(p.x)));
+      return 0.25 * r.dist - 0.6 * maxAbsLat - 1.0 * Math.abs(r.lat);
+    }
+    return r.dist - 0.05 * Math.abs(r.lat);              // maks lengde
+  }
+
+  function optimize(mode, target, free) {
+    const base = readParams();
+    const clamp = (k, x) => Math.max(OPT_VARS[k].min, Math.min(OPT_VARS[k].max, x));
+    const evalAt = vals => {
+      const u = { ...base };
+      for (const k of free) u[k] = clamp(k, vals[k]);
+      const e = { r: simulate(u), vals };
+      e.score = scoreFlight(e.r, mode, target);
+      return e;
+    };
+
+    let best = {}; free.forEach(k => best[k] = base[k]);
+    let bestE = evalAt(best);
+
+    for (let i = 0; i < 260; i++) {                       // grovt globalt søk
+      const cand = {};
+      free.forEach(k => cand[k] = OPT_VARS[k].min + Math.random() * (OPT_VARS[k].max - OPT_VARS[k].min));
+      const e = evalAt(cand);
+      if (e.score > bestE.score) { best = cand; bestE = e; }
+    }
+
+    const steps = {}; free.forEach(k => steps[k] = (OPT_VARS[k].max - OPT_VARS[k].min) * 0.15);
+    for (let pass = 0; pass < 24; pass++) {               // koordinatnedstigning
+      let improved = false;
+      for (const k of free) {
+        for (const dir of [-1, 1]) {
+          const cand = { ...best }; cand[k] = best[k] + dir * steps[k];
+          if (cand[k] < OPT_VARS[k].min || cand[k] > OPT_VARS[k].max) continue;
+          const e = evalAt(cand);
+          if (e.score > bestE.score) { best = { ...cand }; bestE = e; improved = true; }
+        }
+      }
+      if (!improved) free.forEach(k => steps[k] *= 0.6);
+    }
+
+    free.forEach(k => best[k] = clamp(k, Math.round(best[k] / OPT_VARS[k].step) * OPT_VARS[k].step));
+    return { best, free, r: evalAt(best).r };
+  }
+
+  function runOptimize() {
+    const mode = $('opt-mode').value;
+    const target = { dist: +$('opt-tdist').value, lat: +$('opt-tlat').value };
+    const free = Object.keys(OPT_VARS).filter(k => !$(OPT_VARS[k].lock).checked);
+    const out = $('opt-result');
+    if (!free.length) { out.textContent = 'Alle variabler er låst — lås opp minst én.'; return; }
+    const btn = $('optBtn');
+    btn.disabled = true; btn.textContent = 'Optimaliserer…';
+    out.textContent = 'Søker…';
+    setTimeout(() => {
+      const res = optimize(mode, target, free);
+      free.forEach(k => {
+        $(k).value = res.best[k];
+        const span = $(k + '-val');
+        if (span) span.textContent = OPT_VAL[k](+res.best[k]);
+      });
+      update();
+      const r = res.r;
+      out.textContent = 'Beste: ' + free.map(k => OPT_VARS[k].read(res.best[k])).join(' · ')
+        + ' → ' + r.dist.toFixed(0) + ' m, '
+        + (r.lat >= 0 ? '+' : '−') + Math.abs(r.lat).toFixed(0) + ' m '
+        + (r.lat >= 0 ? 'høyre' : 'venstre');
+      btn.disabled = false; btn.textContent = 'Finn beste kast →';
+      throwAnim();
+    }, 30);
+  }
+
+  function setOptMode() {
+    const isTarget = $('opt-mode').value === 'target';
+    document.querySelectorAll('.dg-opt-target').forEach(el => el.style.display = isTarget ? 'flex' : 'none');
+  }
+
+  $('opt-mode').addEventListener('change', setOptMode);
+  ['opt-tdist', 'opt-tlat'].forEach(id =>
+    $(id).addEventListener('input', e => { $(id + '-val').textContent = +e.target.value; }));
+  $('optBtn').addEventListener('click', runOptimize);
+  setOptMode();
+
   window.addEventListener('resize', () => current && render());
 
   update();
