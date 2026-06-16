@@ -54,6 +54,19 @@ Alle hentes fra CDN, ingen build-step.
 - **satellite.js** – SGP4-implementasjon
 - **Three.js** (r0.160) – 3D-rendering for dynamics og space
 
+## Tester
+
+Integritets- og fysikk-tester (ingen avhengigheter, ren Node):
+
+```sh
+node test/check.js
+```
+
+Sjekker at hver HTML-fil er hel (slutter med `</html>`, balanserte
+`<script>`-tagger, gyldig inline-JS/JSON) — fanger «truncation» før deploy —
+og validerer fysikkverktøyene (ballistikk, sol/måne, tid) mot referanseverdier.
+Kjører også automatisk på hver push via GitHub Actions.
+
 ## Deploy
 
 Cloudflare Workers, auto-deploy fra `main`-branch på GitHub.

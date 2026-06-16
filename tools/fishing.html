@@ -300,20 +300,3 @@ document.getElementById('fetch').click();
 </script>
 </body>
 </html>
-LON eller #LAT,LON,Navn
-if (location.hash) {
-  const m = location.hash.match(/#?(-?\d+\.?\d*),(-?\d+\.?\d*)(?:,(.+))?/);
-  if (m) {
-    document.getElementById('lat').value = m[1];
-    document.getElementById('lon').value = m[2];
-    document.getElementById('preset').value = 'custom';
-    const name = m[3] ? decodeURIComponent(m[3]) : `${m[1]}°, ${m[2]}°`;
-    updateLocationName(name);
-  }
-}
-
-// Auto-fetch ved start
-document.getElementById('fetch').click();
-</script>
-</body>
-</html>

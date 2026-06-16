@@ -1,0 +1,17 @@
+name: integritet + fysikk
+
+# Kjører test/check.js på hver push og PR. Rødt kryss = avkuttet/ødelagt fil
+# eller en fysikkverdi utenfor toleranse — fanges før det merkes/deployes.
+on:
+  push:
+  pull_request:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - run: node test/check.js
