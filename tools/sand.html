@@ -1,0 +1,2139 @@
+<!DOCTYPE html>
+<html lang="no" spellcheck="false">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Fallende sand-fysikk i nettleseren: 21 elementer, temperatur, elektrisitet, eksplosjoner, sorte hull, satellitter i bane og små folk med egen vilje.">
+<title>Pikselfysikk — Heming Westad</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..700;1,9..144,400&family=Inter+Tight:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<meta name="author" content="Heming Westad">
+<link rel="canonical" href="https://hemingwestad.no/tools/sand.html">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="/favicon.ico" sizes="any">
+<meta name="theme-color" content="#b8552e">
+<meta property="og:title" content="Pikselfysikk — Heming Westad">
+<meta property="og:description" content="Falling sand-spill: temperatur, elektrisitet, sorte hull, satellitter i bane og små folk som prøver å overleve.">
+<meta property="og:image" content="https://hemingwestad.no/og-image.png">
+<meta property="og:url" content="https://hemingwestad.no/tools/sand.html">
+<meta property="og:type" content="website">
+<meta property="og:locale" content="nb_NO">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="/style.css">
+<style>
+/* ── Pikselfysikk: side-spesifikk stil ── */
+.sim-toolbar { display: flex; flex-direction: column; gap: 0.7rem; }
+.el-groups { display: flex; flex-wrap: wrap; gap: 0.55rem 1.05rem; }
+.el-group { display: flex; flex-direction: column; gap: 0.28rem; }
+.el-group-label {
+  font-family: var(--font-mono); font-size: 0.56rem; letter-spacing: 0.14em;
+  text-transform: uppercase; color: var(--ink-faint);
+}
+.el-row { display: flex; flex-wrap: wrap; gap: 0.25rem; }
+button.el-btn {
+  display: inline-flex; align-items: center; gap: 0.34rem;
+  padding: 0.26rem 0.5rem; font-size: 0.6rem; letter-spacing: 0.05em;
+  background: var(--bg); color: var(--ink-soft);
+  border: 1px solid var(--rule-soft); box-shadow: none;
+}
+button.el-btn:hover { background: var(--bg-card); color: var(--ink); border-color: var(--ink); }
+button.el-btn.sel { background: var(--accent); border-color: var(--accent); color: #fff; }
+.sw { width: 0.6rem; height: 0.6rem; display: inline-block; border: 1px solid rgba(0,0,0,0.25); flex: none; }
+.sim-controls {
+  display: flex; flex-wrap: wrap; gap: 0.5rem 1.1rem; align-items: center;
+  border-top: 1px solid var(--rule-hair); padding-top: 0.65rem;
+}
+.sim-controls .grp { display: flex; align-items: center; gap: 0.45rem; }
+.sim-controls label { margin: 0; white-space: nowrap; }
+button.mini { padding: 0.42rem 0.7rem; font-size: 0.6rem; }
+#brush { width: 7.5rem; }
+#brushVal { font-family: var(--font-mono); font-size: 0.7rem; min-width: 2.2rem; }
+.scn-row { display: flex; flex-wrap: wrap; gap: 0.3rem; align-items: center; }
+#simwrap { margin: 0.9rem 0 0.5rem; }
+canvas#game {
+  display: block; width: 100%; height: 100%;
+  image-rendering: pixelated; cursor: crosshair; touch-action: none;
+}
+.hintline {
+  font-family: var(--font-mono); font-size: 0.66rem; color: var(--ink-faint);
+  margin: 0.4rem 0 0; letter-spacing: 0.03em; max-width: none;
+}
+.kbd {
+  display: inline-block; font-family: var(--font-mono); font-size: 0.62rem;
+  border: 1px solid var(--rule-soft); background: var(--bg-card);
+  padding: 0 0.3rem; margin: 0 0.1rem; color: var(--ink-soft);
+}
+.canvas-overlay { font-size: 0.62rem; padding: 0.35rem 0.55rem; }
+@media (max-width: 640px) {
+  .el-groups { gap: 0.5rem 0.7rem; }
+  .canvas-overlay.top-right { display: none; }
+}
+</style>
+</head>
+<body>
+<header>
+  <div class="logo"><a href="/">Heming Westad<span class="dot">.</span></a></div>
+  <nav>
+    <ul>
+      <li><a href="/">heim</a></li>
+      <li><a href="/tools.html" class="current">verktøy</a></li>
+      <li><a href="/projects.html">prosjekter</a></li>
+      <li><a href="/now.html">nå</a></li>
+      <li><a href="/about.html">om</a></li>
+    </ul>
+  </nav>
+</header>
+
+<main>
+  <div class="page-meta fade-up">
+    <span>Pikselfysikk</span>
+    <span>320 × 200 celler</span>
+    <span>60 steg/s</span>
+  </div>
+
+  <h1 class="fade-up">Sand, ild og <em>små folk</em>.</h1>
+  <p class="lede fade-up">
+    Falling sand-fysikk i nettleseren, med et dypt nikk til Dan-Balls Powder Game.
+    64&nbsp;000 celler med temperatur, elektrisitet, trykkbølger og sorte hull &mdash;
+    pluss satellitter i lav bane og små folk som gjør sitt beste for å overleve
+    det du finner på. Tegn med musa og se hva som skjer.
+  </p>
+
+  <div class="panel">
+    <div class="panel-title">Kontrollpanel</div>
+    <div class="sim-toolbar">
+      <div class="el-groups" id="elGroups"></div>
+      <div class="sim-controls">
+        <div class="grp"><label for="brush">Pensel</label><input type="range" id="brush" min="1" max="16" value="4"><span id="brushVal">4 px</span></div>
+        <div class="grp">
+          <button class="mini" id="btnPause">Pause</button>
+          <button class="mini secondary" id="btnStep">Steg</button>
+          <button class="mini secondary" id="btnClear">Tøm</button>
+        </div>
+        <div class="grp">
+          <label for="viewSel">Visning</label>
+          <select id="viewSel" style="width:auto">
+            <option value="0">Normal</option>
+            <option value="1">Temperatur</option>
+            <option value="2">Vind</option>
+          </select>
+        </div>
+        <div class="grp scn-row">
+          <span class="el-group-label">Scenario:</span>
+          <button class="mini secondary" data-scn="landsby">Landsby</button>
+          <button class="mini secondary" data-scn="vulkan">Vulkanøy</button>
+          <button class="mini secondary" data-scn="kessler">Kessler</button>
+          <button class="mini secondary" data-scn="olje">Oljerigg</button>
+          <button class="mini secondary" data-scn="vinter">Vinter</button>
+          <button class="mini secondary" id="btnMeteor" title="Slipp romskrot inn i atmosfæren">☄ Meteorregn</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="canvas-wrap" id="simwrap">
+    <canvas id="game" width="320" height="200"></canvas>
+    <div class="canvas-overlay top-left" id="ovStats">—</div>
+    <div class="canvas-overlay top-right" id="ovInfo">—</div>
+  </div>
+  <p class="hintline">
+    Venstre mus: tegn · høyre mus: visk · <span class="kbd">mellomrom</span> pause ·
+    <span class="kbd">.</span> ett steg · <span class="kbd">[</span> <span class="kbd">]</span> penselstørrelse ·
+    <span class="kbd">1</span>–<span class="kbd">0</span> hurtigvalg · missiler styres mot musepekeren
+  </p>
+
+  <h2 class="section-header">Slik virker fysikken <span class="count">celleautomat + felt</span></h2>
+  <p>
+    Hele verdenen er et rutenett på 320 × 200 celler som oppdateres 60 ganger i
+    sekundet. Pulver faller og danner hauger, væsker renner og lagdeler seg etter
+    tetthet (olje flyter på vann), gasser stiger og drives av vinden. Alt ligger i
+    typede arrays, så simuleringen tåler titusenvis av partikler uten å hikke.
+  </p>
+  <p>
+    Oppå rutenettet ligger tre kontinuerlige felt: <strong>temperatur</strong>,
+    <strong>vind</strong> og <strong>fare</strong>. Temperaturen ledes gjennom
+    materialene (metall leder godt, vegg isolerer) og styrer faseovergangene: vann
+    fryser under 0&nbsp;°C og koker ved 100, snø smelter, lava størkner til stein
+    rundt 680&nbsp;°C, sand blir til glass ved 1600. Eksplosjoner dytter på
+    vindfeltet, som igjen river med seg gass, ild og løse partikler. Farefeltet
+    kan du ikke se &mdash; men folka kan.
+  </p>
+  <p>
+    Elektrisitet (gnist) vandrer gjennom metall og vann, antenner olje, gass og
+    krutt, og detonerer sprengstoff. Lynet slår ned fra himmelen dit du klikker.
+    Det sorte hullet suger til seg alt som ikke er boltet fast &mdash; inkludert
+    folk, missiler og satellitter som kommer for nær.
+  </p>
+
+  <h2 class="section-header">Folka <span class="count">de små med egen vilje</span></h2>
+  <p>
+    Folka rusler rundt, klatrer over småstein og snur ved stup. De leser farefeltet
+    kontinuerlig: ild, lava, syre og eksplosjoner skremmer dem, og de flykter nedover
+    gradienten &mdash; bort fra faren. Blir det ille nok, får de panikk og løper med
+    armene i været. Folk som brenner, sprinter mot nærmeste vann. De svømmer, men
+    lufta er begrenset, og da kommer boblene. Over hodet viser de hva de føler:
+    <span class="kbd">!</span> redd, <span class="kbd">?</span> nysgjerrig,
+    <span class="kbd">♥</span> fornøyd, <span class="kbd">z</span> søvnig,
+    <span class="kbd">★</span> «ser du satellitten?».
+  </p>
+
+  <h2 class="section-header">Rommet <span class="count">øverst i bildet</span></h2>
+  <p>
+    Over den stiplede Kármán-linja er det verdensrom. Satellitter du plasserer der
+    får sirkulær banefart rundt et planetsenter langt under bakken, og går i stabil
+    bane &mdash; plasserer du dem for lavt, bremser atmosfæren dem ned til en
+    glødende reentry. Missiler skytes opp med venstreklikk og jager musepekeren.
+    Treffer du en satellitt, brekker den opp i biter som selv går i bane: en ekte
+    Kessler-kaskade, i miniatyr. Folka nede på bakken følger med og blir stjerneøyde.
+  </p>
+
+  <h2 class="section-header">Elementene <span class="count">referanse</span></h2>
+  <table class="data-table">
+    <thead><tr><th>Element</th><th>Type</th><th>Reagerer på</th><th>Kommentar</th></tr></thead>
+    <tbody>
+      <tr><td>Sand</td><td class="mono">pulver</td><td>1600 °C → glass</td><td>Arbeidshesten. Danner fine hauger.</td></tr>
+      <tr><td>Krutt</td><td class="mono">pulver</td><td>gnist, ild, 180 °C</td><td>Brenner i kjappe kjeder.</td></tr>
+      <tr><td>Snø</td><td class="mono">pulver</td><td>&gt; 0 °C → vann</td><td>Legger seg pent. Smelter i sola… altså lavaen.</td></tr>
+      <tr><td>Vann</td><td class="mono">væske</td><td>0 °C → is · 100 °C → damp</td><td>Leder strøm. Slukker ild. Kveler lava til stein.</td></tr>
+      <tr><td>Olje</td><td class="mono">væske</td><td>230 °C, ild, gnist</td><td>Flyter på vann. Brenner lenge og godt.</td></tr>
+      <tr><td>Syre</td><td class="mono">væske</td><td>løser opp det meste</td><td>Stoppes av vegg og glass. Tynnes ut i vann.</td></tr>
+      <tr><td>Lava</td><td class="mono">væske</td><td>&lt; 680 °C → stein</td><td>Antenner alt brennbart. Smelter sand til glass.</td></tr>
+      <tr><td>Is</td><td class="mono">fast</td><td>&gt; 0 °C → vann</td><td>Kjøler omgivelsene. Fryser vann rundt seg.</td></tr>
+      <tr><td>Damp</td><td class="mono">gass</td><td>&lt; 95 °C → regn</td><td>Stiger, kondenserer, faller som vann.</td></tr>
+      <tr><td>Gass</td><td class="mono">gass</td><td>gnist, ild, 300 °C</td><td>Brannfarlig sky. Antennes med et pang.</td></tr>
+      <tr><td>Røyk</td><td class="mono">gass</td><td>tid</td><td>Kosmetisk, men stemningsfullt.</td></tr>
+      <tr><td>Ild</td><td class="mono">energi</td><td>vann, tid</td><td>Varmer, antenner naboene, stiger og flakker.</td></tr>
+      <tr><td>Gnist</td><td class="mono">energi</td><td>ledere</td><td>Løper gjennom metall og vann. Livsfarlig for folk.</td></tr>
+      <tr><td>Sprengstoff</td><td class="mono">fast</td><td>ild, gnist, 250 °C</td><td>Detonerer med trykkbølge og krater.</td></tr>
+      <tr><td>Plante</td><td class="mono">fast</td><td>vann → gror · 150 °C</td><td>Vokser når den får drikke. Knusktørr ellers.</td></tr>
+      <tr><td>Metall</td><td class="mono">fast</td><td>1400 °C → smelte</td><td>Leder strøm og varme. Ruster ikke, gitt.</td></tr>
+      <tr><td>Stein</td><td class="mono">fast</td><td>950 °C → lava</td><td>Solid byggemateriale, inntil det ikke er det.</td></tr>
+      <tr><td>Vegg</td><td class="mono">fast</td><td>ingenting</td><td>Uforgjengelig. Rammen rundt verden.</td></tr>
+      <tr><td>Sort hull</td><td class="mono">spesial</td><td>—</td><td>Sluker alt i nærheten. Maks fem om gangen.</td></tr>
+      <tr><td>Missil</td><td class="mono">entitet</td><td>styres mot musa</td><td>Eksploderer ved treff. Effektivt antisatellittvåpen.</td></tr>
+      <tr><td>Satellitt</td><td class="mono">entitet</td><td>atmosfærisk drag</td><td>Stabil bane over Kármán-linja, reentry under.</td></tr>
+    </tbody>
+  </table>
+
+  <p class="muted small" style="margin-top:1.25rem">
+    Alt kjører lokalt i nettleseren din &mdash; ingen data sendes noe sted.
+    Inspirert av <a href="https://dan-ball.jp/en/javagame/dust/" target="_blank" rel="noopener">Powder Game</a>
+    (Dan-Ball), som stjal altfor mange skoletimer i sin tid.
+  </p>
+</main>
+
+<footer>
+  <div class="footer-content">
+    <div>© 2026 — Heming Westad</div>
+    <div>Trondheim · <a href="https://github.com/hemingwestad-glitch/Nettside-public">kildekode</a></div>
+  </div>
+
+  <div class="footer-disclaimer">Bygd sammen med Claude (Anthropic) som pair-programmer. Designvalg og fakta er mine.</div>
+</footer>
+
+<script src="/common.js"></script>
+<script>
+'use strict';
+/* ════════════════════════════════════════════════════════════════════════
+   PIKSELFYSIKK — falling sand-celleautomat med temperatur, elektrisitet,
+   vind/trykk, sorte hull, folk med enkel AI, missiler og satellitter i bane.
+   Alt i typede arrays for fart. Ingen avhengigheter.
+   ════════════════════════════════════════════════════════════════════════ */
+
+/* ── 0. Grunnlag ─────────────────────────────────────────────────────────── */
+const W = 320, H = 200, N = W * H;
+const KARMAN = 54;              // over denne linja: verdensrom
+const $ = id => document.getElementById(id);
+const cnv = $('game');
+const ctx = cnv.getContext('2d', { alpha: false });
+const img = ctx.createImageData(W, H);
+const px = new Uint32Array(img.data.buffer);
+
+/* Seedbar xorshift32 — deterministisk i selftest */
+let rngState = (Date.now() & 0x7fffffff) | 1;
+function srand(s) { rngState = (s | 0) || 1; }
+function rnd() {
+  rngState ^= rngState << 13; rngState ^= rngState >>> 17; rngState ^= rngState << 5;
+  return (rngState >>> 0) / 4294967296;
+}
+const ri = n => (rnd() * n) | 0;
+const chance = p => rnd() < p;
+
+/* ── 1. Element-IDer ─────────────────────────────────────────────────────── */
+const TOM = 0, VEGG = 1, STEIN = 2, METALL = 3, GLASS = 4, SAND = 5, KRUTT = 6,
+      ASKE = 7, SNO = 8, VANN = 9, OLJE = 10, SYRE = 11, LAVA = 12, IS = 13,
+      PLANTE = 14, SPRENG = 15, ILD = 16, DAMP = 17, ROYK = 18, GASS = 19,
+      GNIST = 20, HULL = 21;
+const N_EL = 22;
+
+/* Oppførsel: 0 statisk, 1 pulver, 2 væske, 3 gass, 4 ild, 5 gnist, 6 hull */
+const BEHAV = new Uint8Array(N_EL);
+const DENS  = new Float32Array(N_EL);  // tetthet for synk/flyt-swap
+const COND  = new Float32Array(N_EL);  // varmeledning 0–1
+const FLAM  = new Float32Array(N_EL);  // antenningssjanse per nabo-tick
+const LEDER = new Uint8Array(N_EL);    // elektrisk leder
+const SOLID = new Uint8Array(N_EL);    // folk kan stå på / kollidere med
+const LIQ   = new Uint8Array(N_EL);    // væske (svømming)
+const DISP  = new Uint8Array(N_EL);    // væske-spredning (horisontal)
+const TSET  = new Float32Array(N_EL).fill(NaN); // temp ved plassering
+const NAVN  = [];
+const EL_UI = [];                      // knapper: {id, navn, cat, rgb}
+
+function def(id, navn, cat, rgb, o) {
+  o = o || {};
+  NAVN[id] = navn;
+  BEHAV[id] = o.beh || 0;
+  DENS[id]  = o.dens != null ? o.dens : 9;
+  COND[id]  = o.cond != null ? o.cond : 0.15;
+  FLAM[id]  = o.flam || 0;
+  LEDER[id] = o.leder ? 1 : 0;
+  SOLID[id] = o.solid ? 1 : 0;
+  LIQ[id]   = o.liq ? 1 : 0;
+  DISP[id]  = o.disp || 0;
+  if (o.tset != null) TSET[id] = o.tset;
+  if (cat) EL_UI.push({ id, navn, cat, rgb });
+  return rgb;
+}
+
+/* farge-tabeller bygges samtidig */
+const BASE_RGB = [];
+BASE_RGB[TOM]    = [0, 0, 0];
+BASE_RGB[VEGG]   = def(VEGG,   'Vegg',       'fast',    [82, 75, 68],    { solid: 1, cond: 0.02 });
+BASE_RGB[STEIN]  = def(STEIN,  'Stein',      'fast',    [138, 129, 120], { solid: 1, cond: 0.12 });
+BASE_RGB[METALL] = def(METALL, 'Metall',     'fast',    [152, 162, 172], { solid: 1, cond: 0.5, leder: 1 });
+BASE_RGB[GLASS]  = def(GLASS,  'Glass',      null,      [203, 224, 229], { solid: 1, cond: 0.1 });
+BASE_RGB[SAND]   = def(SAND,   'Sand',       'pulver',  [212, 169, 92],  { beh: 1, dens: 6, solid: 1, cond: 0.1 });
+BASE_RGB[KRUTT]  = def(KRUTT,  'Krutt',      'pulver',  [58, 58, 60],    { beh: 1, dens: 6, solid: 1, flam: 0.5 });
+BASE_RGB[ASKE]   = def(ASKE,   'Aske',       null,      [182, 173, 161], { beh: 1, dens: 5, solid: 1 });
+BASE_RGB[SNO]    = def(SNO,    'Snø',        'pulver',  [240, 243, 246], { beh: 1, dens: 5, solid: 1, cond: 0.08, tset: -6 });
+BASE_RGB[VANN]   = def(VANN,   'Vann',       'væske',   [52, 108, 180],  { beh: 2, dens: 3, liq: 1, disp: 5, cond: 0.3, leder: 1, tset: 14 });
+BASE_RGB[OLJE]   = def(OLJE,   'Olje',       'væske',   [88, 70, 48],    { beh: 2, dens: 2, liq: 1, disp: 3, flam: 0.28, tset: 18 });
+BASE_RGB[SYRE]   = def(SYRE,   'Syre',       'væske',   [158, 210, 44],  { beh: 2, dens: 3, liq: 1, disp: 4, tset: 18 });
+BASE_RGB[LAVA]   = def(LAVA,   'Lava',       'væske',   [226, 96, 28],   { beh: 2, dens: 4, liq: 1, disp: 1, cond: 0.2, tset: 1100 });
+BASE_RGB[IS]     = def(IS,     'Is',         'fast',    [190, 223, 238], { solid: 1, cond: 0.25, tset: -22 });
+BASE_RGB[PLANTE] = def(PLANTE, 'Plante',     'natur',   [80, 144, 58],   { solid: 1, flam: 0.32 });
+BASE_RGB[SPRENG] = def(SPRENG, 'Sprengstoff','energi',  [192, 60, 46],   { solid: 1, flam: 0.25 });
+BASE_RGB[ILD]    = def(ILD,    'Ild',        'energi',  [255, 106, 42],  { beh: 4, dens: 0.5, tset: 620 });
+BASE_RGB[DAMP]   = def(DAMP,   'Damp',       'gass',    [199, 210, 219], { beh: 3, dens: 1, cond: 0.2, tset: 108 });
+BASE_RGB[ROYK]   = def(ROYK,   'Røyk',       null,      [104, 99, 95],   { beh: 3, dens: 1 });
+BASE_RGB[GASS]   = def(GASS,   'Gass',       'gass',    [176, 192, 138], { beh: 3, dens: 1, flam: 0.6 });
+BASE_RGB[GNIST]  = def(GNIST,  'Gnist',      'energi',  [255, 248, 190], { beh: 5, tset: 300 });
+BASE_RGB[HULL]   = def(HULL,   'Sort hull',  'spesial', [22, 10, 26],    { solid: 1, cond: 0 });
+DENS[TOM] = 0; COND[TOM] = 0.09;
+
+/* Verktøy (ikke grid-elementer) */
+const TOOLS = [
+  { key: 'FOLK',   navn: 'Folk',      cat: 'spesial', rgb: [232, 190, 150] },
+  { key: 'MISSIL', navn: 'Missil',    cat: 'spesial', rgb: [220, 224, 230] },
+  { key: 'SAT',    navn: 'Satellitt', cat: 'spesial', rgb: [212, 175, 55] },
+  { key: 'LYN',    navn: 'Lyn',       cat: 'spesial', rgb: [255, 250, 200] },
+  { key: 'VIND',   navn: 'Vind',      cat: 'verktøy', rgb: [170, 190, 200] },
+  { key: 'VARME',  navn: 'Varme',     cat: 'verktøy', rgb: [235, 120, 60] },
+  { key: 'KJOL',   navn: 'Kjøl',      cat: 'verktøy', rgb: [120, 170, 235] },
+  { key: 'VISK',   navn: 'Visk',      cat: 'verktøy', rgb: [245, 241, 234] }
+];
+
+/* ── 2. Tilstand ─────────────────────────────────────────────────────────── */
+const cells = new Uint8Array(N);
+const temp  = new Float32Array(N).fill(20);
+const life  = new Uint8Array(N);      // flerbruk: ild-liv, syre-styrke, lunte, refraktær
+const under = new Uint8Array(N);      // gnist: hvilket materiale den løper i
+const moved = new Uint8Array(N);
+
+/* grovkornede felt (8×8 px per celle) */
+const GW = W >> 3, GH = H >> 3, NG = GW * GH;
+const wx = new Float32Array(NG), wy = new Float32Array(NG);
+const wx2 = new Float32Array(NG), wy2 = new Float32Array(NG);
+const dgr = new Float32Array(NG), dgr2 = new Float32Array(NG);
+
+let frame = 0, paused = false, shake = 0;
+let holes = [];                        // [x,y] per sort hull, samles per steg
+const expQ = [];                       // eksplosjonskø [x,y,r,pow]
+const flashes = [], bolts = [], decor = [], bubbles = [];
+const folk = [], missiles = [], sats = [];
+const MAXFOLK = 144, MAXMISS = 40, MAXSAT = 56, MAXDECOR = 900;
+
+const idx = (x, y) => y * W + x;
+function moveCell(i, j) {
+  cells[j] = cells[i]; temp[j] = temp[i]; life[j] = life[i]; under[j] = under[i];
+  cells[i] = TOM; life[i] = 0; under[i] = 0; moved[j] = 1;
+}
+function swapCells(i, j) {
+  const c = cells[i], t = temp[i], l = life[i], u = under[i];
+  cells[i] = cells[j]; temp[i] = temp[j]; life[i] = life[j]; under[i] = under[j];
+  cells[j] = c; temp[j] = t; life[j] = l; under[j] = u;
+  moved[i] = 1; moved[j] = 1;
+}
+function initLife(id) {
+  if (id === ILD) return 22 + ri(14);
+  if (id === SYRE) return 200;
+  if (id === ROYK) return 60 + ri(80);
+  if (id === GNIST) return 4;
+  return 0;
+}
+function setCell(i, id) {
+  cells[i] = id; life[i] = initLife(id); under[i] = 0;
+  const t = TSET[id];
+  if (t === t) temp[i] = t;            // NaN-sjekk uten isNaN
+}
+function dAdd(x, y, v) { dgr[(y >> 3) * GW + (x >> 3)] += v; }
+const gIdx = (x, y) => (y >> 3) * GW + (x >> 3);
+
+/* ── 3. Farger ───────────────────────────────────────────────────────────── */
+const col32 = (r, g, b) => (255 << 24) | (b << 16) | (g << 8) | r;
+const COLTAB = new Uint32Array(N_EL);
+for (let e = 1; e < N_EL; e++) { const c = BASE_RGB[e]; COLTAB[e] = col32(c[0], c[1], c[2]); }
+/* per-element fargevariasjon (statisk kornethet) */
+const CVAR = new Uint8Array(N_EL);
+[[SAND,26],[VEGG,7],[STEIN,15],[METALL,8],[GLASS,6],[KRUTT,12],[ASKE,13],[SNO,8],
+ [VANN,20],[OLJE,12],[SYRE,24],[IS,12],[PLANTE,26],[SPRENG,12],[DAMP,16],[ROYK,14],
+ [GASS,18],[HULL,0]].forEach(p => CVAR[p[0]] = p[1]);
+const ANIM = new Uint8Array(N_EL);     // animert kornethet (væske/gass)
+[VANN, OLJE, SYRE, LAVA, DAMP, ROYK, GASS, ILD, GNIST].forEach(e => ANIM[e] = 1);
+
+const noise = new Uint8Array(N);
+{ let s = 1337; for (let i = 0; i < N; i++) { s ^= s << 13; s ^= s >>> 17; s ^= s << 5; noise[i] = (s >>> 0) & 31; } }
+
+/* ildpalett etter gjenværende liv */
+function lerp3(a, b, t) { return [a[0]+(b[0]-a[0])*t, a[1]+(b[1]-a[1])*t, a[2]+(b[2]-a[2])*t]; }
+const FIREPAL = new Uint32Array(40);
+{
+  const stops = [[110,18,8],[197,58,30],[255,106,42],[255,179,71],[255,241,168]];
+  for (let l = 0; l < 40; l++) {
+    const t = l / 39 * (stops.length - 1), k = Math.min(stops.length - 2, t | 0);
+    const c = lerp3(stops[k], stops[k + 1], t - k);
+    FIREPAL[l] = col32(c[0] | 0, c[1] | 0, c[2] | 0);
+  }
+}
+/* temperatur-visning: -40 → 1200 °C */
+function tempColor(t) {
+  const stops = [[-40,[45,70,200]],[0,[80,140,225]],[20,[38,40,46]],[100,[196,176,60]],
+                 [300,[255,120,40]],[700,[255,60,26]],[1200,[255,255,255]]];
+  if (t <= stops[0][0]) { const c = stops[0][1]; return col32(c[0], c[1], c[2]); }
+  for (let k = 0; k < stops.length - 1; k++) {
+    if (t <= stops[k + 1][0]) {
+      const f = (t - stops[k][0]) / (stops[k + 1][0] - stops[k][0]);
+      const c = lerp3(stops[k][1], stops[k + 1][1], f);
+      return col32(c[0] | 0, c[1] | 0, c[2] | 0);
+    }
+  }
+  return col32(255, 255, 255);
+}
+
+/* bakgrunn: rom øverst, mørk himmel nedover */
+const BGROW = new Uint32Array(H);
+for (let y = 0; y < H; y++) {
+  let r, g, b;
+  if (y < KARMAN) { const f = y / KARMAN; r = 9 + f * 6; g = 11 + f * 6; b = 22 + f * 4; }
+  else { const f = (y - KARMAN) / (H - KARMAN); r = 15 + f * 10; g = 17 + f * 7; b = 26 - f * 6; }
+  BGROW[y] = col32(r | 0, g | 0, b | 0);
+}
+/* stjerner + måne (tegnes bare over tomme celler) */
+const stars = [];
+{ let s = 424242; const rr = () => { s ^= s << 13; s ^= s >>> 17; s ^= s << 5; return (s >>> 0) / 4294967296; };
+  for (let k = 0; k < 90; k++) stars.push({ x: (rr() * (W - 4) + 2) | 0, y: (rr() * (KARMAN - 6) + 2) | 0, ph: (rr() * 8) | 0 }); }
+const moonPx = [];
+{ const mx = 291, my = 12, R = 4.3;
+  for (let dy = -5; dy <= 5; dy++) for (let dx = -5; dx <= 5; dx++) {
+    const d = Math.hypot(dx, dy);
+    if (d <= R) {
+      const crater = (dx === -1 && dy === 1) || (dx === 2 && dy === -1) || (dx === 0 && dy === -2);
+      moonPx.push([mx + dx, my + dy, crater ? col32(168, 168, 158) : col32(216, 216, 205)]);
+    }
+  } }
+</script>
+<script>
+'use strict';
+/* ── 4. Felt: vind, fare, temperatur ─────────────────────────────────────── */
+function updateFields() {
+  /* diffusjon + demping på grovt rutenett */
+  for (let gy = 0; gy < GH; gy++) {
+    for (let gx = 0; gx < GW; gx++) {
+      const i = gy * GW + gx;
+      const l = gx > 0 ? i - 1 : i, r = gx < GW - 1 ? i + 1 : i;
+      const u = gy > 0 ? i - GW : i, d = gy < GH - 1 ? i + GW : i;
+      wx2[i] = (wx[i] * 0.72 + (wx[l] + wx[r] + wx[u] + wx[d]) * 0.07) * 0.955;
+      wy2[i] = (wy[i] * 0.72 + (wy[l] + wy[r] + wy[u] + wy[d]) * 0.07) * 0.955;
+      dgr2[i] = (dgr[i] * 0.7 + (dgr[l] + dgr[r] + dgr[u] + dgr[d]) * 0.075) * 0.9;
+    }
+  }
+  wx.set(wx2); wy.set(wy2); dgr.set(dgr2);
+}
+
+function updateTemp() {
+  /* varmeledning + sakte utjevning mot 20 °C */
+  for (let y = 1; y < H - 1; y++) {
+    const row = y * W;
+    for (let x = 1; x < W - 1; x++) {
+      const i = row + x;
+      const k = COND[cells[i]];
+      if (k > 0) {
+        const avg = (temp[i - 1] + temp[i + 1] + temp[i - W] + temp[i + W]) * 0.25;
+        temp[i] += k * (avg - temp[i]);
+      }
+      temp[i] += (20 - temp[i]) * 0.0013;
+    }
+  }
+}
+
+/* ── 5. Eksplosjoner (kø, så kjeder ikke rekurserer) ─────────────────────── */
+function explode(x, y, r, pow) { expQ.push([x, y, r, pow]); }
+
+function doExplode(cx, cy, r, pow) {
+  flashes.push({ x: cx, y: cy, r: r * 1.15, life: 5 });
+  shake = Math.min(7, shake + pow * 0.8);
+  const r2 = r * r;
+  for (let dy = -r; dy <= r; dy++) {
+    const y = cy + dy; if (y < 1 || y >= H - 1) continue;
+    for (let dx = -r; dx <= r; dx++) {
+      const x = cx + dx; if (x < 1 || x >= W - 1) continue;
+      const d2 = dx * dx + dy * dy; if (d2 > r2) continue;
+      const d = Math.sqrt(d2), f = 1 - d / r;
+      const i = y * W + x, id = cells[i];
+      if (id === VEGG || id === HULL) continue;
+      temp[i] += f * 850;
+      if (id === SPRENG) { fuse(i); continue; }
+      if (d < r * 0.45) {
+        if (chance(0.85)) {
+          if (chance(0.55)) { setCell(i, ILD); life[i] = 8 + ri(14); }
+          else { cells[i] = TOM; life[i] = 0; under[i] = 0; }
+        }
+      } else if (id === STEIN && chance(f * 0.4)) { cells[i] = TOM; }
+      else if ((id === SAND || id === ASKE || id === SNO || id === KRUTT) && chance(f * 0.5)) {
+        /* slynges: gjøres om til ild/tom i randsonen */
+        if (id === KRUTT) { setCell(i, ILD); life[i] = 16; } else if (chance(0.4)) cells[i] = TOM;
+      }
+    }
+  }
+  /* trykkbølge inn i vindfeltet */
+  const gr = Math.max(2, (r >> 3) + 2);
+  const gcx = cx >> 3, gcy = cy >> 3;
+  for (let gy = gcy - gr; gy <= gcy + gr; gy++) {
+    if (gy < 0 || gy >= GH) continue;
+    for (let gx = gcx - gr; gx <= gcx + gr; gx++) {
+      if (gx < 0 || gx >= GW) continue;
+      const ddx = gx - gcx, ddy = gy - gcy;
+      const dd = Math.sqrt(ddx * ddx + ddy * ddy) || 1;
+      if (dd > gr) continue;
+      const f = (1 - dd / gr) * pow * 1.6;
+      wx[gy * GW + gx] += (ddx / dd) * f;
+      wy[gy * GW + gx] += (ddy / dd) * f;
+    }
+  }
+  if (dgr[gIdx(cx, cy)] < 400) dgr[gIdx(cx, cy)] += 90;
+  /* pyntegnister */
+  for (let k = 0; k < pow * 7 && decor.length < MAXDECOR; k++) {
+    const a = rnd() * 6.283, sp = 0.6 + rnd() * 2.6;
+    decor.push({ x: cx, y: cy, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp - 0.6,
+                 life: 14 + ri(22), col: FIREPAL[20 + ri(19)] });
+  }
+  /* entiteter i trykksonen */
+  for (const p of folk) {
+    const dd = Math.hypot(p.x - cx, p.y - cy);
+    if (dd < r * 1.9) {
+      const f = Math.max(0.25, 1 - dd / (r * 1.9));
+      p.vx += Math.sign(p.x - cx || rnd() - 0.5) * f * 5;
+      p.vy -= f * 3; p.fear = 100; p.mood = '!'; p.moodT = 50;
+      if (dd < r * 0.95) p.hp -= f * 130;
+    }
+  }
+  for (const m of missiles) if (m.alive && Math.hypot(m.x - cx, m.y - cy) < r) m.boom = true;
+  for (const s of sats) if (s.alive && Math.hypot(s.x - cx, s.y - cy) < r * 1.35) s.breakup = true;
+}
+function processExplosions() {
+  let budget = 24;
+  while (expQ.length && budget-- > 0) { const e = expQ.shift(); doExplode(e[0], e[1], e[2], e[3]); }
+}
+function fuse(i) { if (cells[i] === SPRENG && life[i] === 0) life[i] = 3 + ri(7); }
+
+/* ── 6. Lyn ──────────────────────────────────────────────────────────────── */
+function lightning(tx, ty) {
+  let x = Math.max(2, Math.min(W - 3, tx + ri(25) - 12)), y = 0;
+  const pts = [];
+  while (y < ty && y < H - 2) {
+    pts.push(x, y);
+    const i = y * W + x;
+    temp[i] += 500;
+    const id = cells[i];
+    if (LEDER[id] && life[i] === 0) { under[i] = id; cells[i] = GNIST; life[i] = 4; }
+    else if (id === TOM && chance(0.5)) { setCell(i, ILD); life[i] = 3; }
+    y += 1 + ri(2);
+    x += ri(3) - 1;
+    if (y > ty * 0.55) x += Math.sign(tx - x) * (chance(0.55) ? 1 : 0);
+    x = Math.max(2, Math.min(W - 3, x));
+  }
+  bolts.push({ pts, life: 6 });
+  explode(tx, ty, 4, 3);
+  dAdd(tx, ty, 60);
+}
+
+/* ── 7. Sorte hull ───────────────────────────────────────────────────────── */
+function applyHoles() {
+  if (!holes.length) return;
+  for (let h = 0; h < holes.length; h += 2) {
+    const hx = holes[h], hy = holes[h + 1];
+    const R = 26;
+    /* deterministisk sluk i kjernen */
+    for (let dy = -3; dy <= 3; dy++) {
+      const y = hy + dy; if (y < 1 || y >= H - 1) continue;
+      for (let dx = -3; dx <= 3; dx++) {
+        const x = hx + dx; if (x < 1 || x >= W - 1) continue;
+        if (dx * dx + dy * dy > 9) continue;
+        const i = y * W + x, id = cells[i];
+        if (id === TOM || id === HULL || id === VEGG) continue;
+        cells[i] = TOM; life[i] = 0; under[i] = 0;
+        if (chance(0.12) && decor.length < MAXDECOR)
+          decor.push({ x, y, vx: (rnd() - 0.5) * 0.8, vy: (rnd() - 0.5) * 0.8, life: 8 + ri(8), col: col32(210, 160, 255) });
+      }
+    }
+    /* sug i omkretsen (stikkprøver — billig og organisk) */
+    for (let k = 0; k < 640; k++) {
+      const a = rnd() * 6.283, d = 3 + rnd() * (R - 3);
+      const x = (hx + Math.cos(a) * d) | 0, y = (hy + Math.sin(a) * d) | 0;
+      if (x < 1 || x >= W - 1 || y < 1 || y >= H - 1) continue;
+      const i = y * W + x, id = cells[i];
+      if (id === TOM || id === HULL || id === VEGG) continue;
+      const p = Math.min(0.9, 5.0 / d);
+      if (!chance(p)) continue;
+      const sx = Math.sign(hx - x), sy = Math.sign(hy - y);
+      let tx = x + sx, ty = y + sy;
+      let j = ty * W + tx;
+      if (cells[j] !== TOM && cells[j] !== HULL && chance(0.5)) {
+        tx = chance(0.5) ? x + sx : x; ty = tx === x ? y + sy : y; j = ty * W + tx;
+      }
+      if (cells[j] === HULL) { cells[i] = TOM; life[i] = 0; under[i] = 0; }
+      else if (cells[j] === TOM) moveCell(i, j);
+    }
+    /* vindsluk rundt hullet + entiteter */
+    const gcx2 = hx >> 3, gcy2 = hy >> 3;
+    for (let gy = gcy2 - 2; gy <= gcy2 + 2; gy++) {
+      if (gy < 0 || gy >= GH) continue;
+      for (let gx = gcx2 - 2; gx <= gcx2 + 2; gx++) {
+        if (gx < 0 || gx >= GW) continue;
+        const ddx = gcx2 - gx, ddy = gcy2 - gy;
+        const dd = Math.hypot(ddx, ddy);
+        if (dd === 0) continue;
+        wx[gy * GW + gx] += ddx / dd * 0.35;
+        wy[gy * GW + gx] += ddy / dd * 0.35;
+      }
+    }
+    dgr[gIdx(hx, hy)] += 4;
+    for (const p of folk) pullEnt(p, hx, hy, R * 1.5, 0.55, true);
+    for (const m of missiles) if (m.alive) pullEnt(m, hx, hy, R * 1.6, 0.5, false);
+    for (const s of sats) if (s.alive) {
+      const dd = Math.hypot(s.x - hx, s.y - hy);
+      if (dd < R * 1.9) {
+        const f = 22 / (dd * dd + 4);
+        s.vx += (hx - s.x) / dd * f; s.vy += (hy - s.y) / dd * f;
+        if (dd < 3) s.alive = false;
+      }
+    }
+  }
+}
+function pullEnt(p, hx, hy, R, k, isFolk) {
+  const dx = hx - p.x, dy = hy - p.y;
+  const d = Math.hypot(dx, dy);
+  if (d > R || d === 0) return;
+  const f = Math.min(1.4, k * 26 / (d * d + 6));
+  p.vx += dx / d * f; p.vy += dy / d * f;
+  if (isFolk) { p.fear = 100; if (chance(0.1)) { p.mood = '!'; p.moodT = 40; } }
+  if (d < 3) { if (isFolk) p.hp = -1000; else p.alive = false; }
+}
+</script>
+<script>
+'use strict';
+/* ── 8. Hovedsteg ────────────────────────────────────────────────────────── */
+const OFF4 = [-W, W, -1, 1];
+const OFF8 = [-W, W, -1, 1, -W - 1, -W + 1, W - 1, W + 1];
+
+function step() {
+  frame++;
+  holes.length = 0;
+  updateFields();
+  updateTemp();
+  moved.fill(0);
+  for (let y = H - 2; y >= 0; y--) {
+    const ltr = ((y + frame) & 1) === 0;
+    const row = y * W;
+    for (let k = 1; k < W - 1; k++) {
+      const x = ltr ? k : W - 1 - k;
+      const i = row + x;
+      if (moved[i]) continue;
+      const id = cells[i];
+      if (id === TOM || id === VEGG) continue;
+      switch (BEHAV[id]) {
+        case 0: updStatic(i, x, y, id); break;
+        case 1: updPowder(i, x, y, id); break;
+        case 2: updLiquid(i, x, y, id); break;
+        case 3: updGas(i, x, y, id); break;
+        case 4: updFire(i, x, y); break;
+        case 5: updSpark(i, x, y); break;
+      }
+    }
+  }
+  applyHoles();
+  processExplosions();
+  updateHumans();
+  updateMissiles();
+  updateSats();
+  updateDecor();
+}
+
+/* ── 9. Statiske elementer ───────────────────────────────────────────────── */
+function updStatic(i, x, y, id) {
+  const t = temp[i];
+  switch (id) {
+    case STEIN:
+      if (t > 950) cells[i] = LAVA;
+      break;
+    case METALL:
+      if (life[i] > 0) life[i]--;                 // gnist-refraktær
+      if (t > 1400) cells[i] = LAVA;
+      break;
+    case IS:
+      temp[i] += (-18 - t) * 0.04;                // kuldekilde
+      if (t > 0.5 && chance(0.08 + t * 0.002)) { cells[i] = VANN; temp[i] = 1; return; }
+      if (t < -6 && chance(0.08)) {
+        const j = i + OFF4[ri(4)];
+        if (cells[j] === VANN) { cells[j] = IS; temp[j] = -8; life[j] = 0; }
+      }
+      break;
+    case PLANTE:
+      if (t >= 150) { setCell(i, ILD); life[i] = 30 + ri(10); temp[i] = 420; return; }
+      if (chance(0.05)) {
+        /* gro: trenger vann i nabolaget */
+        let wj = -1;
+        for (let k = 0; k < 4; k++) { const j = i + OFF4[k]; if (cells[j] === VANN) { wj = j; break; } }
+        if (wj >= 0) {
+          const cand = [i - W, i - W, i - 1, i + 1, i - W - 1, i - W + 1];  // oppover-skjevt
+          const j = cand[ri(cand.length)];
+          const jy = (j / W) | 0;
+          if (cells[j] === TOM && jy > 0) {
+            let nPlant = 0;
+            for (let k = 0; k < 8; k++) if (cells[j + OFF8[k]] === PLANTE) nPlant++;
+            if (nPlant <= 2) {
+              cells[j] = PLANTE; temp[j] = temp[i]; moved[j] = 1;
+              if (chance(0.55)) { cells[wj] = TOM; }   // drikker
+            }
+          }
+        }
+      }
+      break;
+    case SPRENG:
+      if (life[i] > 0) {
+        life[i]--;
+        if (life[i] === 1) { cells[i] = TOM; life[i] = 0; explode(x, y, 13, 6); return; }
+      } else if (t > 250) fuse(i);
+      break;
+    case HULL:
+      holes.push(x, y);
+      break;
+    case GLASS:
+      if (t > 1900 && chance(0.05)) cells[i] = TOM;  // fordamper i ekstremvarme
+      break;
+  }
+}
+
+/* ── 10. Pulver ──────────────────────────────────────────────────────────── */
+function igniteKrutt(i) {
+  setCell(i, ILD); life[i] = 13 + ri(9); temp[i] = 540;
+  const x = i % W, y = (i / W) | 0;
+  dAdd(x, y, 3);
+  const g = gIdx(x, y);
+  wx[g] += (rnd() - 0.5) * 2.4; wy[g] -= rnd() * 1.6;
+}
+
+function updPowder(i, x, y, id) {
+  const t = temp[i];
+  if (id === SNO) {
+    if (t > 0.5 && chance(0.35)) { cells[i] = VANN; temp[i] = 1; return; }
+  } else if (id === SAND) {
+    if (t > 1580) { cells[i] = GLASS; return; }
+  } else if (id === KRUTT) {
+    if (t > 180) { igniteKrutt(i); return; }
+  }
+  const below = i + W;
+  const bid = cells[below];
+  if (bid === TOM) { moveCell(i, below); return; }
+  if ((LIQ[bid] || BEHAV[bid] === 3) && DENS[id] > DENS[bid] && chance(bid === LAVA ? 0.3 : 0.55)) {
+    swapCells(i, below); return;
+  }
+  const dir = chance(0.5) ? 1 : -1;
+  for (let k = 0; k < 2; k++) {
+    const dx = k === 0 ? dir : -dir;
+    const j = below + dx;
+    const jd = cells[j];
+    if (jd === TOM && cells[i + dx] === TOM) { moveCell(i, j); return; }
+    if (LIQ[jd] && DENS[id] > DENS[jd] && chance(0.35)) { swapCells(i, j); return; }
+  }
+  /* kraftig vind flytter løst pulver */
+  const wxx = wx[gIdx(x, y)];
+  if (Math.abs(wxx) > 1.5 && chance(Math.min(0.7, Math.abs(wxx) * 0.2))) {
+    const j = i + (wxx > 0 ? 1 : -1);
+    if (cells[j] === TOM) moveCell(i, j);
+  }
+}
+
+/* ── 11. Væsker ──────────────────────────────────────────────────────────── */
+function updLiquid(i, x, y, id) {
+  const t = temp[i];
+  if (id === VANN) {
+    if (life[i] > 0) life[i]--;                   // gnist-refraktær
+    if (t <= -0.5 && chance(0.25)) { cells[i] = IS; life[i] = 0; return; }
+    if (t >= 100 && chance(0.5)) { cells[i] = DAMP; life[i] = 0; return; }
+  } else if (id === OLJE) {
+    if (t >= 230) { setCell(i, ILD); life[i] = 42 + ri(18); return; }
+  } else if (id === LAVA) {
+    if (t < 1050) temp[i] = t + 0.9;              // holder seg varm en stund
+    if ((frame & 7) === 0) dAdd(x, y, 3);         // folka er livredde for lava
+    if (t < 680 && chance(0.3)) { cells[i] = STEIN; return; }
+    for (let k = 0; k < 4; k++) {
+      const j = i + OFF4[k], jd = cells[j];
+      if (jd === VANN) {                          // brå quench
+        cells[i] = STEIN; temp[i] = 300;
+        cells[j] = DAMP; temp[j] = 130; life[j] = 0;
+        return;
+      }
+      if (FLAM[jd] > 0 && chance(0.22)) igniteById(j, jd);
+    }
+    if (cells[i - W] === TOM && chance(0.004)) { setCell(i - W, ILD); life[i - W] = 9; moved[i - W] = 1; }
+  } else if (id === SYRE) {
+    if (life[i] < 8) { cells[i] = TOM; life[i] = 0; return; }
+    const j = i + OFF4[ri(4)];
+    const jd = cells[j];
+    if (jd === VANN) { if (chance(0.04)) { cells[i] = VANN; return; } }
+    else if (jd !== TOM && jd !== VEGG && jd !== GLASS && jd !== SYRE && jd !== HULL &&
+             jd !== ILD && BEHAV[jd] !== 3 && chance(0.22)) {
+      if (chance(0.12)) { cells[j] = ROYK; life[j] = 40 + ri(30); } else { cells[j] = TOM; life[j] = 0; }
+      under[j] = 0;
+      life[i] = life[i] > 12 ? life[i] - 12 : 0;
+      dAdd(x, y, 1.2);
+    }
+  }
+  /* bevegelse */
+  const below = i + W;
+  const bid = cells[below];
+  if (bid === TOM) { moveCell(i, below); return; }
+  if (BEHAV[bid] === 3) { swapCells(i, below); return; }          // gass bobler opp
+  if (LIQ[bid] && DENS[bid] < DENS[id] && chance(0.6)) { swapCells(i, below); return; }
+  if (y > 0) {
+    const aid = cells[i - W];
+    if (LIQ[aid] && DENS[aid] > DENS[id] && chance(0.35)) { swapCells(i, i - W); return; }
+  }
+  const dir = chance(0.5) ? 1 : -1;
+  for (let k = 0; k < 2; k++) {
+    const dx = k === 0 ? dir : -dir;
+    if (cells[below + dx] === TOM && cells[i + dx] === TOM) { moveCell(i, below + dx); return; }
+  }
+  if (id === LAVA && ((frame + x) & 1)) return;                   // seig
+  const disp = DISP[id];
+  const dir2 = chance(0.5) ? 1 : -1;
+  for (let k = 0; k < 2; k++) {
+    const dd = k === 0 ? dir2 : -dir2;
+    let steps = 0, j = i;
+    while (steps < disp && cells[j + dd] === TOM) { j += dd; steps++; }
+    if (steps > 0) { moveCell(i, j); return; }
+    const js = i + dd;
+    if (LIQ[cells[js]] && DENS[cells[js]] < DENS[id] && chance(0.25)) { swapCells(i, js); return; }
+  }
+}
+</script>
+<script>
+'use strict';
+/* ── 12. Antenning per materiale ─────────────────────────────────────────── */
+function igniteById(j, jd) {
+  if (jd === OLJE)   { setCell(j, ILD); life[j] = 42 + ri(18); return; }
+  if (jd === PLANTE) { setCell(j, ILD); life[j] = 28 + ri(12); temp[j] = 420; return; }
+  if (jd === KRUTT)  { igniteKrutt(j); return; }
+  if (jd === GASS)   { combustGas(j); return; }
+  if (jd === SPRENG) { fuse(j); return; }
+}
+function combustGas(i) {
+  const x = i % W, y = (i / W) | 0;
+  setCell(i, ILD); life[i] = 6 + ri(6); temp[i] = 680;
+  const g = gIdx(x, y);
+  wx[g] += (rnd() - 0.5) * 3.2; wy[g] += (rnd() - 0.5) * 3.2;
+  dAdd(x, y, 4);
+}
+
+/* ── 13. Gasser ──────────────────────────────────────────────────────────── */
+function updGas(i, x, y, id) {
+  const t = temp[i];
+  if (id === DAMP) {
+    if (t < 95 && chance(0.02)) { cells[i] = VANN; temp[i] = 55; life[i] = 0; return; }
+  } else if (id === ROYK) {
+    if (life[i] <= 1 || chance(0.008)) { cells[i] = TOM; life[i] = 0; return; }
+    life[i]--;
+  } else if (id === GASS) {
+    if (t >= 300) { combustGas(i); return; }
+  }
+  if (y === 0) { if (chance(0.12)) { cells[i] = TOM; life[i] = 0; } return; }  // venter ut i rommet
+  const riseP = id === DAMP ? 0.62 : id === ROYK ? 0.5 : 0.36;
+  if (chance(riseP)) {
+    const up = i - W;
+    if (cells[up] === TOM) { moveCell(i, up); return; }
+    const dir = chance(0.5) ? 1 : -1;
+    for (let k = 0; k < 2; k++) {
+      const dx = k === 0 ? dir : -dir;
+      if (cells[up + dx] === TOM && cells[i + dx] === TOM) { moveCell(i, up + dx); return; }
+    }
+  }
+  const g = gIdx(x, y);
+  const bias = wx[g] * 0.55 + (rnd() - 0.5);
+  if (Math.abs(bias) > 0.28) {
+    const j = i + (bias > 0 ? 1 : -1);
+    if (cells[j] === TOM) { moveCell(i, j); return; }
+  }
+  const by = wy[g];
+  if (Math.abs(by) > 0.7 && chance(Math.min(0.75, Math.abs(by) * 0.3))) {
+    const j = i + (by > 0 ? W : -W);
+    if (cells[j] === TOM) moveCell(i, j);
+  }
+}
+
+/* ── 14. Ild ─────────────────────────────────────────────────────────────── */
+function updFire(i, x, y) {
+  for (let k = 0; k < 4; k++) {
+    const j = i + OFF4[k];
+    if (cells[j] === VANN) {
+      cells[i] = chance(0.6) ? DAMP : TOM; temp[i] = 95;
+      life[i] = 0; return;
+    }
+  }
+  if (temp[i] < 380 + life[i] * 10) temp[i] = 380 + life[i] * 10;
+  temp[i - 1] += 22; temp[i + 1] += 22; temp[i - W] += 30; temp[i + W] += 30;
+  let fuel = false;
+  for (let k = 0; k < 8; k++) {
+    const j = i + OFF8[k], jd = cells[j];
+    if (FLAM[jd] > 0) {
+      fuel = true;
+      if (chance(FLAM[jd] * 0.5)) igniteById(j, jd);
+    }
+  }
+  if (fuel && life[i] < 14) life[i] = 14;        // flammen lever så lenge den har næring
+  if ((frame & 3) === 0) dAdd(x, y, 2.2);
+  if (life[i] <= 1) {
+    if (chance(0.22)) { cells[i] = ROYK; life[i] = 50 + ri(60); }
+    else { cells[i] = TOM; life[i] = 0; }
+    if (temp[i] > 300) temp[i] = 300;
+    return;
+  }
+  life[i]--;
+  if (fuel && chance(0.85)) return;              // klamrer seg til brenselet
+  const drift = wx[gIdx(x, y)];
+  if (y > 0 && chance(0.6)) {
+    const lat = Math.abs(drift) > 0.5 ? Math.sign(drift) : (chance(0.3) ? (chance(0.5) ? 1 : -1) : 0);
+    const j = i - W + lat;
+    if (cells[j] === TOM) { moveCell(i, j); return; }
+    if (cells[i - W] === TOM) { moveCell(i, i - W); return; }
+  }
+  if (chance(0.25)) {
+    const j = i + (chance(0.5) ? 1 : -1);
+    if (cells[j] === TOM) moveCell(i, j);
+  }
+}
+
+/* ── 15. Gnist (elektrisitet) ────────────────────────────────────────────── */
+function updSpark(i, x, y) {
+  const host = under[i];
+  if (life[i] === 4) {
+    for (let k = 0; k < 8; k++) {
+      const j = i + OFF8[k], jd = cells[j];
+      if (LEDER[jd] && life[j] === 0 && jd !== GNIST) {
+        under[j] = jd; cells[j] = GNIST; life[j] = 4; moved[j] = 1;
+      } else if (FLAM[jd] > 0 && chance(0.5)) igniteById(j, jd);
+    }
+    if (host === METALL) temp[i] += 7;
+    dAdd(x, y, 1.6);
+  }
+  if (life[i] <= 1) {
+    cells[i] = host || TOM;
+    life[i] = host ? (host === VANN ? 7 : 9) : 0;   // refraktærtid på lederen
+    under[i] = 0;
+  } else life[i]--;
+}
+
+/* ── 16. Pynt: gnistregn, glimt, lyn, bobler ─────────────────────────────── */
+function updateDecor() {
+  for (let k = decor.length - 1; k >= 0; k--) {
+    const p = decor[k];
+    p.x += p.vx; p.y += p.vy; p.vy += 0.05; p.vx *= 0.985;
+    if (--p.life <= 0 || p.x < 1 || p.x >= W - 1 || p.y < 0 || p.y >= H - 1) {
+      decor[k] = decor[decor.length - 1]; decor.pop();
+    }
+  }
+  for (let k = flashes.length - 1; k >= 0; k--) if (--flashes[k].life <= 0) { flashes[k] = flashes[flashes.length - 1]; flashes.pop(); }
+  for (let k = bolts.length - 1; k >= 0; k--) if (--bolts[k].life <= 0) { bolts[k] = bolts[bolts.length - 1]; bolts.pop(); }
+  for (let k = bubbles.length - 1; k >= 0; k--) {
+    const b = bubbles[k];
+    b.y -= 0.45; b.x += (rnd() - 0.5) * 0.6;
+    const i = (b.y | 0) * W + (b.x | 0);
+    if (--b.life <= 0 || b.y < 1 || !LIQ[cells[i]]) { bubbles[k] = bubbles[bubbles.length - 1]; bubbles.pop(); }
+  }
+  if (shake > 0) shake *= 0.82;
+}
+</script>
+<script>
+'use strict';
+/* ── 17. Folka ───────────────────────────────────────────────────────────── */
+const SHIRTS = [[198, 88, 60], [86, 130, 180], [110, 150, 80], [186, 152, 64], [150, 100, 160], [204, 120, 140]];
+
+function cAt(x, y) {
+  if (x < 0 || x >= W || y < 0 || y >= H) return VEGG;
+  return cells[(y | 0) * W + (x | 0)];
+}
+const solidAt = (x, y) => SOLID[cAt(x, y)];
+const liquidAt = (x, y) => LIQ[cAt(x, y)];
+
+function spawnHuman(x, y) {
+  if (folk.length >= MAXFOLK) return null;
+  const p = { x, y, vx: 0, vy: 0, dir: chance(0.5) ? 1 : -1, state: 0, t: 40 + ri(140),
+              fear: 0, air: 340, hp: 100, burn: 0, stun: 0, mood: '', moodT: 0,
+              phase: 0, shirt: ri(SHIRTS.length), idleT: 0, cause: '' };
+  folk.push(p); return p;
+}
+
+function humanHazards(p) {
+  const x = p.x | 0;
+  for (let dy = 0; dy >= -3; dy--) {
+    const id = cAt(x, p.y + dy), i = ((p.y + dy) | 0) * W + x;
+    if (id === ILD || id === LAVA || (i >= 0 && i < N && temp[i] > 170)) { p.burn = 1; p.fear = 100; }
+    if (id === SYRE) { p.hp -= 7; p.fear = 100; p.cause = 'acid'; setMood(p, '!'); }
+  }
+  /* gnist i nabolaget = støt */
+  for (let dy = -3; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) {
+    if (cAt(x + dx, p.y + dy) === GNIST) { p.hp = -999; p.cause = 'zap'; return; }
+  }
+}
+
+function setMood(p, m) { p.mood = m; p.moodT = 42; }
+
+function updateHuman(p) {
+  humanHazards(p);
+  if (p.hp <= 0) return;
+
+  const x = p.x | 0, y = p.y | 0;
+  const g = gIdx(Math.max(0, Math.min(W - 1, x)), Math.max(0, Math.min(H - 1, y)));
+  const dl = dgr[gIdx(Math.max(0, x - 9), y)], dr = dgr[gIdx(Math.min(W - 1, x + 9), y)];
+  p.fear = Math.max(p.fear * 0.95, Math.min(100, dgr[g] * 7));
+  const gradDir = dr > dl + 0.4 ? -1 : dl > dr + 0.4 ? 1 : 0;  // bort fra økende fare
+
+  const headLiq = liquidAt(x, y - 3), feetLiq = liquidAt(x, y - 1) || liquidAt(x, y);
+  const inWater = feetLiq || headLiq;
+
+  /* luft og drukning */
+  if (headLiq) {
+    p.air -= 1.25;
+    if (p.air < 140 && chance(0.09) && bubbles.length < 80) bubbles.push({ x: p.x, y: p.y - 3, life: 40 });
+    if (p.air < 100) setMood(p, '!');
+    if (p.air <= 0) { p.hp -= 3; p.cause = 'drown'; }
+  } else if (solidAt(x, y - 3) && solidAt(x, y - 2)) {   // begravd
+    p.air -= 2.5;
+    if (p.air <= 0) { p.hp -= 4; p.cause = 'buried'; }
+  } else p.air = Math.min(340, p.air + 5);
+
+  /* brann: slukk i vann, ellers spre ild og løp mot vann */
+  if (p.burn) {
+    if (inWater) {
+      p.burn = 0; setMood(p, '~');
+      const i = (y - 1) * W + x;
+      if (i > W && cells[i] === TOM) { cells[i] = DAMP; temp[i] = 120; }
+    } else {
+      p.hp -= 1.7; p.cause = 'burn'; p.fear = 100;
+      if (chance(0.3)) { const i = y * W + x; if (cells[i] === TOM) { setCell(i, ILD); life[i] = 7; } }
+      /* sprint mot nærmeste vann */
+      for (let d = 2; d < 26; d += 3) {
+        if (liquidAt(x + d, y) || liquidAt(x + d, y + 2)) { p.dir = 1; break; }
+        if (liquidAt(x - d, y) || liquidAt(x - d, y + 2)) { p.dir = -1; break; }
+      }
+    }
+  }
+
+  /* tilstandsmaskin */
+  let speed = 0;
+  if (p.stun > 0) { p.stun--; p.state = 0; }
+  else if (inWater) {
+    p.state = 4;
+    speed = 0.3;
+    if (headLiq) p.vy -= 0.17; else if (feetLiq) p.vy -= 0.08;
+    if (chance(0.02)) p.dir = chance(0.5) ? 1 : -1;
+    /* klatre opp på land */
+    if (solidAt(x + p.dir, y) && !solidAt(x + p.dir, y - 2) && !solidAt(x + p.dir, y - 3)) { p.y -= 1.2; p.vy = -0.4; }
+  } else if (p.fear >= 65 || p.burn) {
+    p.state = 3; speed = 0.62;
+    if (gradDir !== 0 && !p.burn) p.dir = gradDir;
+    if (chance(0.03)) p.dir = chance(0.5) ? 1 : -1;
+    if (chance(0.05) && solidAt(x, y + 1)) p.vy = -1.5;
+    if (chance(0.05)) setMood(p, '!');
+  } else if (p.fear >= 22) {
+    p.state = 2; speed = 0.45;
+    if (gradDir !== 0) p.dir = gradDir;
+    if (chance(0.02)) setMood(p, '!');
+  } else {
+    if (--p.t <= 0) { p.state = p.state === 1 ? 0 : 1; p.t = p.state === 1 ? 90 + ri(240) : 50 + ri(160); p.idleT = 0; }
+    if (p.state === 1) speed = 0.2;
+    else {
+      p.idleT++;
+      if (p.idleT > 420 && chance(0.006)) setMood(p, 'z');
+    }
+    if (p.state === 1 && chance(0.004)) p.dir *= -1;
+    /* småprat og stjernekikking */
+    if ((frame & 63) === 0 && p.moodT <= 0) {
+      for (const q of folk) {
+        if (q !== p && Math.abs(q.x - p.x) < 11 && Math.abs(q.y - p.y) < 6 && q.fear < 20) {
+          if (chance(0.25)) { setMood(p, '♥'); p.dir = q.x > p.x ? 1 : -1; }
+          break;
+        }
+      }
+      if (p.moodT <= 0 && chance(0.3)) {
+        for (const s of sats) {
+          if (s.alive && Math.abs(s.x - p.x) < 34 && s.y < p.y) {
+            setMood(p, '★'); p.state = 0; p.t = Math.max(p.t, 60); break;
+          }
+        }
+      }
+      if (p.moodT <= 0 && chance(0.06)) setMood(p, '♪');
+    }
+  }
+
+  const onGround = solidAt(x, y + 1);
+
+  /* se seg for: stup og farer framfor seg (bare i ro og mak) */
+  if (onGround && speed > 0 && p.state < 2) {
+    let dropOk = false;
+    for (let k = 1; k <= 7; k++) if (solidAt(x + p.dir * 2, y + k)) { dropOk = true; break; }
+    if (!dropOk) { p.dir *= -1; }
+    const ah1 = cAt(x + p.dir * 3, y), ah2 = cAt(x + p.dir * 3, y - 1);
+    if (ah1 === LAVA || ah1 === SYRE || ah1 === ILD || ah2 === LAVA || ah2 === SYRE || ah2 === ILD ||
+        LIQ[ah1] && LIQ[cAt(x + p.dir * 3, y + 2)]) {
+      p.dir *= -1; p.fear = Math.max(p.fear, 30); setMood(p, '!');
+    }
+  }
+
+  /* bevegelse */
+  const ctrl = onGround || inWater ? 0.3 : 0.05;
+  p.vx += (p.dir * speed - p.vx) * ctrl;
+  p.vy += inWater ? 0.06 : 0.13;
+  if (p.vy > 3.4) p.vy = 3.4;
+  if (inWater && p.vy > 0.7) p.vy = 0.7;
+
+  /* horisontalt med steg-opp */
+  let nx = p.x + p.vx;
+  const bdir = p.vx > 0 ? 1 : -1;
+  if (Math.abs(p.vx) > 0.01) {
+    const bx = nx + bdir * 0.6;
+    const blocked = solidAt(bx, y) || solidAt(bx, y - 1) || solidAt(bx, y - 2);
+    if (blocked) {
+      if (!solidAt(bx, y - 1) && !solidAt(bx, y - 2) && !solidAt(bx, y - 3) && p.vy >= 0) {
+        p.y -= 1;                                   // steg opp
+      } else if (p.state >= 2 && onGround && chance(0.5)) {
+        p.vy = -1.55;                               // hopp over
+      } else { p.dir *= -1; p.vx = 0; nx = p.x; }
+    }
+  }
+  p.x = Math.max(2, Math.min(W - 3, nx));
+
+  /* vertikalt */
+  let ny = p.y + p.vy;
+  if (p.vy > 0) {
+    let cy2 = p.y;
+    while (cy2 < ny) {
+      if (solidAt(p.x, cy2 + 1)) {
+        const impact = p.vy;
+        p.vy = 0; ny = cy2;
+        if (impact > 3.2 && !inWater) { p.hp = -999; p.cause = 'fall'; }
+        else if (impact > 2.3) { p.stun = 45; setMood(p, '~'); }
+        break;
+      }
+      cy2 += 1;
+    }
+    p.y = Math.min(ny, cy2);
+  } else if (p.vy < 0) {
+    if (solidAt(p.x, ny - 3)) p.vy = 0; else p.y = ny;
+  }
+  if (p.y > H - 2) p.y = H - 2;
+  if (p.y < 4) p.y = 4;
+
+  if (Math.abs(p.vx) > 0.05) p.phase += Math.abs(p.vx) * 0.5;
+  if (p.moodT > 0) p.moodT--;
+  if (p.fear > 1) dAdd(x, y, 0);   // no-op, holder signaturen synlig
+}
+
+function humanDeath(p) {
+  const x = p.x | 0, y = p.y | 0;
+  const put = (dx, dy, id, lf) => {
+    const xx = x + dx, yy = y + dy;
+    if (xx < 1 || xx >= W - 1 || yy < 1 || yy >= H - 1) return;
+    const i = yy * W + xx;
+    if (cells[i] === TOM) { setCell(i, id); if (lf) life[i] = lf; }
+  };
+  switch (p.cause) {
+    case 'burn': put(0, 0, ILD, 14); put(0, -1, ILD, 10); put(0, -2, ROYK, 60); put(1, 0, ASKE); break;
+    case 'zap':
+      for (let k = 0; k < 10 && decor.length < MAXDECOR; k++) {
+        const a = rnd() * 6.283;
+        decor.push({ x: p.x, y: p.y - 2, vx: Math.cos(a) * 1.4, vy: Math.sin(a) * 1.4, life: 12 + ri(10), col: col32(255, 250, 190) });
+      }
+      put(0, 0, ASKE); put(0, -1, ROYK, 40); break;
+    case 'acid': put(0, 0, ROYK, 50); put(0, -1, ROYK, 40); break;
+    case 'hole': break;
+    default: put(0, 0, ASKE); put(chance(0.5) ? 1 : -1, 0, ASKE); break;
+  }
+}
+
+function updateHumans() {
+  for (let k = folk.length - 1; k >= 0; k--) {
+    const p = folk[k];
+    updateHuman(p);
+    if (p.hp <= 0) {
+      if (p.hp > -900) p.cause = p.cause || 'drown';
+      humanDeath(p);
+      folk[k] = folk[folk.length - 1]; folk.pop();
+    }
+  }
+}
+</script>
+<script>
+'use strict';
+/* ── 18. Missiler (jager musepekeren) ────────────────────────────────────── */
+let mcx = W >> 1, mcy = 50;   // musas celle-posisjon, oppdateres av input
+
+function launchMissile(x, y) {
+  if (missiles.length >= MAXMISS) return;
+  missiles.push({ x, y, vx: (rnd() - 0.5) * 0.2, vy: -1.7, fuel: 280, age: 0, alive: true, boom: false });
+}
+
+function updateMissiles() {
+  for (let k = missiles.length - 1; k >= 0; k--) {
+    const m = missiles[k];
+    if (!m.alive) { missiles[k] = missiles[missiles.length - 1]; missiles.pop(); continue; }
+    m.age++;
+    if (m.boom) { m.alive = false; explode(m.x | 0, m.y | 0, 11, 5); continue; }
+
+    let sp = Math.hypot(m.vx, m.vy) || 0.001;
+    let hd = Math.atan2(m.vy, m.vx);
+    if (m.fuel > 0) {
+      m.fuel--;
+      const des = Math.atan2(mcy - m.y, mcx - m.x);
+      let diff = des - hd;
+      while (diff > Math.PI) diff -= 2 * Math.PI;
+      while (diff < -Math.PI) diff += 2 * Math.PI;
+      hd += Math.max(-0.05, Math.min(0.05, diff));
+      sp = Math.min(2.5, sp + 0.085);
+      m.vx = Math.cos(hd) * sp; m.vy = Math.sin(hd) * sp;
+      /* eksos */
+      const tx = (m.x - Math.cos(hd) * 2.6) | 0, ty = (m.y - Math.sin(hd) * 2.6) | 0;
+      if (tx > 0 && tx < W - 1 && ty > 0 && ty < H - 1) {
+        const i = ty * W + tx;
+        if (cells[i] === TOM) {
+          if (chance(0.45)) { setCell(i, ILD); life[i] = 4 + ri(4); }
+          else if (chance(0.5)) { cells[i] = ROYK; life[i] = 26 + ri(30); }
+        }
+        temp[i] += 160;
+        if ((frame & 3) === 0) dAdd(tx, ty, 1.4);
+      }
+    } else {
+      m.vy += 0.055; m.vx *= 0.998;
+    }
+
+    /* proximity-brann mot satellitter */
+    if (m.age > 10) for (const s of sats) {
+      if (s.alive && Math.abs(s.x - m.x) < 5 && Math.abs(s.y - m.y) < 5) { s.breakup = true; m.boom = true; break; }
+    }
+    if (m.boom) continue;
+
+    /* flytt i delsteg og sjekk kollisjon */
+    const steps = Math.max(1, Math.ceil(Math.hypot(m.vx, m.vy)));
+    let hit = false;
+    for (let s2 = 0; s2 < steps && !hit; s2++) {
+      m.x += m.vx / steps; m.y += m.vy / steps;
+      if (m.x < 2 || m.x > W - 3) { m.alive = false; break; }
+      if (m.y < -46) { m.alive = false; break; }
+      if (m.y >= H - 2) { m.boom = true; break; }
+      if (m.y < 0) continue;
+      const id = cAt(m.x, m.y);
+      if (m.age > 12 && id !== TOM && id !== ILD && id !== ROYK && id !== DAMP && id !== GNIST) {
+        m.boom = true;
+      }
+    }
+    /* treffer folk? (direkte) */
+    if (m.age > 12 && !m.boom) for (const p of folk) {
+      if (Math.abs(p.x - m.x) < 2.5 && Math.abs(p.y - 2 - m.y) < 3.5) { m.boom = true; break; }
+    }
+  }
+}
+
+/* ── 19. Satellitter og romskrot ─────────────────────────────────────────── */
+const PLANET_CY = H + 520, MU = 915;
+
+function circVel(x, y) {
+  const r = PLANET_CY - y;
+  return { vx: Math.sqrt(MU / r), vy: 0 };      // prograde (mot høyre)
+}
+
+function spawnSat(x, y, kind) {
+  if (sats.length >= MAXSAT) return null;
+  const v = circVel(x, y);
+  const s = { x, y, vx: v.vx, vy: v.vy, kind: kind || 2, heat: 0, alive: true, breakup: false, ph: ri(64) };
+  sats.push(s); return s;
+}
+
+function breakupSat(s) {
+  flashes.push({ x: s.x, y: s.y, r: 5, life: 4 });
+  const n = s.kind === 2 ? 3 + ri(3) : 0;
+  for (let k = 0; k < n; k++) {
+    if (sats.length >= MAXSAT) break;
+    sats.push({ x: s.x + (rnd() - 0.5) * 3, y: s.y + (rnd() - 0.5) * 3,
+                vx: s.vx * (0.75 + rnd() * 0.5) + (rnd() - 0.5) * 0.5,
+                vy: s.vy + (rnd() - 0.5) * 0.55,
+                kind: 1, heat: 0, alive: true, breakup: false, ph: ri(64) });
+  }
+  for (let k = 0; k < 14 && decor.length < MAXDECOR; k++) {
+    const a = rnd() * 6.283, spd = 0.3 + rnd() * 1.1;
+    decor.push({ x: s.x, y: s.y, vx: Math.cos(a) * spd, vy: Math.sin(a) * spd, life: 18 + ri(24),
+                 col: chance(0.5) ? col32(220, 226, 235) : col32(255, 200, 90) });
+  }
+  s.alive = false;
+}
+
+function updateSats() {
+  for (let k = sats.length - 1; k >= 0; k--) {
+    const s = sats[k];
+    if (!s.alive) { sats[k] = sats[sats.length - 1]; sats.pop(); continue; }
+    if (s.breakup) { breakupSat(s); continue; }
+
+    /* sylindrisk baneverden: radialligninga r'' = L2/r3 - mu/r2.
+       x er buekoordinat (skjermen går rundt planeten), r = høyde over senteret. */
+    const rr = PLANET_CY - s.y;
+    s.vy += MU / (rr * rr) - (s.vx * s.vx) / rr;   // tyngde minus sentrifugalledd
+    s.vx += s.vx * s.vy / rr;                      // bevart dreieimpuls: vx = L/r
+    s.x += s.vx; s.y += s.vy;
+    if (s.x < 0) s.x += W; else if (s.x >= W) s.x -= W;
+
+    /* atmosfære under Kármán-linja */
+    if (s.y > KARMAN) {
+      const df = Math.exp((s.y - KARMAN) / 15);
+      const v = Math.hypot(s.vx, s.vy) || 0.001;
+      const kd = (s.kind === 1 ? 2.8 : 1) * 4.2e-4;
+      const f = Math.min(0.06, kd * df * v);
+      s.vx -= s.vx * f; s.vy -= s.vy * f;
+      s.heat += v * v * f * 300;
+    }
+    s.heat *= 0.965;
+
+    if (s.heat > 42) {   /* reentry-glød */
+      const bx = (s.x - s.vx * 2) | 0, by = (s.y - s.vy * 2) | 0;
+      if (bx > 0 && bx < W - 1 && by > 0 && by < H - 1) {
+        const i = by * W + bx;
+        if (cells[i] === TOM && chance(0.75)) { setCell(i, ILD); life[i] = 3 + ri(4); }
+        temp[i] += 120;
+      }
+      if (chance(0.4) && decor.length < MAXDECOR)
+        decor.push({ x: s.x, y: s.y, vx: -s.vx * 0.3 + (rnd() - 0.5) * 0.4, vy: -s.vy * 0.3, life: 8 + ri(10), col: FIREPAL[26 + ri(13)] });
+    }
+    if (s.heat > 130) {
+      if (s.kind === 2) s.breakup = true;
+      else { flashes.push({ x: s.x, y: s.y, r: 3, life: 3 }); s.alive = false; }
+      continue;
+    }
+    /* kollisjon med bakken/verden */
+    if (s.y > KARMAN + 2) {
+      const id = cAt(s.x, s.y);
+      if (id !== TOM && (SOLID[id] || LIQ[id])) {
+        explode(s.x | 0, s.y | 0, s.kind === 2 ? 7 : 4, 3);
+        s.alive = false; continue;
+      }
+    }
+    if (s.y < 2) { s.y = 2; s.vy = Math.abs(s.vy) * 0.5; }
+    if (s.y > H - 3) { s.alive = false; continue; }
+
+    /* satellitt mot satellitt: Kessler */
+    if ((frame & 1) === 0) for (let j = k - 1; j >= 0; j--) {
+      const q = sats[j];
+      if (!q.alive || q.breakup) continue;
+      if (Math.abs(q.x - s.x) < 3.2 && Math.abs(q.y - s.y) < 3.2) {
+        const rel = Math.hypot(q.vx - s.vx, q.vy - s.vy);
+        if (rel > 0.25) { s.breakup = true; q.breakup = true; }
+        break;
+      }
+    }
+  }
+}
+</script>
+<script>
+'use strict';
+/* ── 20. Renderer ────────────────────────────────────────────────────────── */
+const clamp8 = v => v < 0 ? 0 : v > 255 ? 255 : v | 0;
+/* forhåndsberegnede nyanser: 32 per element */
+const COLSH = new Uint32Array(N_EL * 32);
+for (let e = 1; e < N_EL; e++) {
+  const c = BASE_RGB[e], vr = CVAR[e];
+  for (let n = 0; n < 32; n++) {
+    const v = ((n - 16) / 16) * vr;
+    COLSH[(e << 5) | n] = col32(clamp8(c[0] + v), clamp8(c[1] + v), clamp8(c[2] + v));
+  }
+}
+const LAVAPAL = new Uint32Array(32);
+for (let n = 0; n < 32; n++) {
+  const c = lerp3([122, 30, 8], [255, 176, 60], n / 31);
+  LAVAPAL[n] = col32(c[0] | 0, c[1] | 0, c[2] | 0);
+}
+function putPx(x, y, c) { if (x >= 0 && x < W && y >= 0 && y < H) px[(y | 0) * W + (x | 0)] = c; }
+
+const GLYPH = {
+  '!': [2, 2, 2, 0, 2], '?': [6, 1, 2, 0, 2], '♥': [5, 7, 7, 2, 0],
+  'z': [7, 1, 2, 4, 7], '♪': [2, 3, 2, 6, 6], '★': [2, 7, 2, 5, 0], '~': [0, 6, 3, 0, 0]
+};
+const MOODCOL = {
+  '!': col32(255, 84, 60), '?': col32(240, 240, 240), '♥': col32(242, 112, 132),
+  'z': col32(178, 190, 212), '♪': col32(202, 222, 152), '★': col32(255, 222, 110), '~': col32(168, 212, 232)
+};
+function drawGlyph(x, y, ch, col) {
+  const g = GLYPH[ch]; if (!g) return;
+  for (let r = 0; r < 5; r++) { const bits = g[r];
+    if (bits & 4) putPx(x, y + r, col);
+    if (bits & 2) putPx(x + 1, y + r, col);
+    if (bits & 1) putPx(x + 2, y + r, col);
+  }
+}
+
+let partCount = 0;
+function render(view) {
+  partCount = 0;
+  if (view === 1) {                                    /* temperatur */
+    for (let i = 0; i < N; i++) {
+      if (cells[i] !== TOM) partCount++;
+      px[i] = tempColor(temp[i]);
+    }
+  } else if (view === 2) {                             /* vind */
+    for (let y = 0; y < H; y++) {
+      const row = y * W;
+      for (let x = 0; x < W; x++) {
+        const i = row + x, id = cells[i];
+        if (id !== TOM) { partCount++; px[i] = COLSH[(id << 5) | 8]; continue; }
+        const g = (y >> 3) * GW + (x >> 3);
+        px[i] = col32(clamp8(70 + wx[g] * 38), clamp8(70 + wy[g] * 38), 88);
+      }
+    }
+  } else {                                             /* normal */
+    const fshift = (frame >> 2) * 40503;
+    for (let y = 0; y < H; y++) {
+      const row = y * W, bg = BGROW[y];
+      for (let x = 0; x < W; x++) {
+        const i = row + x, id = cells[i];
+        if (id === TOM) { px[i] = bg; continue; }
+        partCount++;
+        let c;
+        if (id === ILD) c = FIREPAL[Math.min(39, life[i] + 6)];
+        else if (id === GNIST) c = ((frame + i) & 1) ? col32(255, 252, 214) : col32(255, 214, 110);
+        else if (id === LAVA) {
+          const f = Math.max(0, Math.min(1, (temp[i] - 650) / 470));
+          c = LAVAPAL[Math.min(31, ((f * 27) | 0) + (noise[i] & 3))];
+        } else if (id === SPRENG && life[i] > 0) c = (frame & 2) ? col32(255, 236, 230) : col32(198, 62, 48);
+        else {
+          const n = ANIM[id] ? (((i * 2654435761) ^ fshift) >>> 3) & 31 : noise[i];
+          c = COLSH[(id << 5) | n];
+        }
+        /* varmeglød på faste materialer */
+        const t = temp[i];
+        if (t > 330 && id !== ILD && id !== LAVA && id !== GNIST) {
+          const gf = Math.min(1, (t - 330) / 800);
+          const r = c & 255, g2 = (c >> 8) & 255, b = (c >> 16) & 255;
+          c = col32(clamp8(r + gf * (255 - r)), clamp8(g2 * (1 - gf * 0.4) + gf * 60), clamp8(b * (1 - gf * 0.75)));
+        }
+        px[i] = c;
+      }
+    }
+    /* stjerner, måne og Kármán-linja (bare over tomrom) */
+    for (const s of stars) {
+      const i = s.y * W + s.x;
+      if (cells[i] === TOM) {
+        const tw = ((frame >> 3) + s.ph) & 7;
+        px[i] = tw < 2 ? col32(120, 128, 150) : col32(188, 196, 216);
+      }
+    }
+    for (const mp of moonPx) { const i = mp[1] * W + mp[0]; if (cells[i] === TOM) px[i] = mp[2]; }
+    for (let x = 0; x < W; x += 8) for (let dx2 = 0; dx2 < 3; dx2++) {
+      const i = KARMAN * W + x + dx2;
+      if (cells[i] === TOM) px[i] = col32(52, 62, 92);
+    }
+  }
+
+  /* sorte hull: kjerne + roterende akkresjon */
+  for (let h = 0; h < holes.length; h += 2) {
+    const hx = holes[h], hy = holes[h + 1];
+    for (let dy = -2; dy <= 2; dy++) for (let dx = -2; dx <= 2; dx++)
+      if (dx * dx + dy * dy <= 4.5) putPx(hx + dx, hy + dy, col32(8, 4, 12));
+    for (let k = 0; k < 12; k++) {
+      const a = frame * 0.09 + k * 0.524;
+      const rr2 = 3.4 + ((k * 5 + (frame >> 2)) % 3);
+      putPx(hx + Math.cos(a) * rr2, hy + Math.sin(a) * rr2 * 0.6,
+            k & 1 ? col32(255, 178, 80) : col32(210, 160, 255));
+    }
+  }
+
+  for (const b of bubbles) putPx(b.x, b.y, col32(210, 230, 245));
+  for (const d of decor) putPx(d.x, d.y, d.col);
+
+  drawFolk(); drawMissiles(); drawSats();
+
+  for (const bo of bolts) {
+    const c = bo.life > 3 ? col32(255, 255, 255) : col32(160, 180, 255);
+    for (let k = 0; k < bo.pts.length; k += 2) { putPx(bo.pts[k], bo.pts[k + 1], c); putPx(bo.pts[k] + 1, bo.pts[k + 1], c); }
+  }
+  for (const f of flashes) {
+    const rr3 = f.r * (1 - f.life / 6) + 2;
+    for (let k = 0; k < 40; k++) {
+      const a = k * 0.157;
+      putPx(f.x + Math.cos(a) * rr3, f.y + Math.sin(a) * rr3, col32(255, 244, 200));
+    }
+  }
+  /* penselring rundt musa */
+  if (mouseOn) {
+    const rr4 = brushR;
+    for (let k = 0; k < 44; k += 2) {
+      const a = k * 0.1428;
+      putPx(mcx + Math.cos(a) * rr4, mcy + Math.sin(a) * rr4, col32(255, 255, 255));
+    }
+  }
+  ctx.putImageData(img, 0, 0);
+}
+
+function drawFolk() {
+  const skin = col32(236, 196, 152);
+  for (const p of folk) {
+    const x = p.x | 0, y = p.y | 0;
+    const sc = SHIRTS[p.shirt], shirt = col32(sc[0], sc[1], sc[2]);
+    if (p.stun > 0) {                       /* sitter og gnir seg i hodet */
+      putPx(x, y - 2, skin); putPx(x, y - 1, shirt); putPx(x, y, shirt);
+    } else {
+      putPx(x, y - 3, skin);                /* hode */
+      putPx(x, y - 2, shirt); putPx(x, y - 1, shirt);
+      const walking = Math.abs(p.vx) > 0.06;
+      if (walking && ((p.phase | 0) & 2)) { putPx(x - 1, y, shirt); putPx(x + 1, y, shirt); }
+      else putPx(x, y, shirt);
+      if (p.state === 3) { putPx(x - 1, y - 3, skin); putPx(x + 1, y - 3, skin); }       /* armene i været */
+      else if (p.state === 4) { putPx(x + ((frame >> 3) & 1 ? 1 : -1), y - 2, skin); }   /* padler */
+    }
+    if (p.burn) {
+      putPx(x + ri(3) - 1, y - 2 - ri(3), FIREPAL[24 + ri(15)]);
+      putPx(x, y - 4, FIREPAL[30 + ri(9)]);
+    }
+    if (p.moodT > 0 && p.mood) {
+      const bob = ((frame >> 4) & 1);
+      drawGlyph(x - 1, y - 10 - bob, p.mood, MOODCOL[p.mood] || col32(255, 255, 255));
+    }
+  }
+}
+
+function drawMissiles() {
+  for (const m of missiles) {
+    if (!m.alive || m.y < -4) continue;
+    const hd = Math.atan2(m.vy, m.vx);
+    const cx2 = Math.cos(hd), cy2 = Math.sin(hd);
+    putPx(m.x + cx2 * 1.6, m.y + cy2 * 1.6, col32(245, 248, 252));
+    putPx(m.x, m.y, col32(210, 216, 226));
+    putPx(m.x - cx2 * 1.4, m.y - cy2 * 1.4, col32(172, 60, 48));
+    if (m.fuel > 0) {
+      putPx(m.x - cx2 * 2.8, m.y - cy2 * 2.8, FIREPAL[28 + ((frame & 3) << 1)]);
+      if (frame & 1) putPx(m.x - cx2 * 4, m.y - cy2 * 4, FIREPAL[22]);
+    }
+  }
+}
+
+function drawSats() {
+  const gold = col32(212, 175, 55), gold2 = col32(168, 136, 40);
+  const pan = col32(62, 84, 165), pan2 = col32(88, 114, 205);
+  for (const s of sats) {
+    if (!s.alive) continue;
+    const x = Math.round(s.x), y = Math.round(s.y);
+    if (s.kind === 1) {                     /* skrot: tumler */
+      putPx(x, y, col32(150, 156, 165));
+      if (((frame >> 2) + s.ph) & 1) putPx(x + 1, y, col32(110, 116, 124));
+      continue;
+    }
+    for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++)
+      putPx(x + dx, y + dy, ((dx + dy) & 1) ? gold2 : gold);
+    for (let dx = 2; dx <= 3; dx++) { putPx(x + dx, y, pan); putPx(x - dx, y, pan); putPx(x + dx, y - 1, pan2); putPx(x - dx, y - 1, pan2); }
+    if (((frame >> 4) + s.ph) & 1) putPx(x + 1, y - 2, col32(255, 70, 60));
+    if (s.heat > 42) putPx(x - Math.sign(s.vx) * 2, y + 1, FIREPAL[30 + ri(9)]);
+  }
+}
+</script>
+<script>
+'use strict';
+/* ── 21. Pensel og maling ────────────────────────────────────────────────── */
+let selIsTool = false, selId = SAND, selTool = '';
+let brushR = 4, view = 0;
+let mouseOn = false, mouseBtn = 0, lastCX = null, lastCY = null;
+
+function countHoles() { let n = 0; for (let i = 0; i < N; i++) if (cells[i] === HULL) n++; return n; }
+
+function eraseAt(cx, cy, r) {
+  const r2 = r * r;
+  for (let dy = -r; dy <= r; dy++) {
+    const y = cy + dy; if (y < 0 || y >= H - 1) continue;
+    for (let dx = -r; dx <= r; dx++) {
+      const x = cx + dx; if (x < 1 || x >= W - 1) continue;
+      if (dx * dx + dy * dy > r2) continue;
+      const i = y * W + x;
+      if (cells[i] !== TOM) { cells[i] = TOM; life[i] = 0; under[i] = 0; }
+    }
+  }
+  for (let k = folk.length - 1; k >= 0; k--)
+    if (Math.abs(folk[k].x - cx) <= r + 1 && Math.abs(folk[k].y - 2 - cy) <= r + 2) { folk[k] = folk[folk.length - 1]; folk.pop(); }
+  for (const m of missiles) if (Math.abs(m.x - cx) <= r && Math.abs(m.y - cy) <= r) m.alive = false;
+  for (const s of sats) if (Math.abs(s.x - cx) <= r && Math.abs(s.y - cy) <= r) s.alive = false;
+}
+
+function paintAt(cx, cy, id, r) {
+  if (id === HULL) {
+    if (countHoles() >= 5) return;
+    for (let h = 0; h < holes.length; h += 2)
+      if (Math.abs(holes[h] - cx) < 12 && Math.abs(holes[h + 1] - cy) < 12) return;
+    const i = Math.max(1, Math.min(H - 2, cy)) * W + Math.max(1, Math.min(W - 2, cx));
+    if (cells[i] !== VEGG) { setCell(i, HULL); holes.push(cx, cy); }
+    return;
+  }
+  const r2 = r * r;
+  const solidBrush = SOLID[id] && BEHAV[id] === 0;
+  for (let dy = -r; dy <= r; dy++) {
+    const y = cy + dy; if (y < 0 || y >= H - 1) continue;
+    for (let dx = -r; dx <= r; dx++) {
+      const x = cx + dx; if (x < 1 || x >= W - 1) continue;
+      const d2 = dx * dx + dy * dy; if (d2 > r2) continue;
+      const i = y * W + x, cur = cells[i];
+      if (id === GNIST) {
+        if (LEDER[cur] && cur !== GNIST && life[i] === 0) { under[i] = cur; cells[i] = GNIST; life[i] = 4; }
+        else if (cur === TOM && d2 <= 2) { setCell(i, GNIST); under[i] = 0; }
+        continue;
+      }
+      if (cur === TOM) {
+        if (BEHAV[id] === 0 || chance(0.78)) setCell(i, id);
+      } else if (solidBrush && !SOLID[cur] && cur !== HULL) {
+        setCell(i, id);            // bygg i væske/gass
+      }
+    }
+  }
+}
+
+function heatAt(cx, cy, r, amt) {
+  const r2 = r * r;
+  for (let dy = -r; dy <= r; dy++) {
+    const y = cy + dy; if (y < 0 || y >= H) continue;
+    for (let dx = -r; dx <= r; dx++) {
+      const x = cx + dx; if (x < 0 || x >= W) continue;
+      const d2 = dx * dx + dy * dy; if (d2 > r2) continue;
+      temp[y * W + x] += amt * (1 - Math.sqrt(d2) / (r + 1));
+    }
+  }
+}
+
+function bres(x0, y0, x1, y1, cb) {
+  x0 |= 0; y0 |= 0; x1 |= 0; y1 |= 0;
+  const dx = Math.abs(x1 - x0), dy = -Math.abs(y1 - y0);
+  const sx = x0 < x1 ? 1 : -1, sy = y0 < y1 ? 1 : -1;
+  let err = dx + dy;
+  for (let guard = 0; guard < 800; guard++) {
+    cb(x0, y0);
+    if (x0 === x1 && y0 === y1) break;
+    const e2 = 2 * err;
+    if (e2 >= dy) { err += dy; x0 += sx; }
+    if (e2 <= dx) { err += dx; y0 += sy; }
+  }
+}
+
+/* ── 22. Input ───────────────────────────────────────────────────────────── */
+function cellPos(ev) {
+  const rect = cnv.getBoundingClientRect();
+  return [Math.max(0, Math.min(W - 1, (ev.clientX - rect.left) / rect.width * W | 0)),
+          Math.max(0, Math.min(H - 1, (ev.clientY - rect.top) / rect.height * H | 0))];
+}
+
+function applyBrush(x0, y0, x1, y1, erase) {
+  if (erase || selTool === 'VISK') { bres(x0, y0, x1, y1, (x, y) => eraseAt(x, y, brushR)); return; }
+  if (!selIsTool) { bres(x0, y0, x1, y1, (x, y) => paintAt(x, y, selId, brushR)); return; }
+  switch (selTool) {
+    case 'VARME': bres(x0, y0, x1, y1, (x, y) => heatAt(x, y, brushR + 2, 55)); break;
+    case 'KJOL':  bres(x0, y0, x1, y1, (x, y) => heatAt(x, y, brushR + 2, -55)); break;
+    case 'VIND': {
+      const dvx = (x1 - x0) * 0.55, dvy = (y1 - y0) * 0.55;
+      bres(x0, y0, x1, y1, (x, y) => {
+        const g = gIdx(x, y);
+        wx[g] = Math.max(-9, Math.min(9, wx[g] + dvx));
+        wy[g] = Math.max(-9, Math.min(9, wy[g] + dvy));
+      });
+      break;
+    }
+    case 'FOLK':
+      if (folk.length < MAXFOLK && (lastCX === null || Math.abs(x1 - lastCX) > 5 || Math.abs(y1 - lastCY) > 5 || (frame & 7) === 0))
+        spawnHuman(x1, Math.min(H - 6, y1));
+      break;
+  }
+}
+
+cnv.addEventListener('contextmenu', ev => ev.preventDefault());
+cnv.addEventListener('pointerdown', ev => {
+  ev.preventDefault();
+  cnv.setPointerCapture(ev.pointerId);
+  const [x, y] = cellPos(ev);
+  mcx = x; mcy = y;
+  mouseBtn = ev.button === 2 ? 2 : 1;
+  if (mouseBtn === 1 && selIsTool) {
+    if (selTool === 'LYN') { lightning(x, y); lastCX = x; lastCY = y; return; }
+    if (selTool === 'MISSIL') { launchMissile(x, Math.min(H - 8, y)); lastCX = x; lastCY = y; return; }
+    if (selTool === 'SAT') { spawnSat(x, Math.max(6, Math.min(H - 30, y))); lastCX = x; lastCY = y; return; }
+    if (selTool === 'FOLK') { spawnHuman(x, Math.min(H - 6, y)); lastCX = x; lastCY = y; return; }
+  }
+  applyBrush(x, y, x, y, mouseBtn === 2);
+  lastCX = x; lastCY = y;
+});
+cnv.addEventListener('pointermove', ev => {
+  const [x, y] = cellPos(ev);
+  mcx = x; mcy = y; mouseOn = true;
+  if (mouseBtn > 0) {
+    if (!(selIsTool && (selTool === 'LYN' || selTool === 'MISSIL' || selTool === 'SAT') && mouseBtn === 1))
+      applyBrush(lastCX === null ? x : lastCX, lastCY === null ? y : lastCY, x, y, mouseBtn === 2);
+    lastCX = x; lastCY = y;
+  }
+});
+window.addEventListener('pointerup', () => { mouseBtn = 0; lastCX = lastCY = null; });
+cnv.addEventListener('pointerenter', () => { mouseOn = true; });
+cnv.addEventListener('pointerleave', () => { mouseOn = false; mouseBtn = 0; });
+
+/* ── 23. UI ──────────────────────────────────────────────────────────────── */
+const CATS = [['pulver', 'Pulver'], ['væske', 'Væske'], ['gass', 'Gass'], ['energi', 'Energi'],
+              ['natur', 'Natur'], ['fast', 'Fast'], ['spesial', 'Spesial'], ['verktøy', 'Verktøy']];
+function buildUI() {
+  const wrap = $('elGroups');
+  for (const [cat, label] of CATS) {
+    const grp = document.createElement('div'); grp.className = 'el-group';
+    const lab = document.createElement('div'); lab.className = 'el-group-label'; lab.textContent = label;
+    const row = document.createElement('div'); row.className = 'el-row';
+    grp.appendChild(lab); grp.appendChild(row); wrap.appendChild(grp);
+    for (const e of EL_UI) if (e.cat === cat) row.appendChild(mkBtn(e.navn, e.rgb, { el: e.id }));
+    for (const t of TOOLS) if (t.cat === cat) row.appendChild(mkBtn(t.navn, t.rgb, { tool: t.key }));
+  }
+  select({ el: SAND });
+}
+function mkBtn(navn, rgb, sel) {
+  const b = document.createElement('button');
+  b.className = 'el-btn'; b.type = 'button';
+  const sw = document.createElement('span'); sw.className = 'sw';
+  sw.style.background = `rgb(${rgb[0]},${rgb[1]},${rgb[2]})`;
+  b.appendChild(sw); b.appendChild(document.createTextNode(navn));
+  b.addEventListener('click', () => select(sel));
+  b._sel = sel;
+  return b;
+}
+function select(sel) {
+  if (sel.el != null) { selIsTool = false; selId = sel.el; selTool = ''; }
+  else { selIsTool = true; selTool = sel.tool; }
+  document.querySelectorAll('.el-btn').forEach(b => {
+    const s = b._sel;
+    b.classList.toggle('sel', s && ((sel.el != null && s.el === sel.el) || (sel.tool && s.tool === sel.tool)));
+  });
+}
+const QUICK = [{ el: SAND }, { el: VANN }, { el: OLJE }, { el: ILD }, { el: PLANTE },
+               { el: KRUTT }, { el: METALL }, { el: SYRE }, { tool: 'FOLK' }, { tool: 'VISK' }];
+
+$('brush').addEventListener('input', ev => { brushR = +ev.target.value; $('brushVal').textContent = brushR + ' px'; });
+$('btnPause').addEventListener('click', () => setPaused(!paused));
+$('btnStep').addEventListener('click', () => { if (!paused) setPaused(true); step(); });
+$('btnClear').addEventListener('click', () => { clearAll(); });
+$('viewSel').addEventListener('change', ev => { view = +ev.target.value; });
+document.querySelectorAll('[data-scn]').forEach(b => b.addEventListener('click', () => { SCN[b.dataset.scn](); }));
+$('btnMeteor').addEventListener('click', () => {
+  /* romskrot på vei inn i atmosfæren — reentry-fysikken gjør resten */
+  const n = 4 + ri(4);
+  for (let k = 0; k < n; k++) {
+    const s = spawnSat(ri(W), 4 + ri(14), 1);
+    if (s) {
+      s.vx = (chance(0.5) ? 1 : -1) * (1.3 + rnd() * 0.7);
+      s.vy = 0.22 + rnd() * 0.3;
+    }
+  }
+});
+function setPaused(p) { paused = p; $('btnPause').textContent = paused ? 'Kjør' : 'Pause'; }
+
+window.addEventListener('keydown', ev => {
+  if (ev.target.tagName === 'INPUT' || ev.target.tagName === 'SELECT') return;
+  if (ev.key === ' ') { ev.preventDefault(); setPaused(!paused); }
+  else if (ev.key === '.') { if (!paused) setPaused(true); step(); }
+  else if (ev.key === '[') { brushR = Math.max(1, brushR - 1); $('brush').value = brushR; $('brushVal').textContent = brushR + ' px'; }
+  else if (ev.key === ']') { brushR = Math.min(16, brushR + 1); $('brush').value = brushR; $('brushVal').textContent = brushR + ' px'; }
+  else if (ev.key >= '0' && ev.key <= '9') {
+    const q = QUICK[(+ev.key + 9) % 10]; if (q) select(q);
+  }
+});
+
+/* ── 24. Verden: rammer og scenarioer ────────────────────────────────────── */
+function initBorders() {
+  for (let x = 0; x < W; x++) { cells[(H - 1) * W + x] = VEGG; }
+  for (let y = 0; y < H; y++) { cells[y * W] = VEGG; cells[y * W + W - 1] = VEGG; }
+}
+function clearAll() {
+  cells.fill(TOM); life.fill(0); under.fill(0); moved.fill(0);
+  temp.fill(20); wx.fill(0); wy.fill(0); dgr.fill(0);
+  folk.length = 0; missiles.length = 0; sats.length = 0;
+  decor.length = 0; bubbles.length = 0; flashes.length = 0; bolts.length = 0;
+  expQ.length = 0; holes.length = 0; shake = 0;
+  initBorders();
+}
+function fillRect(x0, y0, x1, y1, id) {
+  for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) {
+    if (x < 1 || x >= W - 1 || y < 0 || y >= H - 1) continue;
+    setCell(y * W + x, id);
+  }
+}
+function disk(cx, cy, r, id) {
+  for (let dy = -r; dy <= r; dy++) for (let dx = -r; dx <= r; dx++) {
+    if (dx * dx + dy * dy > r * r) continue;
+    const x = cx + dx, y = cy + dy;
+    if (x < 1 || x >= W - 1 || y < 0 || y >= H - 1) continue;
+    setCell(y * W + x, id);
+  }
+}
+function surfaceY(x) {
+  for (let y = 2; y < H - 1; y++) if (SOLID[cells[y * W + x]]) return y - 1;
+  return H - 2;
+}
+function dropFolk(n, x0, x1) {
+  for (let k = 0; k < n; k++) {
+    const x = x0 + ri(x1 - x0);
+    spawnHuman(x, surfaceY(x));
+  }
+}
+
+const SCN = {
+  landsby() {
+    clearAll();
+    for (let x = 1; x < W - 1; x++) {
+      const h = (150 + 9 * Math.sin(x * 0.021) + 5 * Math.sin(x * 0.047 + 2)) | 0;
+      fillRect(x, h + 5, x, H - 2, STEIN);
+      fillRect(x, h, x, h + 4, SAND);
+    }
+    /* dam */
+    for (let x = 195, k = 0; x <= 255; x++, k++) {
+      const depth = 12 - Math.abs(k - 30) * 0.36;
+      const top = surfaceY(x);
+      fillRect(x, top - 2, x, top + depth, TOM);
+      fillRect(x, top + 2, x, top + depth, VANN);
+    }
+    /* to steinhus med metalltak */
+    for (const hx of [58, 118]) {
+      const gy = surfaceY(hx);
+      fillRect(hx - 9, gy - 12, hx + 9, gy, TOM);
+      fillRect(hx - 9, gy - 1, hx + 9, gy, STEIN);
+      fillRect(hx - 9, gy - 10, hx - 8, gy - 1, STEIN);
+      fillRect(hx + 8, gy - 10, hx + 9, gy - 1, STEIN);
+      fillRect(hx - 10, gy - 12, hx + 10, gy - 11, METALL);
+    }
+    /* planter */
+    for (const px2 of [165, 178, 262, 280, 296, 30, 90]) {
+      const gy = surfaceY(px2);
+      disk(px2, gy - 1, 2 + ri(2), PLANTE);
+    }
+    dropFolk(12, 15, 300);
+    spawnSat(40, 24); spawnSat(200, 36);
+  },
+  vulkan() {
+    clearAll();
+    fillRect(1, 158, W - 2, H - 2, VANN);
+    fillRect(1, 192, W - 2, H - 2, SAND);
+    /* øy og kjegle */
+    for (let x = 70; x <= 250; x++) {
+      const d = Math.abs(x - 160);
+      const top = d < 42 ? 96 + d * 0.9 : 134 + (d - 42) * 0.55;
+      if (top < 158) fillRect(x, top | 0, x, H - 6, STEIN);
+      else if (top < 168) fillRect(x, top | 0, x, H - 6, SAND);
+    }
+    /* magmakammer + rør + plugg */
+    disk(160, 150, 17, LAVA);
+    fillRect(157, 104, 163, 150, LAVA);
+    fillRect(155, 96, 165, 103, STEIN);       // pluggen — pirk i den
+    for (const px2 of [116, 128, 196, 206]) {
+      const gy = surfaceY(px2);
+      if (gy < 160) disk(px2, gy - 1, 2, PLANTE);
+    }
+    dropFolk(8, 95, 225);
+    spawnSat(120, 30);
+  },
+  kessler() {
+    clearAll();
+    fillRect(1, 176, W - 2, H - 2, STEIN);
+    fillRect(140, 170, 180, 175, METALL);      // utskytningsrampe
+    fillRect(157, 160, 163, 169, METALL);
+    for (let k = 0; k < 6; k++) spawnSat(30 + k * 48, 14 + k * 6);
+    dropFolk(10, 20, 300);
+  },
+  olje() {
+    clearAll();
+    fillRect(1, 160, W - 2, H - 2, VANN);
+    fillRect(1, 188, W - 2, H - 2, STEIN);
+    disk(105, 191, 6, GASS);                   // gasslomme i berggrunnen
+    fillRect(30, 154, 290, 159, OLJE);         // oljeflak
+    /* riggen */
+    fillRect(150, 128, 210, 131, METALL);
+    fillRect(154, 132, 156, 187, METALL);
+    fillRect(204, 132, 206, 187, METALL);
+    fillRect(176, 120, 184, 127, STEIN);       // brakke
+    fillRect(196, 124, 199, 127, SPRENG);      // «ikke røyk her»-kassa
+    dropFolk(6, 152, 208);
+    spawnSat(260, 28);
+  },
+  vinter() {
+    clearAll();
+    temp.fill(-12);
+    for (let x = 1; x < W - 1; x++) {
+      const h = (152 + 10 * Math.sin(x * 0.017 + 1) + 6 * Math.sin(x * 0.05)) | 0;
+      fillRect(x, h + 6, x, H - 2, STEIN);
+      fillRect(x, h, x, h + 5, SNO);
+    }
+    /* frossen dam */
+    for (let x = 120, k = 0; x <= 200; x++, k++) {
+      const depth = 10 - Math.abs(k - 40) * 0.22;
+      const top = surfaceY(x);
+      fillRect(x, top - 2, x, top + depth, TOM);
+      fillRect(x, top + 1, x, top + 2, IS);
+      fillRect(x, top + 3, x, top + depth, VANN);
+    }
+    /* snøvær + bålplass */
+    for (let k = 0; k < 500; k++) {
+      const i = (2 + ri(90)) * W + 2 + ri(W - 4);
+      if (cells[i] === TOM) setCell(i, SNO);
+    }
+    const bx = 250, by = surfaceY(250);
+    fillRect(bx - 4, by, bx + 4, by + 2, STEIN);
+    fillRect(bx - 2, by - 1, bx + 2, by - 1, OLJE);
+    setCell((by - 2) * W + bx, ILD); life[(by - 2) * W + bx] = 60;
+    temp[(by - 2) * W + bx] = 600;
+    dropFolk(8, 15, 300);
+    spawnSat(80, 20);
+  }
+};
+</script>
+<script>
+'use strict';
+/* ── 25. Hovedløkke ──────────────────────────────────────────────────────── */
+let lastT = performance.now(), acc = 0, emaMs = 6;
+
+function frameLoop(t) {
+  requestAnimationFrame(frameLoop);
+  const dt = Math.min(80, t - lastT); lastT = t;
+  if (!paused) {
+    acc += dt;
+    let n = 0;
+    while (acc >= 16.6 && n < 2) {
+      const t0 = performance.now();
+      step();
+      emaMs = emaMs * 0.94 + (performance.now() - t0) * 0.06;
+      acc -= 16.6; n++;
+    }
+    if (acc > 16.6) acc = 0;   // aldri spiral
+  }
+  render(view);
+  if (shake > 0.3) cnv.style.transform = 'translate(' + ((rnd() * 2 - 1) * shake).toFixed(1) + 'px,' + ((rnd() * 2 - 1) * shake).toFixed(1) + 'px)';
+  else if (cnv.style.transform) cnv.style.transform = '';
+  if ((frame % 10) === 0) updateStats();
+}
+
+function updateStats() {
+  $('ovStats').textContent = partCount.toLocaleString('nb-NO') + ' partikler · ' +
+    folk.length + ' folk · ' + emaMs.toFixed(1) + ' ms/steg' + (paused ? ' · PAUSE' : '');
+  const id = cAt(mcx, mcy);
+  const i = mcy * W + mcx;
+  $('ovInfo').textContent = (NAVN[id] || 'Tomt') + ' · ' + Math.round(temp[i]) + ' °C · ' + mcx + ',' + mcy;
+}
+
+/* ── 26. Selftest (?selftest=1) ──────────────────────────────────────────── */
+function countOf(id) { let n = 0; for (let i = 0; i < N; i++) if (cells[i] === id) n++; return n; }
+function runSteps(n) { for (let k = 0; k < n; k++) step(); }
+
+function runSelftest() {
+  const res = [];
+  const T = (name, fn) => {
+    let ok = false, msg = '';
+    try { const r = fn(); ok = r === true; msg = ok ? '' : String(r); }
+    catch (e) { msg = 'exception: ' + e.message; }
+    res.push(ok);
+    console.log((ok ? 'SELFTEST PASS ' : 'SELFTEST FAIL ') + name + (msg ? ' — ' + msg : ''));
+  };
+  paused = true;
+
+  T('sand faller og hviler', () => {
+    clearAll(); srand(101);
+    fillRect(60, 20, 70, 30, SAND);
+    const n0 = countOf(SAND);
+    runSteps(240);
+    if (countOf(SAND) !== n0) return 'antall ' + n0 + ' -> ' + countOf(SAND);
+    for (let i = 0; i < N; i++) if (cells[i] === SAND) {
+      const y = (i / W) | 0;
+      if (y < 150) return 'sand hang igjen ved y=' + y;
+      const b = cells[i + W];
+      if (b !== SAND && b !== VEGG) return 'sand uten stotte';
+    }
+    return true;
+  });
+
+  T('vann renner utover og bevares', () => {
+    clearAll(); srand(102);
+    fillRect(155, 100, 164, 109, VANN);
+    runSteps(340);
+    let minx = W, maxx = 0, n = 0;
+    for (let i = 0; i < N; i++) if (cells[i] === VANN) { n++; const x = i % W; if (x < minx) minx = x; if (x > maxx) maxx = x; }
+    if (n !== 100) return 'antall ' + n + ' (skal vaere 100)';
+    return (maxx - minx) > 40 ? true : 'spredning bare ' + (maxx - minx);
+  });
+
+  T('olje stiger opp gjennom vann', () => {
+    clearAll(); srand(103);
+    fillRect(100, 120, 101, H - 2, VEGG); fillRect(219, 120, 220, H - 2, VEGG);
+    fillRect(110, 150, 210, 165, VANN);
+    fillRect(110, 166, 210, 172, OLJE);
+    runSteps(520);
+    let oy = 0, on = 0, wy2 = 0, wn = 0;
+    for (let i = 0; i < N; i++) {
+      if (cells[i] === OLJE) { oy += (i / W) | 0; on++; }
+      else if (cells[i] === VANN) { wy2 += (i / W) | 0; wn++; }
+    }
+    if (!on || !wn) return 'mistet vaeske (olje=' + on + ', vann=' + wn + ')';
+    return (oy / on) < (wy2 / wn) - 3 ? true : 'olje-snitt y=' + (oy / on).toFixed(1) + ' vann y=' + (wy2 / wn).toFixed(1);
+  });
+
+  T('ild antenner olje', () => {
+    clearAll(); srand(104);
+    fillRect(140, 191, 180, 198, OLJE);                 // hviler på bunnen
+    for (let x = 152; x <= 168; x++) { const i = 191 * W + x; setCell(i, ILD); life[i] = 30; }
+    const n0 = countOf(OLJE);
+    runSteps(130);
+    return (countOf(OLJE) < n0 - 25) ? true : 'olje igjen ' + countOf(OLJE) + '/' + n0;
+  });
+
+  T('lava + vann gir stein og damp', () => {
+    clearAll(); srand(105);
+    fillRect(150, 130, 166, 136, LAVA);
+    fillRect(150, 90, 166, 120, VANN);
+    runSteps(260);
+    const st = countOf(STEIN);
+    return st > 8 ? true : 'stein=' + st;
+  });
+
+  T('is smelter naer lava', () => {
+    clearAll(); srand(106);
+    fillRect(146, 178, 160, 188, IS);
+    fillRect(146, 190, 160, 197, LAVA);
+    runSteps(320);
+    const n = countOf(IS);
+    return n < 120 ? true : 'is igjen ' + n + '/165';
+  });
+
+  T('krutt brenner i kjede', () => {
+    clearAll(); srand(107);
+    fillRect(100, 196, 200, 197, KRUTT);
+    const i = 196 * W + 99; setCell(i, ILD); life[i] = 40; temp[i] = 700;
+    runSteps(150);
+    const k = countOf(KRUTT);
+    return k < 30 ? true : 'krutt igjen ' + k;
+  });
+
+  T('sprengstoff detonerer', () => {
+    clearAll(); srand(108);
+    fillRect(130, 150, 190, 190, SAND);
+    fillRect(158, 168, 162, 172, SPRENG);
+    const n0 = countOf(SAND);
+    life[168 * W + 158] = 4;   // tenn lunta
+    runSteps(100);
+    return countOf(SAND) < n0 - 60 ? true : 'bare ' + (n0 - countOf(SAND)) + ' sand fjernet';
+  });
+
+  T('satellitt holder banen', () => {
+    clearAll(); srand(109);
+    const s = spawnSat(60, 26);
+    let maxY = 0, path = 0, px0 = s.x;
+    for (let k = 0; k < 900; k++) {
+      step();
+      if (!s.alive) return 'doede etter ' + k + ' steg';
+      if (s.y > maxY) maxY = s.y;
+      let dx = Math.abs(s.x - px0); if (dx > W / 2) dx = W - dx;
+      path += dx; px0 = s.x;
+    }
+    return (maxY < KARMAN && path > 500) ? true : 'maxY=' + maxY.toFixed(1) + ' path=' + path.toFixed(0);
+  });
+
+  T('lav satellitt faar reentry', () => {
+    clearAll(); srand(110);
+    const s = spawnSat(160, 96);
+    for (let k = 0; k < 1500; k++) {
+      step();
+      if (!s.alive || s.breakup) return true;
+    }
+    return 'fortsatt i bane ved y=' + s.y.toFixed(1);
+  });
+
+  T('folk gaar rundt', () => {
+    clearAll(); srand(111);
+    fillRect(2, 170, W - 3, 174, STEIN);
+    spawnHuman(160, 169);
+    runSteps(420);
+    if (!folk.length) return 'doede';
+    return Math.abs(folk[0].x - 160) > 4 ? true : 'sto stille ved x=' + folk[0].x.toFixed(1);
+  });
+
+  T('folk flykter fra lava', () => {
+    clearAll(); srand(112);
+    fillRect(2, 170, W - 3, 174, STEIN);
+    fillRect(180, 164, 196, 169, LAVA);
+    spawnHuman(170, 169);
+    runSteps(300);
+    if (!folk.length) return 'brant opp';
+    return folk[0].x < 162 ? true : 'x=' + folk[0].x.toFixed(1) + ' (flyktet ikke)';
+  });
+
+  T('sort hull sluker sand', () => {
+    clearAll(); srand(113);
+    fillRect(146, 110, 147, 156, VEGG); fillRect(173, 110, 174, 156, VEGG);
+    fillRect(146, 157, 174, 158, VEGG);
+    fillRect(148, 116, 172, 156, SAND);   // sand i en kopp — kan ikke unnslippe
+    const n0 = countOf(SAND);
+    setCell(136 * W + 160, HULL);
+    runSteps(320);
+    const n = countOf(SAND);
+    return n < n0 * 0.4 ? true : 'igjen ' + n + '/' + n0;
+  });
+
+  T('ytelse med 20k+ partikler', () => {
+    clearAll(); srand(114);
+    fillRect(30, 120, 290, 180, SAND);
+    fillRect(30, 80, 290, 100, VANN);
+    const t0 = performance.now();
+    runSteps(80);
+    const ms = (performance.now() - t0) / 80;
+    console.log('SELFTEST ytelse: ' + ms.toFixed(2) + ' ms/steg');
+    return ms < 30 ? true : 'for treg: ' + ms.toFixed(1) + ' ms/steg';
+  });
+
+  const passN = res.filter(Boolean).length;
+  console.log('SELFTEST DONE ' + passN + '/' + res.length + ' PASS');
+  document.title = '[' + passN + '/' + res.length + '] ' + document.title;
+  clearAll(); srand((Date.now() & 0x7fffffff) | 1);
+  SCN.landsby();
+  paused = false;
+}
+
+/* ── 27. Oppstart ────────────────────────────────────────────────────────── */
+buildUI();
+clearAll();
+SCN.landsby();
+window.__sand = {
+  W, H, cells, temp, life, folk, sats, missiles,
+  step, runSteps, countOf, clearAll, SCN, fillRect, disk,
+  spawnHuman, spawnSat, launchMissile, lightning, srand, paintAt,
+  setPaused, elems: { TOM, VEGG, STEIN, METALL, GLASS, SAND, KRUTT, ASKE, SNO, VANN, OLJE, SYRE, LAVA, IS, PLANTE, SPRENG, ILD, DAMP, ROYK, GASS, GNIST, HULL }
+};
+requestAnimationFrame(frameLoop);
+if (/[?&]selftest/.test(location.search)) setTimeout(runSelftest, 250);
+</script>
+</body>
+</html>

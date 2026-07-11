@@ -21,6 +21,7 @@ Ren statisk HTML/CSS/JS. Ingen build-step, ingen backend.
 └── tools/
     ├── space.html          Konsolidert satellitt-arbeidsbord (7 faner)
     ├── dynamics.html       3D dynamikk-sandkasse (Three.js + RK4)
+    ├── sand.html           Pikselfysikk — falling sand med folk, satellitter og sorte hull
     ├── tides.html          Tidevann i Trondheim + Fourier-sandkasse
     ├── power.html          NO3 strømpriser
     ├── fishing.html        Fiskeforhold (MET Norway)
