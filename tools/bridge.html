@@ -1,0 +1,1432 @@
+<!DOCTYPE html>
+<html lang="no" spellcheck="false">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Brobyggerspill med ekte fagverksstatikk: stivhetsmatrise, Euler-knekking og kabler som bare tåler strekk — test brua med en softbody-bil i Verlet-fysikk.">
+<title>Brobygger — Heming Westad</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..700;1,9..144,400&family=Inter+Tight:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<meta name="author" content="Heming Westad">
+<link rel="canonical" href="https://hemingwestad.no/tools/bridge.html">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="/favicon.ico" sizes="any">
+<meta name="theme-color" content="#b8552e">
+<meta property="og:title" content="Brobygger — Heming Westad">
+<meta property="og:description" content="Bygg fagverksbroer med ekte statikk — og test dem med en gelébil. Stivhetsmatrise, Euler-knekking, kabler og spektakulære kollapser.">
+<meta property="og:image" content="https://hemingwestad.no/og-image.png">
+<meta property="og:url" content="https://hemingwestad.no/tools/bridge.html">
+<meta property="og:type" content="website">
+<meta property="og:locale" content="nb_NO">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="/style.css">
+<style>
+/* ── Brobygger: side-spesifikk stil ── */
+.bro-toolbar { display: flex; flex-direction: column; gap: 0.7rem; }
+.bro-row { display: flex; flex-wrap: wrap; gap: 0.5rem 1.1rem; align-items: center; }
+.bro-row .grp { display: flex; align-items: center; gap: 0.45rem; }
+.bro-row label { margin: 0; white-space: nowrap; }
+.grp-label {
+  font-family: var(--font-mono); font-size: 0.56rem; letter-spacing: 0.14em;
+  text-transform: uppercase; color: var(--ink-faint);
+}
+button.mat-btn {
+  display: inline-flex; align-items: center; gap: 0.34rem;
+  padding: 0.3rem 0.55rem; font-size: 0.62rem; letter-spacing: 0.05em;
+  background: var(--bg); color: var(--ink-soft);
+  border: 1px solid var(--rule-soft); box-shadow: none;
+}
+button.mat-btn:hover { background: var(--bg-card); color: var(--ink); border-color: var(--ink); }
+button.mat-btn.sel { background: var(--accent); border-color: var(--accent); color: #fff; }
+.sw { width: 0.6rem; height: 0.6rem; display: inline-block; border: 1px solid rgba(0,0,0,0.25); flex: none; }
+button.mini { padding: 0.42rem 0.7rem; font-size: 0.6rem; }
+.stat-strip {
+  display: flex; flex-wrap: wrap; gap: 0.3rem 1.4rem;
+  font-family: var(--font-mono); font-size: 0.68rem; color: var(--ink-soft);
+  border-top: 1px solid var(--rule-hair); padding-top: 0.6rem;
+}
+.stat-strip b { font-weight: 500; color: var(--ink); }
+.stat-strip .warn { color: var(--accent); }
+.stat-strip .ok { color: #5a6b3e; }
+#browrap { margin: 0.9rem 0 0.5rem; position: relative; }
+canvas#bro {
+  display: block; width: 100%; height: auto;
+  cursor: crosshair; touch-action: none;
+}
+canvas#bro.testing { cursor: default; }
+.bro-banner {
+  position: absolute; left: 50%; top: 38%; transform: translate(-50%, -50%);
+  background: var(--bg-card); border: 1px solid var(--rule-soft);
+  padding: 1.1rem 1.5rem; text-align: center; display: none; max-width: 85%;
+  box-shadow: 0 8px 30px rgba(0,0,0,0.18);
+}
+.bro-banner.show { display: block; }
+.bro-banner h3 { margin: 0 0 0.4rem; font-size: 1.15rem; }
+.bro-banner p { margin: 0 0 0.75rem; font-size: 0.78rem; color: var(--ink-soft); }
+.bro-banner .row { display: flex; gap: 0.5rem; justify-content: center; flex-wrap: wrap; }
+.hintline {
+  font-family: var(--font-mono); font-size: 0.66rem; color: var(--ink-faint);
+  margin: 0.4rem 0 0; letter-spacing: 0.03em; max-width: none; min-height: 1.1em;
+}
+.drive-btns { display: none; gap: 0.5rem; margin-top: 0.5rem; }
+.drive-btns.show { display: flex; }
+.drive-btns button { flex: 1; padding: 0.8rem; font-size: 0.75rem; touch-action: none; }
+.legend {
+  display: flex; align-items: center; gap: 0.5rem;
+  font-family: var(--font-mono); font-size: 0.6rem; color: var(--ink-faint);
+}
+.legend .ramp {
+  width: 6rem; height: 0.5rem; border: 1px solid var(--rule-soft);
+  background: linear-gradient(90deg, #8a8578, #c89832, #b8552e, #7c1f10);
+}
+.fys-cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr)); gap: 1.2rem; }
+.fys-cols h3 { font-size: 0.9rem; margin: 0 0 0.4rem; }
+.fys-cols p { font-size: 0.78rem; margin: 0 0 0.6rem; }
+.fys-cols code { font-size: 0.72rem; }
+</style>
+</head>
+<body>
+<header>
+  <div class="logo"><a href="/">Heming Westad<span class="dot">.</span></a></div>
+  <nav>
+    <ul>
+      <li><a href="/">heim</a></li>
+      <li><a href="/tools.html" class="current">verktøy</a></li>
+      <li><a href="/projects.html">prosjekter</a></li>
+      <li><a href="/now.html">nå</a></li>
+      <li><a href="/about.html">om</a></li>
+    </ul>
+  </nav>
+</header>
+
+<main>
+  <div class="page-meta fade-up">
+    <span>Brobygger</span>
+    <span>Fagverksstatikk</span>
+    <span>Verlet 240 Hz</span>
+  </div>
+
+  <h1 class="fade-up">Bygg broa — <em>så kjører vi</em>.</h1>
+  <p class="lede fade-up">
+    Fagverksbroer med ordentlig statikk: i byggefasen løses stivhetsmatrisen
+    <code>K·u&nbsp;=&nbsp;F</code> live for hver stav du legger, med Euler-knekking for
+    trykkstaver og kabler som bare tåler strekk. Trykk «Test brua» og en gelébil
+    med trykkluft-hjul ruller ut i full Verlet-dynamikk. Holder brua? Det finner du fort ut.
+  </p>
+
+  <div class="panel">
+    <div class="panel-title">Byggekontor</div>
+    <div class="bro-toolbar">
+      <div class="bro-row">
+        <span class="grp-label">Nivå:</span>
+        <div class="grp" id="levelBtns"></div>
+      </div>
+      <div class="bro-row">
+        <span class="grp-label">Verktøy:</span>
+        <div class="grp" id="matBtns"></div>
+        <div class="grp">
+          <button class="mini secondary" id="btnUndo" title="Angre siste endring (Z)">Angre</button>
+          <button class="mini secondary" id="btnClear">Riv alt</button>
+          <button class="mini secondary" id="btnDefl">Vis nedbøyning</button>
+        </div>
+        <div class="grp">
+          <button class="mini" id="btnTest">Test brua</button>
+        </div>
+        <div class="grp">
+          <label for="autoGas" style="font-size:0.68rem;">Autogass</label>
+          <input type="checkbox" id="autoGas">
+        </div>
+        <div class="legend"><span>0 %</span><span class="ramp"></span><span>100 % kapasitet</span></div>
+      </div>
+      <div class="stat-strip">
+        <span>Kostnad: <b id="stCost">0 kr</b> / <span id="stBudget">—</span></span>
+        <span>Stål: <b id="stWeight">0 t</b></span>
+        <span>Maks last: <b id="stUtil">—</b></span>
+        <span>Status: <b id="stStatus">—</b></span>
+      </div>
+    </div>
+  </div>
+
+  <div class="canvas-wrap" id="browrap">
+    <canvas id="bro" width="1200" height="620"></canvas>
+    <div class="bro-banner" id="banner">
+      <h3 id="bannerTitle">—</h3>
+      <p id="bannerText">—</p>
+      <div class="row">
+        <button class="mini" id="bannerNext">Neste nivå</button>
+        <button class="mini secondary" id="bannerRetry">Prøv igjen</button>
+        <button class="mini secondary" id="bannerBuild">Til byggekontoret</button>
+      </div>
+    </div>
+  </div>
+  <p class="hintline" id="hint">Dra fra et ankerpunkt (◉) for å legge en stav. Høyreklikk eller «Slett»-verktøyet fjerner. Z = angre.</p>
+  <div class="drive-btns" id="driveBtns">
+    <button class="secondary" id="btnBrake">◀ Brems / rygg</button>
+    <button id="btnGas">Gass ▶</button>
+  </div>
+
+  <div class="panel-help" style="margin-top:1.2rem;">
+    <strong>Hva betyr dette?</strong>
+    <p>Fargen på hver stav viser hvor hardt den jobber i forhold til kapasiteten sin
+    (grå = avslappet, oransje = jobber, mørkerød = nær brudd). Trykkstaver mister kapasitet
+    med lengden på grunn av knekking — korte, trekantede fagverk er venner. Kabler er billige
+    og sterke, men kollapser slapt om de havner i trykk. «USTABIL» betyr at brua er en mekanisme:
+    den mangler triangulering et sted og kan bevege seg fritt.</p>
+  </div>
+
+  <section style="margin-top:2rem;">
+    <h2 class="section-header">Fysikken <span class="count">to solvere</span></h2>
+    <div class="fys-cols">
+      <div>
+        <h3>Byggefasen: lineær statikk</h3>
+        <p>Brua modelleres som et fagverk der hver stav bare tar aksialkraft. Hver stav bidrar
+        med <code>k&nbsp;=&nbsp;EA/L</code> i sin egen retning, og bidragene monteres i en global
+        stivhetsmatrise. Systemet <code>K·u&nbsp;=&nbsp;F</code> (F = egenvekt) løses med
+        Cholesky-faktorisering hver gang du endrer noe — havner en pivot på null, er brua en
+        mekanisme og flagges som ustabil.</p>
+        <p>Kapasiteten i strekk er <code>σ·A</code>. I trykk begrenses den i tillegg av
+        Euler-knekking <code>P<sub>cr</sub>&nbsp;=&nbsp;π²EI/L²</code> — derfor taper lange
+        trykkstaver seg fort. Kabler håndteres med aktiv-sett-iterasjon: staver i trykk
+        deaktiveres og systemet løses på nytt til det konvergerer.</p>
+      </div>
+      <div>
+        <h3>Testfasen: Verlet-dynamikk</h3>
+        <p>Ved test blir knutepunktene partikler med masse fra stål og kjørebane, og stavene
+        avstands-constraints som relakseres iterativt ved 240&nbsp;Hz. Aksialkraften
+        estimeres fra tøyningen (<code>N&nbsp;=&nbsp;EA·ε</code>) og måles mot samme
+        kapasitet som statikken bruker — flytegrense i strekk, Euler-knekking i trykk.
+        Overskrides den, ryker staven. Kollisjonene er toveis: bilen dytter på kjørebanen, og
+        kjørebanen dytter tilbake — det er slik vekta av bilen faktisk belaster brua.</p>
+        <p>Bilen er myk: hvert hjul er en ring av partikler holdt oppe av en
+        idealgass-trykkmodell (<code>P&nbsp;∝&nbsp;A₀/A</code>) som skyver ut langs
+        kant-normalene, med drivmoment fordelt tangentielt på felgen. Karosseriet er et
+        avstivet firkant-rammeverk med myke motorfester.</p>
+      </div>
+    </div>
+  </section>
+
+  <p class="muted small" style="margin-top:1.5rem;">
+    Designet ditt lagres automatisk i nettleseren per nivå. Tastatur: <code>→</code> gass,
+    <code>←</code> brems, <code>R</code> restart test, <code>Z</code> angre, <code>1–3</code> materialvalg.
+  </p>
+</main>
+
+<footer>
+  <div class="footer-content">
+    <div>© 2026 — Heming Westad</div>
+    <div>Trondheim · <a href="https://github.com/hemingwestad-glitch/Nettside-public">kildekode</a></div>
+  </div>
+
+  <div class="footer-disclaimer">Bygd sammen med Claude (Anthropic) som pair-programmer. Designvalg og fakta er mine.</div>
+</footer>
+
+<script src="/common.js"></script>
+<script>
+'use strict';
+/* ════════════════════════════════════════════════════════════════════════
+   BROBYGGER — fagverksstatikk + Verlet-testfase med softbody-bil.
+   Byggefase: K·u = F (Cholesky), Euler-knekking, kabler via aktivt sett.
+   Testfase: posisjonsbasert Verlet ved 240 Hz, toveis kollisjon, brudd.
+   Enheter: meter, kg, N. y peker OPP i verden; canvas flippes ved tegning.
+   ════════════════════════════════════════════════════════════════════════ */
+
+const TAU = Math.PI * 2;
+const GRAV = 9.81;
+const SNAP = 2;             // byggegrid i meter
+const MAX_LEN = 12;         // maks stavlengde
+const NODE_PICK = 1.3;      // klikkradius for noder (m)
+const MEMBER_PICK = 0.9;    // klikkradius for staver (m)
+
+/* ── Materialer ──────────────────────────────────────────────────────────
+   E [Pa], A [m²], I [m⁴], rho [kg/m³], deckKg [kg/m ekstra kjørebane],
+   sigma [Pa flytegrense], pris [kr/m].
+   E og geometri er realistiske; flytegrensen er «budsjettstål fra en
+   tvilsom leverandør» — ekte konstruksjonsstål er så sterkt at ingenting
+   noensinne ville røket på disse spennene, og hvor gøy er det? */
+const MATS = {
+  vei: {
+    navn: 'Vei', tast: '1', pris: 250, E: 200e9, A: 0.006, I: 2e-5,
+    rho: 7850, deckKg: 260, sigma: 60e6,
+    stiff: 0.92, deck: true, cable: false,
+    farge: '#3d3a35', bredde: 5,
+  },
+  stag: {
+    navn: 'Stag', tast: '2', pris: 120, E: 200e9, A: 0.003, I: 5.5e-6,
+    rho: 7850, deckKg: 0, sigma: 60e6,
+    stiff: 0.88, deck: false, cable: false,
+    farge: '#6b6659', bredde: 3,
+  },
+  kabel: {
+    navn: 'Kabel', tast: '3', pris: 60, E: 160e9, A: 0.0009, I: 0,
+    rho: 7850, deckKg: 0, sigma: 260e6,
+    stiff: 0.97, deck: false, cable: true,
+    farge: '#7a5a48', bredde: 1.5,
+  },
+};
+const MAT_ORDER = ['vei', 'stag', 'kabel'];
+
+/* ── Nivåer ──────────────────────────────────────────────────────────────
+   terreng: polylinje venstre→høyre (fast grunn). ankere: byggbare festepunkt.
+   gap: [x1,x2] åpning. vann: y-nivå (visuelt). view: {w, cy} kamera.       */
+const LEVELS = [
+  {
+    navn: 'Bekken', budsjett: 60000,
+    terreng: [[-30, 0], [0, 0], [3, -5], [21, -5], [24, 0], [54, 0]],
+    ankere: [[-6, 0], [0, 0], [24, 0], [30, 0]],
+    gap: [0, 24], vann: -2.4, killY: -14,
+    carX: -14, goalX: 32, view: { w: 66, cy: 1 },
+  },
+  {
+    navn: 'Elva', budsjett: 100000,
+    terreng: [[-30, 0], [0, 0], [4, -7], [15, -7], [18, -3.5], [21, -7], [32, -7], [36, 0], [66, 0]],
+    ankere: [[-6, 0], [0, 0], [18, -3.5], [36, 0], [42, 0]],
+    gap: [0, 36], vann: -3, killY: -16,
+    carX: -14, goalX: 44, view: { w: 78, cy: 0.5 },
+  },
+  {
+    navn: 'Juvet', budsjett: 140000,
+    terreng: [[-30, 0], [0, 0], [2, -26], [42, -26], [44, 0], [74, 0]],
+    ankere: [[-6, 0], [0, 0], [0, -8], [44, 0], [44, -8], [50, 0]],
+    gap: [0, 44], vann: null, killY: -34,
+    carX: -14, goalX: 52, view: { w: 88, cy: -5 },
+  },
+  {
+    navn: 'Fjorden', budsjett: 190000,
+    terreng: [[-30, 0], [0, 0], [4, -13], [18, -13], [20, -9], [22, -13],
+              [38, -13], [40, -9], [42, -13], [56, -13], [60, 0], [90, 0]],
+    ankere: [[-6, 0], [0, 0], [20, -9], [40, -9], [60, 0], [66, 0]],
+    gap: [0, 60], vann: -4, killY: -22,
+    carX: -14, goalX: 68, view: { w: 104, cy: -0.5 },
+  },
+  {
+    navn: 'Sandkasse', budsjett: 999000,
+    terreng: [[-30, 0], [0, 0], [4, -11], [44, -11], [48, 0], [78, 0]],
+    ankere: [[-6, 0], [0, 0], [48, 0], [54, 0]],
+    gap: [0, 48], vann: -5, killY: -20,
+    carX: -14, goalX: 56, view: { w: 92, cy: 0 },
+  },
+];
+
+/* ── Globalt state ─────────────────────────────────────────────────────── */
+let levelIx = 0;
+let LV = LEVELS[0];
+let design = { nodes: [], members: [] };   // nodes: {x,y,anchor} members: {a,b,mat}
+let statics = null;                        // resultat fra solveStatics()
+let undoStack = [];
+let phase = 'build';                       // 'build' | 'test'
+let currentMat = 'vei';
+let showDefl = false;
+let sim = null;                            // dynamisk verden under test
+let hoverInfo = null;
+let drag = null;                           // {fromIx | fromPos, toPos, valid}
+let throttle = 0;                          // -1..1
+let keys = {};
+
+const canvas = document.getElementById('bro');
+const ctx = canvas.getContext('2d');
+
+/* Fargepalett fra designsystemet */
+const CSSV = getComputedStyle(document.documentElement);
+const COL = {
+  bg: (CSSV.getPropertyValue('--bg-card') || '#f4efe6').trim(),
+  ink: (CSSV.getPropertyValue('--ink') || '#26221c').trim(),
+  inkSoft: (CSSV.getPropertyValue('--ink-soft') || '#5c564b').trim(),
+  inkFaint: (CSSV.getPropertyValue('--ink-faint') || '#8a8578').trim(),
+  accent: (CSSV.getPropertyValue('--accent') || '#b8552e').trim(),
+  jord: '#4a4238',
+  jordDyp: '#332d26',
+  gress: '#5a6b3e',
+  vann: 'rgba(74, 107, 122, 0.45)',
+  vannStrek: '#4a6b7a',
+};
+
+/* ── Kamera og transformasjoner ────────────────────────────────────────── */
+const cam = { x: 0, y: 0, scale: 10, tx: 0, ty: 0 };
+
+function fitCamera() {
+  const w = canvas.width, h = canvas.height;
+  cam.scale = w / LV.view.w;
+  cam.x = (LV.gap[0] + LV.gap[1]) / 2;
+  cam.y = LV.view.cy;
+  cam.tx = cam.x; cam.ty = cam.y;
+}
+function W2Sx(wx) { return (wx - cam.x) * cam.scale + canvas.width / 2; }
+function W2Sy(wy) { return canvas.height / 2 - (wy - cam.y) * cam.scale; }
+function S2Wx(sx) { return (sx - canvas.width / 2) / cam.scale + cam.x; }
+function S2Wy(sy) { return (canvas.height / 2 - sy) / cam.scale + cam.y; }
+
+function resizeCanvas() {
+  const wrap = document.getElementById('browrap');
+  const cssW = wrap.clientWidth;
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  canvas.width = Math.round(cssW * dpr);
+  canvas.height = Math.round(cssW * 0.52 * dpr);
+  canvas.style.height = (cssW * 0.52) + 'px';
+  fitCamera();
+}
+
+/* ── Geometri-hjelpere ─────────────────────────────────────────────────── */
+function dist(ax, ay, bx, by) { return Math.hypot(bx - ax, by - ay); }
+function segPointDist(px, py, ax, ay, bx, by) {
+  const dx = bx - ax, dy = by - ay;
+  const L2 = dx * dx + dy * dy;
+  let t = L2 > 0 ? ((px - ax) * dx + (py - ay) * dy) / L2 : 0;
+  t = Math.max(0, Math.min(1, t));
+  return { d: dist(px, py, ax + t * dx, ay + t * dy), t };
+}
+function terrainSegs() {
+  const t = LV.terreng, out = [];
+  for (let i = 0; i < t.length - 1; i++) out.push([t[i][0], t[i][1], t[i + 1][0], t[i + 1][1]]);
+  return out;
+}
+function terrainYat(x) {
+  const t = LV.terreng;
+  for (let i = 0; i < t.length - 1; i++) {
+    const [x1, y1] = t[i], [x2, y2] = t[i + 1];
+    if (x >= x1 && x <= x2) {
+      return x2 === x1 ? Math.max(y1, y2) : y1 + (y2 - y1) * (x - x1) / (x2 - x1);
+    }
+  }
+  return 0;
+}
+
+/* ── Design-operasjoner ────────────────────────────────────────────────── */
+function findNode(x, y, r) {
+  let best = -1, bd = r;
+  design.nodes.forEach((n, i) => {
+    const d = dist(x, y, n.x, n.y);
+    if (d < bd) { bd = d; best = i; }
+  });
+  return best;
+}
+function findMember(x, y, r) {
+  let best = -1, bd = r;
+  design.members.forEach((m, i) => {
+    const a = design.nodes[m.a], b = design.nodes[m.b];
+    const { d } = segPointDist(x, y, a.x, a.y, b.x, b.y);
+    if (d < bd) { bd = d; best = i; }
+  });
+  return best;
+}
+function snapPos(x, y) {
+  return { x: Math.round(x / SNAP) * SNAP, y: Math.round(y / SNAP) * SNAP };
+}
+function pushUndo() {
+  undoStack.push(JSON.stringify(design));
+  if (undoStack.length > 60) undoStack.shift();
+}
+function undo() {
+  if (phase !== 'build' || undoStack.length === 0) return;
+  design = JSON.parse(undoStack.pop());
+  afterDesignChange(false);
+}
+function memberLength(m) {
+  const a = design.nodes[m.a], b = design.nodes[m.b];
+  return dist(a.x, a.y, b.x, b.y);
+}
+function designCost() {
+  return design.members.reduce((s, m) => s + memberLength(m) * MATS[m.mat].pris, 0);
+}
+function designSteelTons() {
+  return design.members.reduce((s, m) => {
+    const M = MATS[m.mat];
+    return s + memberLength(m) * (M.rho * M.A + M.deckKg);
+  }, 0) / 1000;
+}
+function addMember(fromIx, toX, toY) {
+  const a = design.nodes[fromIx];
+  let toIx = findNode(toX, toY, NODE_PICK);
+  if (toIx === -1) {
+    design.nodes.push({ x: toX, y: toY, anchor: false });
+    toIx = design.nodes.length - 1;
+  }
+  if (toIx === fromIx) return false;
+  const b = design.nodes[toIx];
+  const L = dist(a.x, a.y, b.x, b.y);
+  if (L < SNAP - 0.01 || L > MAX_LEN) return false;
+  const dup = design.members.some(m =>
+    (m.a === fromIx && m.b === toIx) || (m.a === toIx && m.b === fromIx));
+  if (dup) return false;
+  design.members.push({ a: fromIx, b: toIx, mat: currentMat });
+  return true;
+}
+function deleteMemberAt(x, y) {
+  const mi = findMember(x, y, MEMBER_PICK);
+  if (mi === -1) return false;
+  pushUndo();
+  design.members.splice(mi, 1);
+  pruneOrphans();
+  afterDesignChange(false);
+  return true;
+}
+function pruneOrphans() {
+  const used = new Set();
+  design.members.forEach(m => { used.add(m.a); used.add(m.b); });
+  const remap = new Map();
+  const keep = [];
+  design.nodes.forEach((n, i) => {
+    if (n.anchor || used.has(i)) { remap.set(i, keep.length); keep.push(n); }
+  });
+  design.nodes = keep;
+  design.members.forEach(m => { m.a = remap.get(m.a); m.b = remap.get(m.b); });
+}
+
+/* ── Statikk: stivhetsmatrise, Cholesky, knekking, kabler ──────────────── */
+function solveStatics() {
+  const nodes = design.nodes, members = design.members;
+  if (members.length === 0) return { empty: true, unstable: false, maxUtil: 0 };
+
+  const freeIx = new Map();   // nodeindeks → dof-basisindeks
+  let ndof = 0;
+  nodes.forEach((n, i) => { if (!n.anchor) { freeIx.set(i, ndof); ndof += 2; } });
+  if (ndof === 0) return { empty: false, unstable: false, maxUtil: 0, N: members.map(() => 0), u: [], active: members.map(() => true), util: members.map(() => 0) };
+
+  const active = members.map(m => true);   // kabler kan deaktiveres (trykk)
+  let result = null;
+
+  for (let pass = 0; pass < 10; pass++) {
+    const K = Array.from({ length: ndof }, () => new Float64Array(ndof));
+    const F = new Float64Array(ndof);
+
+    // Egenvekt → knutepunktlaster
+    members.forEach((m, mi) => {
+      const M = MATS[m.mat];
+      const L = memberLength(m);
+      const w = (M.rho * M.A + M.deckKg) * L * GRAV / 2;
+      [m.a, m.b].forEach(ni => {
+        if (freeIx.has(ni)) F[freeIx.get(ni) + 1] -= w;
+      });
+      if (!active[mi]) return;
+      const a = nodes[m.a], b = nodes[m.b];
+      const c = (b.x - a.x) / L, s = (b.y - a.y) / L;
+      const k = M.E * M.A / L;
+      const kb = [[c * c, c * s], [c * s, s * s]];
+      const ia = freeIx.has(m.a) ? freeIx.get(m.a) : -1;
+      const ib = freeIx.has(m.b) ? freeIx.get(m.b) : -1;
+      for (let r = 0; r < 2; r++) for (let q = 0; q < 2; q++) {
+        const v = k * kb[r][q];
+        if (ia >= 0) K[ia + r][ia + q] += v;
+        if (ib >= 0) K[ib + r][ib + q] += v;
+        if (ia >= 0 && ib >= 0) { K[ia + r][ib + q] -= v; K[ib + r][ia + q] -= v; }
+      }
+    });
+
+    // Cholesky LDL^T med singularitetssjekk
+    const u = new Float64Array(ndof);
+    const Lm = Array.from({ length: ndof }, () => new Float64Array(ndof));
+    const D = new Float64Array(ndof);
+    let unstable = false;
+    const scale = Math.max(1, ...K.map((row, i) => Math.abs(K[i][i])));
+    for (let j = 0; j < ndof; j++) {
+      let d = K[j][j];
+      for (let k2 = 0; k2 < j; k2++) d -= Lm[j][k2] * Lm[j][k2] * D[k2];
+      if (d < scale * 1e-9) { unstable = true; break; }
+      D[j] = d;
+      Lm[j][j] = 1;
+      for (let i = j + 1; i < ndof; i++) {
+        let v = K[i][j];
+        for (let k2 = 0; k2 < j; k2++) v -= Lm[i][k2] * Lm[j][k2] * D[k2];
+        Lm[i][j] = v / d;
+      }
+    }
+    if (unstable) return { empty: false, unstable: true, maxUtil: 0, N: members.map(() => 0), util: members.map(() => 0), active, u: [] };
+
+    // Forover- og bakoversubstitusjon
+    const y = new Float64Array(ndof);
+    for (let i = 0; i < ndof; i++) {
+      let v = F[i];
+      for (let j = 0; j < i; j++) v -= Lm[i][j] * y[j];
+      y[i] = v;
+    }
+    for (let i = ndof - 1; i >= 0; i--) {
+      let v = y[i] / D[i];
+      for (let j = i + 1; j < ndof; j++) v -= Lm[j][i] * u[j];
+      u[i] = v;
+    }
+
+    // Stavkrefter (strekk positiv)
+    const N = members.map((m, mi) => {
+      if (!active[mi]) return 0;
+      const M = MATS[m.mat];
+      const a = nodes[m.a], b = nodes[m.b];
+      const L = memberLength(m);
+      const c = (b.x - a.x) / L, s = (b.y - a.y) / L;
+      const ua = freeIx.has(m.a) ? [u[freeIx.get(m.a)], u[freeIx.get(m.a) + 1]] : [0, 0];
+      const ub = freeIx.has(m.b) ? [u[freeIx.get(m.b)], u[freeIx.get(m.b) + 1]] : [0, 0];
+      return (M.E * M.A / L) * ((ub[0] - ua[0]) * c + (ub[1] - ua[1]) * s);
+    });
+
+    // Kabler i trykk? Deaktiver og løs på nytt.
+    let changed = false;
+    members.forEach((m, mi) => {
+      if (MATS[m.mat].cable && active[mi] && N[mi] < -1) { active[mi] = false; changed = true; }
+    });
+    result = { empty: false, unstable: false, N, u, active, freeIx };
+    if (!changed) break;
+  }
+
+  // Utnyttelsesgrad: strekk mot σA, trykk mot min(σA, Euler π²EI/L²)
+  result.util = design.members.map((m, mi) => {
+    if (!result.active[mi]) return 0;
+    const M = MATS[m.mat];
+    const L = memberLength(m);
+    const N = result.N[mi];
+    if (N >= 0) return N / (M.sigma * M.A);
+    const pcr = M.I > 0 ? Math.PI * Math.PI * M.E * M.I / (L * L) : Infinity;
+    return -N / Math.min(M.sigma * M.A, pcr);
+  });
+  result.maxUtil = Math.max(0, ...result.util);
+  return result;
+}
+
+/* ── Editor: pekerhåndtering ───────────────────────────────────────────── */
+function canvasPos(ev) {
+  const r = canvas.getBoundingClientRect();
+  const sx = (ev.clientX - r.left) * (canvas.width / r.width);
+  const sy = (ev.clientY - r.top) * (canvas.height / r.height);
+  return { x: S2Wx(sx), y: S2Wy(sy) };
+}
+
+canvas.addEventListener('contextmenu', e => e.preventDefault());
+
+canvas.addEventListener('pointerdown', ev => {
+  if (phase !== 'build') return;
+  const p = canvasPos(ev);
+  canvas.setPointerCapture(ev.pointerId);
+  if (ev.button === 2 || currentMat === 'slett') {
+    deleteMemberAt(p.x, p.y);
+    return;
+  }
+  const ni = findNode(p.x, p.y, NODE_PICK);
+  if (ni >= 0) {
+    drag = { fromIx: ni, toX: p.x, toY: p.y };
+  } else {
+    const s = snapPos(p.x, p.y);
+    if (buildableAt(s.x, s.y)) drag = { fromPos: s, toX: p.x, toY: p.y };
+  }
+});
+
+canvas.addEventListener('pointermove', ev => {
+  const p = canvasPos(ev);
+  if (drag) { drag.toX = p.x; drag.toY = p.y; return; }
+  if (phase === 'build') updateHover(p.x, p.y);
+});
+
+canvas.addEventListener('pointerup', ev => {
+  if (!drag) return;
+  const p = canvasPos(ev);
+  const d = drag; drag = null;
+  let fromIx = d.fromIx;
+  const endNode = findNode(p.x, p.y, NODE_PICK);
+  const end = endNode >= 0
+    ? { x: design.nodes[endNode].x, y: design.nodes[endNode].y }
+    : snapPos(p.x, p.y);
+  if (endNode < 0 && !buildableAt(end.x, end.y)) return;
+  pushUndo();
+  if (fromIx === undefined) {
+    // startet på tomt grid: opprett startnode først
+    design.nodes.push({ x: d.fromPos.x, y: d.fromPos.y, anchor: false });
+    fromIx = design.nodes.length - 1;
+  }
+  const ok = addMember(fromIx, end.x, end.y);
+  if (!ok) { design = JSON.parse(undoStack.pop()); }  // rull tilbake
+  pruneOrphans();
+  afterDesignChange(false);
+});
+
+function buildableAt(x, y) {
+  const [g1, g2] = [LV.terreng[0][0], LV.terreng[LV.terreng.length - 1][0]];
+  if (x < g1 + 2 || x > g2 - 2) return false;
+  if (y > 18 || y < LV.killY + 3) return false;
+  // ikke under bakken (litt slingring tillatt på skrenter)
+  return y >= terrainYat(x) - 0.6 || insideGap(x);
+}
+function insideGap(x) { return x > LV.gap[0] - 0.01 && x < LV.gap[1] + 0.01; }
+
+function updateHover(x, y) {
+  const mi = findMember(x, y, MEMBER_PICK);
+  if (mi === -1) { hoverInfo = null; setHint(defaultHint()); return; }
+  hoverInfo = mi;
+  const m = design.members[mi];
+  const M = MATS[m.mat];
+  const L = memberLength(m);
+  let txt = `${M.navn} ${L.toFixed(1).replace('.', ',')} m`;
+  if (statics && !statics.empty && !statics.unstable) {
+    const N = statics.N[mi];
+    if (!statics.active[mi]) txt += ' — slakk (kabel i trykk)';
+    else txt += ` — N = ${HW.fmt.num(N / 1000, 0)} kN ${N >= 0 ? '(strekk)' : '(trykk)'}, ${Math.round(statics.util[mi] * 100)} % av kapasitet`;
+  }
+  setHint(txt);
+}
+function defaultHint() {
+  return phase === 'test'
+    ? '→ gass · ← brems · R restart · Målet er flagget på andre siden.'
+    : 'Dra fra et ankerpunkt (◉) for å legge en stav. Høyreklikk sletter. Z = angre.';
+}
+function setHint(t) { document.getElementById('hint').textContent = t; }
+
+/* ── Dynamikk: Verlet-verden for testfasen ─────────────────────────────── */
+const H = 1 / 240;            // fysikk-tidssteg
+const PLAY = 1.0;             // kapasitetsfaktor for brudd i test
+const SUBSTEPS = 4;           // per 60 fps-ramme
+const CON_ITER = 9;           // constraint-iterasjoner per steg
+const DAMP = 0.9995;
+
+function buildSim() {
+  const parts = design.nodes.map(n => ({
+    x: n.x, y: n.y, px: n.x, py: n.y, fx: 0, fy: 0,
+    m: 40, invm: n.anchor ? 0 : 1, anchor: n.anchor, r: 0.3,
+  }));
+  design.members.forEach(m => {
+    const M = MATS[m.mat];
+    const half = (M.rho * M.A + M.deckKg) * memberLength(m) / 2;
+    parts[m.a].m += half; parts[m.b].m += half;
+  });
+  parts.forEach(p => { if (!p.anchor) p.invm = 1 / p.m; });
+
+  const cons = design.members.map(m => {
+    const M = MATS[m.mat];
+    const L = memberLength(m);
+    const pcr = M.I > 0 ? Math.PI * Math.PI * M.E * M.I / (L * L) : Infinity;
+    return {
+      p: m.a, q: m.b, mat: m.mat, rest: L,
+      stiff: M.stiff, broken: false, strain: 0, util: 0,
+      EA: M.E * M.A,
+      capT: M.sigma * M.A * PLAY,
+      capC: M.cable ? Infinity : Math.min(M.sigma * M.A, pcr) * PLAY,
+      cable: M.cable, deck: M.deck,
+    };
+  });
+
+  const groundY = terrainYat(LV.carX);
+  const car = makeCar(LV.carX, groundY + 1.25);
+
+  return {
+    parts, cons, car, debris: [],
+    t: 0, brokenCount: 0, result: null, resultShown: false,
+    terr: terrainSegs(),
+  };
+}
+
+function integrate(list, h) {
+  for (const p of list) {
+    if (p.invm === 0) { p.fx = 0; p.fy = 0; continue; }
+    const vx = (p.x - p.px) * DAMP, vy = (p.y - p.py) * DAMP;
+    p.px = p.x; p.py = p.y;
+    p.x += vx + (p.fx * p.invm) * h * h;
+    p.y += vy + (p.fy * p.invm - GRAV) * h * h;
+    p.fx = 0; p.fy = 0;
+  }
+}
+
+function satisfy(list, c) {
+  if (c.broken) return;
+  const A = list[c.p], B = list[c.q];
+  const dx = B.x - A.x, dy = B.y - A.y;
+  const d = Math.hypot(dx, dy) || 1e-9;
+  c.strain = (d - c.rest) / c.rest;
+  if (c.cable && d < c.rest) return;         // kabel: slakk i «trykk»
+  const wsum = A.invm + B.invm;
+  if (wsum === 0) return;
+  const corr = (d - c.rest) / d * c.stiff;
+  const cx = dx * corr, cy = dy * corr;
+  A.x += cx * (A.invm / wsum); A.y += cy * (A.invm / wsum);
+  B.x -= cx * (B.invm / wsum); B.y -= cy * (B.invm / wsum);
+}
+
+/* Punkt mot statisk segment (terreng). Returnerer true ved kontakt. */
+function collideTerrain(p, segs, r, mu) {
+  if (p.invm === 0) return false;
+  let hit = false;
+  for (const [ax, ay, bx, by] of segs) {
+    const { d, t } = segPointDist(p.x, p.y, ax, ay, bx, by);
+    if (d >= r) continue;
+    const cx = ax + (bx - ax) * t, cy = ay + (by - ay) * t;
+    let nx = p.x - cx, ny = p.y - cy;
+    const nl = Math.hypot(nx, ny);
+    if (nl < 1e-9) { nx = 0; ny = 1; } else { nx /= nl; ny /= nl; }
+    if (ny < 0) { continue; }                 // bare dytt oppover-ish
+    const pen = r - d;
+    p.x += nx * pen; p.y += ny * pen;
+    // friksjon: demp tangentiell bevegelse
+    const tx = -ny, ty = nx;
+    const vx = p.x - p.px, vy = p.y - p.py;
+    const vt = vx * tx + vy * ty;
+    p.px += tx * vt * mu; p.py += ty * vt * mu;
+    hit = true;
+  }
+  return hit;
+}
+
+/* Toveis: bil-partikkel mot kjørebane-stav (PBD punkt-mot-segment). */
+function collideDeckSeg(p, A, B, c, r) {
+  const { d, t } = segPointDist(p.x, p.y, A.x, A.y, B.x, B.y);
+  const R = r + 0.28;                          // halv dekk-tykkelse
+  if (d >= R) return false;
+  const cx = A.x + (B.x - A.x) * t, cy = A.y + (B.y - A.y) * t;
+  let nx = p.x - cx, ny = p.y - cy;
+  const nl = Math.hypot(nx, ny);
+  if (nl < 1e-9) return false;
+  nx /= nl; ny /= nl;
+  const pen = R - d;
+  const wA = A.invm * (1 - t), wB = B.invm * t;
+  const wsum = p.invm + (1 - t) * wA + t * wB;
+  if (wsum === 0) return false;
+  const lam = pen / wsum;
+  p.x += nx * lam * p.invm; p.y += ny * lam * p.invm;
+  A.x -= nx * lam * wA * (1 - t); A.y -= ny * lam * wA * (1 - t);
+  B.x -= nx * lam * wB * t; B.y -= ny * lam * wB * t;
+  // friksjon på bilpartikkelen
+  const tx = -ny, ty = nx;
+  const vt = (p.x - p.px) * tx + (p.y - p.py) * ty;
+  p.px += tx * vt * 0.45; p.py += ty * vt * 0.45;
+  return true;
+}
+
+function checkBreaks(s) {
+  for (const c of s.cons) {
+    if (c.broken) continue;
+    const A = s.parts[c.p], B = s.parts[c.q];
+    const d = dist(A.x, A.y, B.x, B.y);
+    const strain = (d - c.rest) / c.rest;
+    if (c.cable && strain < 0) { c.util = 0; continue; }   // slakk kabel
+    const N = strain * c.EA;                               // aksialkraft-estimat
+    c.util = N >= 0 ? N / c.capT : -N / c.capC;
+    if (c.util > 1) {
+      c.broken = true;
+      s.brokenCount++;
+      s.debris.push({
+        x: (A.x + B.x) / 2, y: (A.y + B.y) / 2, r0: 0.4, life: 1,
+      });
+    }
+  }
+}
+
+function stepSim(s) {
+  for (let sub = 0; sub < SUBSTEPS; sub++) {
+    applyCarForces(s.car, throttle);
+    integrate(s.parts, H);
+    integrate(s.car.parts, H);
+    for (let it = 0; it < CON_ITER; it++) {
+      for (const c of s.cons) satisfy(s.parts, c);
+      for (const c of s.car.cons) satisfy(s.car.parts, c);
+      // kollisjoner inne i løkka gir stabil kontakt
+      for (const p of s.car.parts) collideTerrain(p, s.terr, p.r, 0.5);
+      for (const c of s.cons) {
+        if (c.broken || !c.deck) continue;
+        const A = s.parts[c.p], B = s.parts[c.q];
+        for (const p of s.car.parts) collideDeckSeg(p, A, B, c, p.r);
+      }
+      for (const p of s.parts) collideTerrain(p, s.terr, p.r, 0.3);
+    }
+    checkBreaks(s);
+    s.t += H;
+  }
+  s.debris.forEach(d => d.life -= 0.05);
+  s.debris = s.debris.filter(d => d.life > 0);
+  updateResult(s);
+}
+
+function updateResult(s) {
+  if (s.result) return;
+  const c = s.car;
+  const hx = (c.hubL.x + c.hubR.x) / 2, hy = Math.min(c.hubL.y, c.hubR.y);
+  if (c.hubL.x > LV.goalX && c.hubR.x > LV.goalX) s.result = 'win';
+  else if (hy < LV.killY + 2) s.result = 'lose';
+  else if (s.t > 150) s.result = 'timeout';
+  if (s.result) showBanner(s);
+}
+
+/* ── Softbody-bil: trykkluft-hjul + avstivet karosseri ─────────────────── */
+const KP = 26000;        // trykkonstant [N/m per relativ kompresjon]
+const F_DRIVE = 5200;    // drivkraft per hjul [N]
+const NRIM = 12;
+
+function makeCar(x, y) {
+  const parts = [], cons = [];
+  function addP(px, py, m, r) {
+    parts.push({ x: px, y: py, px: px, py: py, fx: 0, fy: 0, m, invm: 1 / m, r });
+    return parts.length - 1;
+  }
+  function link(a, b, stiff) {
+    cons.push({
+      p: a, q: b, rest: dist(parts[a].x, parts[a].y, parts[b].x, parts[b].y),
+      stiff, broken: false, cable: false, deck: false, strain: 0,
+    });
+  }
+  function wheel(cx, cy) {
+    const R = 1.05;
+    const hub = addP(cx, cy, 130, 0.3);
+    const rim = [];
+    for (let i = 0; i < NRIM; i++) {
+      const a = i / NRIM * TAU;
+      rim.push(addP(cx + R * Math.cos(a), cy + R * Math.sin(a), 12, 0.17));
+    }
+    for (let i = 0; i < NRIM; i++) {
+      link(rim[i], rim[(i + 1) % NRIM], 0.92);
+      link(rim[i], rim[(i + 2) % NRIM], 0.5);
+      link(hub, rim[i], 0.3);
+    }
+    return { hub, rim, area0: Math.PI * R * R };
+  }
+  const wL = wheel(x - 2.3, y);
+  const wR = wheel(x + 2.3, y);
+  const bl = addP(x - 1.6, y + 2.0, 170, 0.35);
+  const br = addP(x + 1.6, y + 2.0, 170, 0.35);
+  link(wL.hub, wR.hub, 0.95);
+  link(bl, br, 0.95);
+  link(wL.hub, bl, 0.88); link(wR.hub, br, 0.88);
+  link(wL.hub, br, 0.88); link(wR.hub, bl, 0.88);
+  return {
+    parts, cons, wheels: [wL, wR],
+    hubL: parts[wL.hub], hubR: parts[wR.hub],
+    bodyL: parts[bl], bodyR: parts[br],
+  };
+}
+
+function polyArea(parts, ixs) {
+  let a = 0;
+  for (let i = 0; i < ixs.length; i++) {
+    const p = parts[ixs[i]], q = parts[ixs[(i + 1) % ixs.length]];
+    a += p.x * q.y - q.x * p.y;
+  }
+  return a / 2;
+}
+
+function applyCarForces(car, thr) {
+  // fartsgrense
+  const vx = ((car.hubL.x - car.hubL.px) + (car.hubR.x - car.hubR.px)) / 2 / H;
+  if (thr > 0 && vx > 9.5) thr = 0;
+  if (thr < 0 && vx < -4.5) thr = 0;
+
+  for (const w of car.wheels) {
+    const A = polyArea(car.parts, w.rim);
+    const ratio = Math.min(2.2, Math.max(0.4, w.area0 / Math.max(0.05, A)));
+    const P = KP * Math.max(0, ratio - 0.75);
+    const hub = car.parts[w.hub];
+    for (let i = 0; i < NRIM; i++) {
+      const p = car.parts[w.rim[i]], q = car.parts[w.rim[(i + 1) % NRIM]];
+      const ex = q.x - p.x, ey = q.y - p.y;
+      const eL = Math.hypot(ex, ey) || 1e-9;
+      // utover-normal for CCW-polygon
+      const nx = ey / eL, ny = -ex / eL;
+      const f = P * eL / 2;
+      p.fx += nx * f; p.fy += ny * f;
+      q.fx += nx * f; q.fy += ny * f;
+    }
+    if (thr !== 0) {
+      for (const ri of w.rim) {
+        const p = car.parts[ri];
+        const rx = p.x - hub.x, ry = p.y - hub.y;
+        const rl = Math.hypot(rx, ry) || 1e-9;
+        const f = thr * F_DRIVE / NRIM;
+        p.fx += (ry / rl) * f;
+        p.fy += (-rx / rl) * f;
+      }
+    }
+  }
+}
+
+/* ── Fargeramp for utnyttelse ──────────────────────────────────────────── */
+function hex2rgb(h) {
+  return [parseInt(h.slice(1, 3), 16), parseInt(h.slice(3, 5), 16), parseInt(h.slice(5, 7), 16)];
+}
+const RAMP = ['#8a8578', '#c89832', '#b8552e', '#7c1f10'].map(hex2rgb);
+function rampColor(u) {
+  const t = Math.max(0, Math.min(1, u));
+  const seg = t < 0.5 ? 0 : t < 0.85 ? 1 : 2;
+  const t0 = [0, 0.5, 0.85][seg], t1 = [0.5, 0.85, 1][seg];
+  const f = (t - t0) / (t1 - t0);
+  const a = RAMP[seg], b = RAMP[seg + 1];
+  const c = a.map((v, i) => Math.round(v + (b[i] - v) * f));
+  return `rgb(${c[0]},${c[1]},${c[2]})`;
+}
+
+/* ── Tegning ───────────────────────────────────────────────────────────── */
+function draw() {
+  const W = canvas.width, Hc = canvas.height;
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  ctx.fillStyle = COL.bg;
+  ctx.fillRect(0, 0, W, Hc);
+
+  // kamera
+  if (phase === 'test' && sim) {
+    const tx = (sim.car.hubL.x + sim.car.hubR.x) / 2;
+    const ty = (sim.car.hubL.y + sim.car.hubR.y) / 2 + 2;
+    cam.tx = Math.max(LV.gap[0] - LV.view.w * 0.28, Math.min(LV.gap[1] + LV.view.w * 0.28, tx));
+    cam.ty = Math.max(LV.view.cy - 6, Math.min(LV.view.cy + 8, ty));
+  } else {
+    cam.tx = (LV.gap[0] + LV.gap[1]) / 2;
+    cam.ty = LV.view.cy;
+  }
+  cam.x += (cam.tx - cam.x) * 0.08;
+  cam.y += (cam.ty - cam.y) * 0.08;
+
+  // vann
+  if (LV.vann != null) {
+    ctx.fillStyle = COL.vann;
+    const x1 = W2Sx(LV.gap[0] - 1.5), x2 = W2Sx(LV.gap[1] + 1.5);
+    ctx.fillRect(x1, W2Sy(LV.vann), x2 - x1, W2Sy(LV.killY - 4) - W2Sy(LV.vann));
+    ctx.strokeStyle = COL.vannStrek;
+    ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.moveTo(x1, W2Sy(LV.vann)); ctx.lineTo(x2, W2Sy(LV.vann)); ctx.stroke();
+  }
+
+  // terreng
+  const T = LV.terreng;
+  ctx.beginPath();
+  ctx.moveTo(W2Sx(T[0][0]), W2Sy(T[0][1]));
+  for (let i = 1; i < T.length; i++) ctx.lineTo(W2Sx(T[i][0]), W2Sy(T[i][1]));
+  ctx.lineTo(W2Sx(T[T.length - 1][0]), W2Sy(LV.killY - 8));
+  ctx.lineTo(W2Sx(T[0][0]), W2Sy(LV.killY - 8));
+  ctx.closePath();
+  ctx.fillStyle = COL.jord;
+  ctx.fill();
+  ctx.strokeStyle = COL.gress;
+  ctx.lineWidth = Math.max(2, cam.scale * 0.22);
+  ctx.beginPath();
+  ctx.moveTo(W2Sx(T[0][0]), W2Sy(T[0][1]));
+  for (let i = 1; i < T.length; i++) ctx.lineTo(W2Sx(T[i][0]), W2Sy(T[i][1]));
+  ctx.stroke();
+
+  // målflagg
+  const gy = terrainYat(LV.goalX);
+  ctx.strokeStyle = COL.ink;
+  ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.moveTo(W2Sx(LV.goalX), W2Sy(gy)); ctx.lineTo(W2Sx(LV.goalX), W2Sy(gy + 4)); ctx.stroke();
+  ctx.fillStyle = COL.accent;
+  ctx.beginPath();
+  ctx.moveTo(W2Sx(LV.goalX), W2Sy(gy + 4));
+  ctx.lineTo(W2Sx(LV.goalX + 2.2), W2Sy(gy + 3.3));
+  ctx.lineTo(W2Sx(LV.goalX), W2Sy(gy + 2.6));
+  ctx.closePath(); ctx.fill();
+
+  if (phase === 'build') {
+    // byggegrid
+    ctx.fillStyle = 'rgba(0,0,0,0.13)';
+    const x0 = Math.ceil(S2Wx(0) / SNAP) * SNAP, x1 = Math.floor(S2Wx(W) / SNAP) * SNAP;
+    for (let gx = x0; gx <= x1; gx += SNAP) {
+      for (let gy2 = Math.max(LV.killY + 4, -24); gy2 <= 16; gy2 += SNAP) {
+        if (!buildableAt(gx, gy2)) continue;
+        ctx.fillRect(W2Sx(gx) - 1, W2Sy(gy2) - 1, 2, 2);
+      }
+    }
+  }
+
+  drawMembers();
+  if (phase === 'build') drawDeflection();
+  if (phase === 'build') drawAnchorsAndNodes();
+  if (drag) drawDragPreview();
+  if (phase === 'test' && sim) { drawCar(sim.car); drawDebris(); }
+
+  updateHud();
+}
+
+function memberGeom(mi) {
+  const m = design.members[mi];
+  if (phase === 'test' && sim) {
+    const A = sim.parts[m.a], B = sim.parts[m.b];
+    return { ax: A.x, ay: A.y, bx: B.x, by: B.y, c: sim.cons[mi] };
+  }
+  const A = design.nodes[m.a], B = design.nodes[m.b];
+  return { ax: A.x, ay: A.y, bx: B.x, by: B.y, c: null };
+}
+
+function drawMembers() {
+  design.members.forEach((m, mi) => {
+    const g = memberGeom(mi);
+    if (g.c && g.c.broken) return;
+    const M = MATS[m.mat];
+    let util = 0, slack = false;
+    if (phase === 'test' && g.c) {
+      util = g.c.util || 0;
+      slack = g.c.cable && g.c.strain < 0;
+    } else if (statics && !statics.empty) {
+      if (statics.unstable) util = 0;
+      else { util = statics.util[mi]; slack = !statics.active[mi]; }
+    }
+    const wpx = Math.max(1.2, M.bredde * cam.scale / 14);
+    ctx.lineWidth = wpx;
+    ctx.setLineDash(slack ? [4, 5] : []);
+    ctx.strokeStyle = slack ? COL.inkFaint :
+      (statics && statics.unstable && phase === 'build') ? '#9a9488' : rampColor(util);
+    ctx.beginPath();
+    ctx.moveTo(W2Sx(g.ax), W2Sy(g.ay));
+    ctx.lineTo(W2Sx(g.bx), W2Sy(g.by));
+    ctx.stroke();
+    ctx.setLineDash([]);
+    if (M.deck) {   // kjørebane-topp
+      ctx.strokeStyle = COL.ink;
+      ctx.lineWidth = Math.max(1, wpx * 0.25);
+      const nx = -(g.by - g.ay), ny = g.bx - g.ax;
+      const nl = Math.hypot(nx, ny) || 1;
+      const ox = nx / nl * 0.32, oy = ny / nl * 0.32;
+      const s = oy >= 0 ? 1 : -1;   // alltid oversiden
+      ctx.beginPath();
+      ctx.moveTo(W2Sx(g.ax + s * ox), W2Sy(g.ay + s * oy));
+      ctx.lineTo(W2Sx(g.bx + s * ox), W2Sy(g.by + s * oy));
+      ctx.stroke();
+    }
+    if (mi === hoverInfo && phase === 'build') {
+      ctx.strokeStyle = 'rgba(0,0,0,0.25)';
+      ctx.lineWidth = wpx + 4;
+      ctx.beginPath();
+      ctx.moveTo(W2Sx(g.ax), W2Sy(g.ay));
+      ctx.lineTo(W2Sx(g.bx), W2Sy(g.by));
+      ctx.stroke();
+    }
+  });
+}
+
+function drawDeflection() {
+  if (!showDefl || !statics || statics.empty || statics.unstable || !statics.freeIx) return;
+  let maxU = 0;
+  statics.freeIx.forEach(base => {
+    maxU = Math.max(maxU, Math.hypot(statics.u[base], statics.u[base + 1]));
+  });
+  if (maxU < 1e-9) return;
+  const k = Math.min(600, 1.6 / maxU);
+  const pos = design.nodes.map((n, i) => {
+    if (!statics.freeIx.has(i)) return { x: n.x, y: n.y };
+    const b = statics.freeIx.get(i);
+    return { x: n.x + statics.u[b] * k, y: n.y + statics.u[b + 1] * k };
+  });
+  ctx.setLineDash([3, 4]);
+  ctx.strokeStyle = 'rgba(184, 85, 46, 0.55)';
+  ctx.lineWidth = 1.2;
+  design.members.forEach(m => {
+    ctx.beginPath();
+    ctx.moveTo(W2Sx(pos[m.a].x), W2Sy(pos[m.a].y));
+    ctx.lineTo(W2Sx(pos[m.b].x), W2Sy(pos[m.b].y));
+    ctx.stroke();
+  });
+  ctx.setLineDash([]);
+}
+
+function drawAnchorsAndNodes() {
+  design.nodes.forEach(n => {
+    const sx = W2Sx(n.x), sy = W2Sy(n.y);
+    if (n.anchor) {
+      ctx.strokeStyle = COL.accent;
+      ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.arc(sx, sy, 6, 0, TAU); ctx.stroke();
+      ctx.fillStyle = COL.accent;
+      ctx.beginPath(); ctx.arc(sx, sy, 2.2, 0, TAU); ctx.fill();
+    } else {
+      ctx.fillStyle = COL.ink;
+      ctx.beginPath(); ctx.arc(sx, sy, 3, 0, TAU); ctx.fill();
+    }
+  });
+}
+
+function drawDragPreview() {
+  const from = drag.fromIx !== undefined ? design.nodes[drag.fromIx] : drag.fromPos;
+  const endNode = findNode(drag.toX, drag.toY, NODE_PICK);
+  const end = endNode >= 0
+    ? design.nodes[endNode]
+    : snapPos(drag.toX, drag.toY);
+  const L = dist(from.x, from.y, end.x, end.y);
+  const ok = L >= SNAP - 0.01 && L <= MAX_LEN && (endNode >= 0 || buildableAt(end.x, end.y));
+  ctx.setLineDash([5, 4]);
+  ctx.strokeStyle = ok ? COL.inkSoft : COL.accent;
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(W2Sx(from.x), W2Sy(from.y));
+  ctx.lineTo(W2Sx(end.x), W2Sy(end.y));
+  ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.fillStyle = COL.ink;
+  ctx.font = `${Math.round(11 * (window.devicePixelRatio || 1))}px 'JetBrains Mono', monospace`;
+  ctx.fillText(`${L.toFixed(1).replace('.', ',')} m${ok ? '' : ' ✕'}`,
+    W2Sx((from.x + end.x) / 2) + 8, W2Sy((from.y + end.y) / 2) - 8);
+}
+
+function drawCar(car) {
+  for (const w of car.wheels) {
+    ctx.fillStyle = '#2e2a24';
+    ctx.beginPath();
+    w.rim.forEach((ri, i) => {
+      const p = car.parts[ri];
+      if (i === 0) ctx.moveTo(W2Sx(p.x), W2Sy(p.y));
+      else ctx.lineTo(W2Sx(p.x), W2Sy(p.y));
+    });
+    ctx.closePath();
+    ctx.fill();
+    const hub = car.parts[w.hub];
+    ctx.fillStyle = COL.bg;
+    ctx.beginPath(); ctx.arc(W2Sx(hub.x), W2Sy(hub.y), Math.max(2, cam.scale * 0.18), 0, TAU); ctx.fill();
+  }
+  const { hubL, hubR, bodyL, bodyR } = car;
+  ctx.fillStyle = COL.accent;
+  ctx.beginPath();
+  ctx.moveTo(W2Sx(hubL.x - 0.5), W2Sy(hubL.y + 0.4));
+  ctx.lineTo(W2Sx(hubR.x + 0.5), W2Sy(hubR.y + 0.4));
+  ctx.lineTo(W2Sx(bodyR.x + 0.2), W2Sy(bodyR.y));
+  ctx.lineTo(W2Sx(bodyL.x - 0.2), W2Sy(bodyL.y));
+  ctx.closePath();
+  ctx.fill();
+  // frontrute
+  ctx.fillStyle = 'rgba(244, 239, 230, 0.75)';
+  ctx.beginPath();
+  ctx.moveTo(W2Sx(bodyR.x - 0.15), W2Sy(bodyR.y - 0.15));
+  ctx.lineTo(W2Sx(bodyR.x - 1.0), W2Sy(bodyR.y - 0.15));
+  ctx.lineTo(W2Sx(bodyR.x - 1.0), W2Sy(bodyR.y - 0.8));
+  ctx.lineTo(W2Sx(bodyR.x - 0.35), W2Sy(bodyR.y - 0.8));
+  ctx.closePath();
+  ctx.fill();
+}
+
+function drawDebris() {
+  for (const d of sim.debris) {
+    ctx.strokeStyle = `rgba(184, 85, 46, ${d.life.toFixed(2)})`;
+    ctx.lineWidth = 2;
+    const r = (d.r0 + (1 - d.life) * 2.2) * cam.scale;
+    ctx.beginPath();
+    ctx.arc(W2Sx(d.x), W2Sy(d.y), r, 0, TAU);
+    ctx.stroke();
+  }
+}
+
+/* ── HUD og banner ─────────────────────────────────────────────────────── */
+function updateHud() {
+  const cost = designCost();
+  const over = cost > LV.budsjett;
+  const elC = document.getElementById('stCost');
+  elC.textContent = `${HW.fmt.int(cost)} kr`;
+  elC.className = over ? 'warn' : '';
+  document.getElementById('stBudget').textContent = `${HW.fmt.int(LV.budsjett)} kr`;
+  document.getElementById('stWeight').textContent = `${HW.fmt.num(designSteelTons(), 1)} t`;
+
+  const elU = document.getElementById('stUtil');
+  const elS = document.getElementById('stStatus');
+  if (phase === 'test' && sim) {
+    let mx = 0;
+    for (const c of sim.cons) {
+      if (!c.broken) mx = Math.max(mx, c.util || 0);
+    }
+    elU.textContent = `${Math.round(mx * 100)} %`;
+    elU.className = mx > 0.85 ? 'warn' : '';
+    elS.textContent = sim.brokenCount > 0
+      ? `${sim.brokenCount} stav${sim.brokenCount === 1 ? '' : 'er'} røk!`
+      : 'Kjør!';
+    elS.className = sim.brokenCount > 0 ? 'warn' : 'ok';
+    return;
+  }
+  if (!statics || statics.empty) {
+    elU.textContent = '—'; elU.className = '';
+    elS.textContent = 'Tom byggeplass'; elS.className = '';
+  } else if (statics.unstable) {
+    elU.textContent = '—'; elU.className = '';
+    elS.textContent = 'USTABIL — mangler triangulering'; elS.className = 'warn';
+  } else {
+    elU.textContent = `${Math.round(statics.maxUtil * 100)} % (egenvekt)`;
+    elU.className = statics.maxUtil > 0.85 ? 'warn' : '';
+    if (over) { elS.textContent = 'Over budsjett!'; elS.className = 'warn'; }
+    else { elS.textContent = 'Stabil ✓'; elS.className = 'ok'; }
+  }
+}
+
+function showBanner(s) {
+  const b = document.getElementById('banner');
+  const title = document.getElementById('bannerTitle');
+  const text = document.getElementById('bannerText');
+  const next = document.getElementById('bannerNext');
+  const tid = s.t.toFixed(1).replace('.', ',');
+  if (s.result === 'win') {
+    title.textContent = s.brokenCount === 0 ? 'Brua holdt — uten et eneste brudd.' : 'Over! Så vidt.';
+    text.textContent = `${LV.navn}: ${HW.fmt.int(designCost())} kr, ${tid} s over. `
+      + (s.brokenCount > 0 ? `${s.brokenCount} stav(er) røk underveis.` : 'Ingenting røk. Solid ingeniørkunst.');
+    next.style.display = levelIx < LEVELS.length - 1 ? '' : 'none';
+  } else if (s.result === 'lose') {
+    title.textContent = 'I vannet.';
+    text.textContent = s.brokenCount > 0
+      ? `${s.brokenCount} stav(er) røk, og resten fulgte etter. Se på fargene i byggefasen — mørkerødt er et forvarsel.`
+      : 'Bilen fant et hull. Mangler det kjørebane et sted?';
+    next.style.display = 'none';
+  } else {
+    title.textContent = 'Tida rant ut.';
+    text.textContent = 'Bilen kom seg aldri over. Står den fast i en grop, eller er bakken for bratt?';
+    next.style.display = 'none';
+  }
+  b.classList.add('show');
+}
+function hideBanner() { document.getElementById('banner').classList.remove('show'); }
+
+/* ── Spillflyt ─────────────────────────────────────────────────────────── */
+function startTest() {
+  if (design.members.length === 0) { setHint('Bygg noe først — brua er tom.'); return; }
+  if (designCost() > LV.budsjett) { setHint('Over budsjett — riv noe før du tester.'); return; }
+  sim = buildSim();
+  phase = 'test';
+  hideBanner();
+  canvas.classList.add('testing');
+  document.getElementById('btnTest').textContent = 'Til byggekontoret';
+  document.getElementById('driveBtns').classList.add('show');
+  setHint(defaultHint());
+}
+function endTest() {
+  sim = null;
+  phase = 'build';
+  throttle = 0;
+  hideBanner();
+  canvas.classList.remove('testing');
+  document.getElementById('btnTest').textContent = 'Test brua';
+  document.getElementById('driveBtns').classList.remove('show');
+  setHint(defaultHint());
+}
+function toggleTest() { phase === 'build' ? startTest() : endTest(); }
+
+/* ── Lagring per nivå ──────────────────────────────────────────────────── */
+function storeKey() { return `bro.v1.design.${levelIx}`; }
+function saveDesign() {
+  try { localStorage.setItem(storeKey(), JSON.stringify(design)); } catch (e) { /* privat modus */ }
+}
+function loadDesign() {
+  try {
+    const raw = localStorage.getItem(storeKey());
+    if (!raw) return null;
+    const d = JSON.parse(raw);
+    if (d && Array.isArray(d.nodes) && Array.isArray(d.members)) return d;
+  } catch (e) { /* korrupt */ }
+  return null;
+}
+function defaultDesign() {
+  return {
+    nodes: LV.ankere.map(([x, y]) => ({ x, y, anchor: true })),
+    members: [],
+  };
+}
+function afterDesignChange() {
+  statics = solveStatics();
+  saveDesign();
+}
+
+function setLevel(ix) {
+  levelIx = ix;
+  LV = LEVELS[ix];
+  endTest();
+  design = loadDesign() || defaultDesign();
+  // sørg for at ankerne alltid finnes (eldre lagringer / nye nivådefinisjoner)
+  LV.ankere.forEach(([x, y]) => {
+    if (!design.nodes.some(n => n.anchor && Math.abs(n.x - x) < 0.01 && Math.abs(n.y - y) < 0.01)) {
+      design.nodes.push({ x, y, anchor: true });
+    }
+  });
+  undoStack = [];
+  hoverInfo = null;
+  statics = solveStatics();
+  fitCamera();
+  cam.x = cam.tx; cam.y = cam.ty;
+  document.querySelectorAll('#levelBtns button').forEach((b, i) =>
+    b.classList.toggle('sel', i === ix));
+  setHint(defaultHint());
+}
+
+/* ── UI-oppsett ────────────────────────────────────────────────────────── */
+function buildUi() {
+  const mb = document.getElementById('matBtns');
+  MAT_ORDER.forEach(key => {
+    const M = MATS[key];
+    const b = document.createElement('button');
+    b.className = 'mat-btn' + (key === currentMat ? ' sel' : '');
+    b.innerHTML = `<span class="sw" style="background:${M.farge}"></span>${M.navn} <span style="opacity:.6">${M.pris} kr/m</span>`;
+    b.title = `Hurtigtast ${M.tast}`;
+    b.addEventListener('click', () => selectMat(key));
+    mb.appendChild(b);
+  });
+  const del = document.createElement('button');
+  del.className = 'mat-btn';
+  del.id = 'matSlett';
+  del.innerHTML = '✕ Slett';
+  del.addEventListener('click', () => selectMat('slett'));
+  mb.appendChild(del);
+
+  const lb = document.getElementById('levelBtns');
+  LEVELS.forEach((L, i) => {
+    const b = document.createElement('button');
+    b.className = 'mat-btn' + (i === 0 ? ' sel' : '');
+    b.textContent = L.navn;
+    b.addEventListener('click', () => setLevel(i));
+    lb.appendChild(b);
+  });
+
+  document.getElementById('btnTest').addEventListener('click', toggleTest);
+  document.getElementById('btnUndo').addEventListener('click', undo);
+  document.getElementById('btnClear').addEventListener('click', () => {
+    if (phase !== 'build') return;
+    pushUndo();
+    design = defaultDesign();
+    afterDesignChange();
+  });
+  document.getElementById('btnDefl').addEventListener('click', () => {
+    showDefl = !showDefl;
+    document.getElementById('btnDefl').classList.toggle('sel', showDefl);
+  });
+  document.getElementById('bannerNext').addEventListener('click', () => setLevel(levelIx + 1));
+  document.getElementById('bannerRetry').addEventListener('click', () => { hideBanner(); sim = buildSim(); });
+  document.getElementById('bannerBuild').addEventListener('click', endTest);
+
+  // kjøreknapper (touch)
+  const gas = document.getElementById('btnGas'), brake = document.getElementById('btnBrake');
+  const press = (btn, v) => {
+    btn.addEventListener('pointerdown', e => { e.preventDefault(); btnThr = v; });
+    ['pointerup', 'pointercancel', 'pointerleave'].forEach(ev =>
+      btn.addEventListener(ev, () => { btnThr = 0; }));
+  };
+  press(gas, 1); press(brake, -0.8);
+
+  if (window.matchMedia && window.matchMedia('(pointer: coarse)').matches) {
+    document.getElementById('autoGas').checked = true;
+  }
+}
+
+function selectMat(key) {
+  currentMat = key;
+  document.querySelectorAll('#matBtns .mat-btn').forEach(b => b.classList.remove('sel'));
+  const btns = document.querySelectorAll('#matBtns .mat-btn');
+  const ix = key === 'slett' ? MAT_ORDER.length : MAT_ORDER.indexOf(key);
+  if (btns[ix]) btns[ix].classList.add('sel');
+}
+
+let keyThr = 0, btnThr = 0;
+window.addEventListener('keydown', e => {
+  if (e.repeat) return;
+  const k = e.key.toLowerCase();
+  if (phase === 'test' && ['arrowright', 'arrowleft', ' '].includes(k)) e.preventDefault();
+  if (k === 'arrowright' || k === 'd') keyThr = 1;
+  if (k === 'arrowleft' || k === 'a') keyThr = -0.8;
+  if (k === 'z') undo();
+  if (k === 'r' && phase === 'test') { hideBanner(); sim = buildSim(); }
+  if (k === 'escape' && phase === 'test') endTest();
+  if (k === '1') selectMat('vei');
+  if (k === '2') selectMat('stag');
+  if (k === '3') selectMat('kabel');
+});
+window.addEventListener('keyup', e => {
+  const k = e.key.toLowerCase();
+  if (k === 'arrowright' || k === 'd') { if (keyThr > 0) keyThr = 0; }
+  if (k === 'arrowleft' || k === 'a') { if (keyThr < 0) keyThr = 0; }
+});
+
+/* ── Hovedløkke ────────────────────────────────────────────────────────── */
+function frame() {
+  if (phase === 'test' && sim) {
+    throttle = keyThr !== 0 ? keyThr
+      : btnThr !== 0 ? btnThr
+      : (document.getElementById('autoGas').checked ? 0.75 : 0);
+    if (!sim.result) stepSim(sim);
+  }
+  draw();
+  requestAnimationFrame(frame);
+}
+
+/* ── Start ─────────────────────────────────────────────────────────────── */
+buildUi();
+resizeCanvas();
+window.addEventListener('resize', () => { resizeCanvas(); });
+setLevel(0);
+requestAnimationFrame(frame);
+</script>
+</body>
+</html>

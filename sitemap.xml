@@ -24,4 +24,5 @@
   <url><loc>https://hemingwestad.no/tools/map.html</loc><priority>0.7</priority><changefreq>weekly</changefreq></url>
   <url><loc>https://hemingwestad.no/tools/discgolf.html</loc><priority>0.7</priority><changefreq>monthly</changefreq></url>
   <url><loc>https://hemingwestad.no/tools/sand.html</loc><priority>0.7</priority><changefreq>monthly</changefreq></url>
+  <url><loc>https://hemingwestad.no/tools/bridge.html</loc><priority>0.7</priority><changefreq>monthly</changefreq></url>
 </urlset>
