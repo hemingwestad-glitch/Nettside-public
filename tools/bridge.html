@@ -234,7 +234,7 @@ canvas#bro.testing { cursor: default; }
 const TAU = Math.PI * 2;
 const GRAV = 9.81;
 const SNAP = 2;             // byggegrid i meter
-const MAX_LEN = 12;         // maks stavlengde
+const MAX_LEN = 10;         // maks stavlengde
 const NODE_PICK = 1.3;      // klikkradius for noder (m)
 const MEMBER_PICK = 0.9;    // klikkradius for staver (m)
 
@@ -247,18 +247,18 @@ const MEMBER_PICK = 0.9;    // klikkradius for staver (m)
 const MATS = {
   vei: {
     navn: 'Vei', tast: '1', pris: 250, E: 200e9, A: 0.006, I: 2e-5,
-    rho: 7850, deckKg: 260, sigma: 60e6,
+    rho: 9850, deckKg: 260, sigma: 60e6,
     stiff: 0.92, deck: true, cable: false,
     farge: '#3d3a35', bredde: 5,
   },
   stag: {
-    navn: 'Stag', tast: '2', pris: 120, E: 200e9, A: 0.003, I: 5.5e-6,
+    navn: 'Stag', tast: '2', pris: 120, E: 100e9, A: 0.003, I: 5.5e-6,
     rho: 7850, deckKg: 0, sigma: 60e6,
-    stiff: 0.88, deck: false, cable: false,
+    stiff: 0.80, deck: false, cable: false,
     farge: '#6b6659', bredde: 3,
   },
   kabel: {
-    navn: 'Kabel', tast: '3', pris: 60, E: 160e9, A: 0.0009, I: 0,
+    navn: 'Kabel', tast: '3', pris: 60, E: 60e9, A: 0.0009, I: 0,
     rho: 7850, deckKg: 0, sigma: 260e6,
     stiff: 0.97, deck: false, cable: true,
     farge: '#7a5a48', bredde: 1.5,
@@ -271,28 +271,28 @@ const MAT_ORDER = ['vei', 'stag', 'kabel'];
    gap: [x1,x2] åpning. vann: y-nivå (visuelt). view: {w, cy} kamera.       */
 const LEVELS = [
   {
-    navn: 'Bekken', budsjett: 60000,
+    navn: 'Bekken', budsjett: 30000,
     terreng: [[-30, 0], [0, 0], [3, -5], [21, -5], [24, 0], [54, 0]],
     ankere: [[-6, 0], [0, 0], [24, 0], [30, 0]],
     gap: [0, 24], vann: -2.4, killY: -14,
     carX: -14, goalX: 32, view: { w: 66, cy: 1 },
   },
   {
-    navn: 'Elva', budsjett: 100000,
+    navn: 'Elva', budsjett: 60000,
     terreng: [[-30, 0], [0, 0], [4, -7], [15, -7], [18, -3.5], [21, -7], [32, -7], [36, 0], [66, 0]],
     ankere: [[-6, 0], [0, 0], [18, -3.5], [36, 0], [42, 0]],
     gap: [0, 36], vann: -3, killY: -16,
     carX: -14, goalX: 44, view: { w: 78, cy: 0.5 },
   },
   {
-    navn: 'Juvet', budsjett: 140000,
+    navn: 'Juvet', budsjett: 60000,
     terreng: [[-30, 0], [0, 0], [2, -26], [42, -26], [44, 0], [74, 0]],
     ankere: [[-6, 0], [0, 0], [0, -8], [44, 0], [44, -8], [50, 0]],
     gap: [0, 44], vann: null, killY: -34,
     carX: -14, goalX: 52, view: { w: 88, cy: -5 },
   },
   {
-    navn: 'Fjorden', budsjett: 190000,
+    navn: 'Fjorden', budsjett: 100000,
     terreng: [[-30, 0], [0, 0], [4, -13], [18, -13], [20, -9], [22, -13],
               [38, -13], [40, -9], [42, -13], [56, -13], [60, 0], [90, 0]],
     ankere: [[-6, 0], [0, 0], [20, -9], [40, -9], [60, 0], [66, 0]],
