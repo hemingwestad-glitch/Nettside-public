@@ -18,3 +18,9 @@ preview-*.html
 
 # Interne notater (ikke deploy)
 REVIEW.md
+
+# SOL - webhook lives in ~/.config/sol/env, state in $HOME. Never here.
+work/**/env
+work/**/*.env
+work/**/*state.json
+work/**/sol.log*
