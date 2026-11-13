@@ -1,16 +1,5 @@
 /* hemingwestad.no — felles JS */
 
-// Oppdater "sist oppdatert"-felter til dagens dato
-(function updateDates() {
-  document.querySelectorAll('[data-today]').forEach(el => {
-    const d = new Date();
-    const yyyy = d.getFullYear();
-    const mm = String(d.getMonth() + 1).padStart(2, '0');
-    const dd = String(d.getDate()).padStart(2, '0');
-    el.textContent = `${yyyy}-${mm}-${dd}`;
-  });
-})();
-
 // Faner: aktiver via [data-tab="X"] knapper og [data-panel="X"] paneler
 (function initTabs() {
   document.querySelectorAll('.tabs').forEach(tabsEl => {

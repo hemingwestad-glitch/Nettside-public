@@ -1,25 +1,22 @@
 <!DOCTYPE html>
-<html lang="no" spellcheck="false">
+<html lang="nb">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Kart — Heming Westad</title>
+<title>Friluftskart | Heming Westad</title>
 <meta name="description" content="Klikk på kartet for å hente fiskeforhold, jakttider, sol/måne og strøm for valgt lokasjon i Norge.">
 <meta name="author" content="Heming Westad">
 <link rel="canonical" href="https://hemingwestad.no/tools/map.html">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <link rel="icon" href="/favicon.ico" sizes="any">
-<meta name="theme-color" content="#b8552e">
-<meta property="og:title" content="Kart — Heming Westad">
+<meta name="theme-color" content="#ffffff">
+<meta property="og:title" content="Friluftskart | Heming Westad">
 <meta property="og:description" content="Klikk på kartet, få fiske + jakt + sol + strøm for stedet.">
-<meta property="og:image" content="https://hemingwestad.no/og-image.png">
+<meta property="og:image" content="https://hemingwestad.no/og-image.jpg">
 <meta property="og:url" content="https://hemingwestad.no/tools/map.html">
 <meta property="og:type" content="website">
 <meta property="og:locale" content="nb_NO">
 <meta name="twitter:card" content="summary_large_image">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..700;1,9..144,400&family=Inter+Tight:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
 <link rel="stylesheet" href="/style.css">
 <style>
@@ -33,35 +30,28 @@
   .info-panel .row-stat:last-of-type { border-bottom: none; }
   .info-panel .label { color: var(--ink-faint); font-family: var(--font-mono); font-size: 0.75rem; }
   .info-panel .value { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
-  .leaflet-popup-content { font-family: 'Inter Tight', sans-serif; font-size: 0.85rem; }
+  .leaflet-popup-content { font-family: 'Schibsted Grotesk', sans-serif; font-size: 0.85rem; }
 </style>
 </head>
 <body>
 <header>
-  <div class="logo"><a href="/">Heming Westad<span class="dot">.</span></a></div>
-  <nav>
+  <a class="site-name" href="/">Heming Westad</a>
+  <nav aria-label="Hovedmeny">
     <ul>
-      <li><a href="/">heim</a></li>
-      <li><a href="/tools.html" class="current">verktøy</a></li>
-      <li><a href="/projects.html">prosjekter</a></li>
-      <li><a href="/now.html">nå</a></li>
-      <li><a href="/about.html">om</a></li>
+      <li><a href="/tools.html" class="current">Verktøy</a></li>
+      <li><a href="/projects.html">Prosjekter</a></li>
+      <li><a href="/about.html">Om</a></li>
     </ul>
   </nav>
 </header>
 
 <main>
-  <div class="page-meta fade-up">
-    <span>Friluft-kart</span>
-    <span>MET Norway · Kartverket</span>
-    <span id="map-coords">63.43° N · 10.40° E</span>
-  </div>
 
-  <h1 class="fade-up">Friluft-<em>kart</em>.</h1>
-  <p class="lede fade-up">
-    Klikk hvor som helst i Norge for å se vær, sol/måne og fiske-/jakt-forhold akkurat der.
-    Bruk tre-knappen øverst til høyre for å bytte mellom kart-lag.
+  <h1>Friluftskart</h1>
+  <p class="lede">
+    Klikk hvor som helst i Norge for å se vær, sol, måne og fiske- og jaktforhold akkurat der. Bytt kartlag med knappen øverst til høyre.
   </p>
+  <p class="page-status"><span id="map-coords">63.43° N · 10.40° E</span></p>
 
   <div class="map-layout">
     <div id="map"></div>
@@ -81,17 +71,20 @@
   <hr>
   <p class="muted small">
     Kartfliser: OpenStreetMap (© bidragsytere), topo-kart fra Kartverket (åpent), Esri World Imagery.
-    Værdata fra MET Norway. Alt kjører lokalt — ingen tracking.
+    Værdata fra MET Norway. Stedet du klikker på sendes til MET og OpenStreetMap for å hente vær og stedsnavn. Ingen sporing ellers.
   </p>
 </main>
 
 <footer>
   <div class="footer-content">
-    <div>© 2026 — Heming Westad</div>
-    <div>Trondheim · <a href="https://github.com/hemingwestad-glitch/Nettside-public">kildekode</a></div>
+    <div>© 2026 Heming Westad, Trondheim</div>
+    <div class="footer-links">
+      <a href="/tools.html">Alle verktøy</a>
+      <a href="mailto:heming@hemingwestad.no">E-post</a>
+      <a href="https://github.com/hemingwestad-glitch/Nettside-public">Kildekode</a>
+    </div>
   </div>
-
-  <div class="footer-disclaimer">Bygd sammen med Claude (Anthropic) som pair-programmer. Designvalg og fakta er mine.</div>
+  <div class="footer-disclaimer">Laget med hjelp fra Claude (Anthropic).</div>
 </footer>
 
 <script src="/common.js"></script>

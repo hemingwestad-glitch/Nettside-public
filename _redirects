@@ -1,8 +1,12 @@
-# Cloudflare Pages-style redirects (også støttet av Workers' static assets)
-# 301 = permanent (bra for SEO)
+# Videresendinger (Workers static assets leser denne fila)
+# 301 = permanent
 
 /tools/orbit.html        /tools/space.html  301
 /tools/satellites.html   /tools/space.html  301
 /tools/tle.html          /tools/space.html  301
 /tools/linkbudget.html   /tools/space.html  301
 /tools/antenna.html      /tools/space.html  301
+
+# Nå-siden er slått sammen med Om
+/now.html                /about.html        301
+/now                     /about.html        301

@@ -10,51 +10,64 @@ Ren statisk HTML/CSS/JS. Ingen build-step, ingen backend.
 
 ```
 /
-├── index.html              Forside
-├── tools.html              Verktøy-oversikt
+├── index.html              Forside med himmelkart, strømpris og vannstand
+├── tools.html              Verktøyoversikt med søk
 ├── projects.html           Prosjekter
-├── now.html                Hva som skjer nå
-├── about.html              Om meg
-├── 404.html                404-side
-├── style.css               Designsystem (ett tema)
+├── about.html              Om meg og kontakt
+├── 404.html                Feilside
+├── now.html                Flyttet til about.html (kan slettes)
+├── style.css               Felles utseende
 ├── common.js               Felles JS (faner, hjelpefunksjoner)
+├── fonts/                  Schibsted Grotesk, lagret lokalt (OFL)
+├── bilder/meteor/          Egne mottak fra Meteor M2-3 og M2-4
+├── _redirects              Videresendinger
+├── .assetsignore           Filer som ikke skal ut på nettsiden
 └── tools/
-    ├── space.html          Konsolidert satellitt-arbeidsbord (7 faner)
-    ├── dynamics.html       3D dynamikk-sandkasse (Three.js + RK4)
-    ├── sand.html           Pikselfysikk — falling sand med folk, satellitter og sorte hull
-    ├── bridge.html         Brobygger — fagverksstatikk + softbody-bil (Verlet)
-    ├── tides.html          Tidevann i Trondheim + Fourier-sandkasse
-    ├── power.html          NO3 strømpriser
-    ├── fishing.html        Fiskeforhold (MET Norway)
-    ├── hunting.html        Jaktkalender (klauvdyr)
-    ├── wind.html           Ballistikk (G1/G7 drag)
-    ├── sun.html            Sol- og månekalender
+    ├── space.html          Satellitter: sporing, pass, Doppler, link budget (7 faner)
+    ├── meteor-guide.html   Guide: værbilder fra Meteor
+    ├── antenna-builder.html Antennedesigner
+    ├── radio.html          Bandplan, prefikser, Q-koder, morse
+    ├── dynamics.html       Dynamikk i 3D (Three.js + RK4)
+    ├── aviation.html       METAR, sidevind, density altitude, vekt og balanse
+    ├── aurora.html         Nordlysvarsel
+    ├── map.html            Friluftskart (Leaflet)
+    ├── wind.html           Ballistikk (G1/G7)
+    ├── hunting.html        Jaktkalender
+    ├── fishing.html        Fiskeforhold (MET)
+    ├── sun.html            Sol og måne
+    ├── discgolf.html       Frisbeegolf-simulator
+    ├── tides.html          Tidevann og Fourier-sandkasse
+    ├── power.html          Strømpris NO3
+    ├── sand.html           Pikselfysikk
+    ├── bridge.html         Brobygger
     ├── converter.html      Enheter, frekvens, dB
-    ├── pressure.html       Trykk-omregner (vakuum)
-    ├── time.html           Tidskonverterer (UTC/JD/GMST)
-    ├── orbit.html          → space.html (redirect)
-    ├── satellites.html     → space.html (redirect)
-    ├── tle.html            → space.html (redirect)
-    ├── linkbudget.html     → space.html (redirect)
-    └── antenna.html        → space.html (redirect)
+    ├── pressure.html       Trykk
+    └── time.html           Tid (UTC/JD/GMST)
 ```
 
-## Designvalg
+## Utseende
 
-Ett tidløst tema, inspirert av tekniske manualer og kartblader.
-Varm off-white bakgrunn, terrakotta-aksenter, JetBrains Mono for tall
-og Fraunces som display-font.
+Hvit bakgrunn, svart tekst og én skrift (Schibsted Grotesk). Blått er lenker
+og knapper, oransje er levende data og hovedserien i diagrammer. Vanlig
+setningsform overalt, ingen versaler eller nummerering til pynt.
 
-## Eksterne avhengigheter
+Verktøysidene deler klassene i `style.css` (`.panel`, `.stat`, `.tabs`,
+`.data-table` osv.). Topp og bunn er kopiert inn i hver HTML-fil, så en
+endring i menyen må gjøres i alle.
 
-Alle hentes fra CDN, ingen build-step.
+## Eksterne kilder
 
-- **Google Fonts** – Fraunces, Inter Tight, JetBrains Mono
-- **MET Norway** – Vær for fishing.html, tidevann for tides.html
-- **hvakosterstrommen.no** – Strømpriser
-- **CelesTrak** – TLE-data for satellitter
-- **satellite.js** – SGP4-implementasjon
-- **Three.js** (r0.160) – 3D-rendering for dynamics og space
+Verktøyene regner i nettleseren, men henter data og noen biblioteker utenfra:
+
+- **MET Norway**: vær (fishing, map, aurora) og vannstand (tides, forsiden)
+- **hvakosterstrommen.no**: strømpriser
+- **CelesTrak**: TLE-data for satellitter
+- **NOAA SWPC**: Kp-indeks og solvind (aurora)
+- **aviationweather.gov**: METAR
+- **OpenStreetMap, Kartverket, Esri**: kartfliser og stedsnavn (map)
+- **jsDelivr og unpkg**: satellite.js, Three.js (r0.160) og Leaflet
+
+Skriften ligger lokalt i `fonts/`, så ingenting hentes fra Google Fonts.
 
 ## Tester
 

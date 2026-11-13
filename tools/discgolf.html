@@ -1,21 +1,18 @@
 <!DOCTYPE html>
-<html lang="no" spellcheck="false">
+<html lang="nb">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="description" content="Frisbeegolf-simulator med stivlegeme-aerodynamikk: gyroskopisk presesjon, hyzer/anhyzer, høydeforskjell, vind — og en wiki om CFD, meshing og y+.">
-<title>Frisbeegolf-simulator — Heming Westad</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..700;1,9..144,400&family=Inter+Tight:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<meta name="description" content="Frisbeegolf-simulator med stivlegeme-aerodynamikk: gyroskopisk presesjon, hyzer/anhyzer, høydeforskjell, vind, og en wiki om CFD, meshing og y+.">
+<title>Frisbeegolf | Heming Westad</title>
 <meta name="author" content="Heming Westad">
 <link rel="canonical" href="https://hemingwestad.no/tools/discgolf.html">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <link rel="icon" href="/favicon.ico" sizes="any">
-<meta name="theme-color" content="#b8552e">
-<meta property="og:title" content="Frisbeegolf-simulator — Heming Westad">
+<meta name="theme-color" content="#ffffff">
+<meta property="og:title" content="Frisbeegolf | Heming Westad">
 <meta property="og:description" content="Stivlegeme-aerodynamikk med gyroskopisk presesjon. Og en wiki om hvorfor full CFD av en disc er et mareritt.">
-<meta property="og:image" content="https://hemingwestad.no/og-image.png">
+<meta property="og:image" content="https://hemingwestad.no/og-image.jpg">
 <meta property="og:url" content="https://hemingwestad.no/tools/discgolf.html">
 <meta property="og:type" content="website">
 <meta property="og:locale" content="nb_NO">
@@ -53,8 +50,6 @@
   padding: 0.85rem 1.1rem;
   font-family: var(--font-mono);
   font-size: 0.78rem;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
   color: var(--ink);
   list-style: none;
 }
@@ -82,8 +77,7 @@
   flex-wrap: wrap; margin-bottom: 0.7rem;
 }
 .dg-opt-lock-label {
-  font-family: var(--font-mono); font-size: 0.62rem; text-transform: uppercase;
-  letter-spacing: 0.12em; color: var(--ink-dim); margin: 0;
+  font-family: var(--font-mono); font-size: 0.62rem;color: var(--ink-dim); margin: 0;
 }
 .dg-opt-lock {
   display: inline-flex; align-items: center; gap: 0.4rem; margin: 0;
@@ -96,33 +90,24 @@
 </head>
 <body>
 <header>
-  <div class="logo"><a href="/">Heming Westad<span class="dot">.</span></a></div>
-  <nav>
+  <a class="site-name" href="/">Heming Westad</a>
+  <nav aria-label="Hovedmeny">
     <ul>
-      <li><a href="/">heim</a></li>
-      <li><a href="/tools.html" class="current">verktøy</a></li>
-      <li><a href="/projects.html">prosjekter</a></li>
-      <li><a href="/now.html">nå</a></li>
-      <li><a href="/about.html">om</a></li>
+      <li><a href="/tools.html" class="current">Verktøy</a></li>
+      <li><a href="/projects.html">Prosjekter</a></li>
+      <li><a href="/about.html">Om</a></li>
     </ul>
   </nav>
 </header>
 
 <main>
-  <div class="page-meta fade-up">
-    <span>Frisbeegolf</span>
-    <span>6-DOF-lite · RK4</span>
-    <span>Gyroskopisk presesjon</span>
-  </div>
 
-  <h1 class="fade-up">Frisbeegolf<em>-simulator</em>.</h1>
-  <p class="lede fade-up">
-    Stivlegeme-modell med ekte aerodynamiske koeffisienter: turn og fade er
-    ikke programmert inn — de <em>oppstår</em> av gyroskopisk presesjon når
-    pitch-momentet flytter seg med angrepsvinkelen. Integrert med RK4.
+  <h1>Frisbeegolf</h1>
+  <p class="lede">
+    Disken er simulert som et stivt legeme med ekte aerodynamiske koeffisienter. Turn og fade er ikke programmert inn, de oppstår av gyroskopisk presesjon når pitch-momentet flytter seg med angrepsvinkelen. Integrert med RK4.
   </p>
 
-  <div class="panel fade-up">
+  <div class="panel">
     <div class="panel-title">Disc og flight-tall</div>
     <div class="field-row">
       <div class="field">
@@ -223,7 +208,7 @@
     <p class="dg-ghost-note" id="ghost-note">Hyzer-slideren: venstre = anhyzer (topp mot deg), høyre = hyzer (topp fra deg). Frys inntil tre baner for å sammenligne.</p>
   </div>
 
-  <div class="panel fade-up dg-opt">
+  <div class="panel dg-opt">
     <div class="panel-title">Optimaliser kast</div>
     <div class="field-row">
       <div class="field">
@@ -450,11 +435,14 @@
 
 <footer>
   <div class="footer-content">
-    <div>© 2026 — Heming Westad</div>
-    <div>Trondheim · <a href="https://github.com/hemingwestad-glitch/Nettside-public">kildekode</a></div>
+    <div>© 2026 Heming Westad, Trondheim</div>
+    <div class="footer-links">
+      <a href="/tools.html">Alle verktøy</a>
+      <a href="mailto:heming@hemingwestad.no">E-post</a>
+      <a href="https://github.com/hemingwestad-glitch/Nettside-public">Kildekode</a>
+    </div>
   </div>
-
-  <div class="footer-disclaimer">Bygd sammen med Claude (Anthropic) som pair-programmer. Designvalg og fakta er mine.</div>
+  <div class="footer-disclaimer">Laget med hjelp fra Claude (Anthropic).</div>
 </footer>
 
 <script src="/common.js"></script>
@@ -626,16 +614,16 @@ if (typeof document !== 'undefined') {
   const $ = id => document.getElementById(id);
   const css = v => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
   const C = {
-    accent: css('--accent') || '#b8552e',
-    ink: css('--ink') || '#161310',
-    faint: css('--ink-faint') || '#9a9087',
-    hair: css('--rule-hair') || '#e6e0d2',
-    soft: css('--rule-soft') || '#cdc6b6',
-    blue: css('--blue') || '#2f4855',
-    green: css('--green') || '#5a6b3e',
+    accent: css('--accent') || '#e8590c',
+    ink: css('--ink') || '#17191a',
+    faint: css('--ink-faint') || '#6f7775',
+    hair: css('--rule-hair') || '#e3e7e3',
+    soft: css('--rule-soft') || '#c9cec9',
+    blue: css('--blue') || '#1f4ac4',
+    green: css('--green') || '#2f7d3b',
     terrain: '#d8d0c0'
   };
-  const GHOST_COLORS = [C.blue, C.green, '#c89832'];
+  const GHOST_COLORS = [C.blue, C.green, '#c98a00'];
   let ghosts = [];
   let anim = null;
   let current = null;
@@ -705,7 +693,7 @@ if (typeof document !== 'undefined') {
   }
 
   function grid(ctx, w, h, proj) {
-    ctx.font = '10px "JetBrains Mono", monospace';
+    ctx.font = '10px "Schibsted Grotesk", sans-serif';
     ctx.fillStyle = C.faint;
     ctx.lineWidth = 1;
     for (let d = 0; d <= RANGE.dist; d += 10) {

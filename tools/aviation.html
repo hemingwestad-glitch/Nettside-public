@@ -1,29 +1,26 @@
 <!DOCTYPE html>
-<html lang="no" spellcheck="false">
+<html lang="nb">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Fly-verktøy — Heming Westad</title>
-<meta name="description" content="METAR/TAF, krysswind, density altitude, vekt og balanse for småfly. Skreddersydd for ENVA/ENNO/ENRO.">
+<title>Fly | Heming Westad</title>
+<meta name="description" content="METAR/TAF, sidevind, density altitude, vekt og balanse for småfly. Skreddersydd for ENVA/ENNO/ENRO.">
 <meta name="author" content="Heming Westad">
 <link rel="canonical" href="https://hemingwestad.no/tools/aviation.html">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <link rel="icon" href="/favicon.ico" sizes="any">
-<meta name="theme-color" content="#b8552e">
-<meta property="og:title" content="Fly-verktøy — Heming Westad">
-<meta property="og:description" content="METAR, krysswind, density altitude, vekt + balanse.">
-<meta property="og:image" content="https://hemingwestad.no/og-image.png">
+<meta name="theme-color" content="#ffffff">
+<meta property="og:title" content="Fly | Heming Westad">
+<meta property="og:description" content="METAR, sidevind, density altitude, vekt og balanse.">
+<meta property="og:image" content="https://hemingwestad.no/og-image.jpg">
 <meta property="og:url" content="https://hemingwestad.no/tools/aviation.html">
 <meta property="og:type" content="website">
 <meta property="og:locale" content="nb_NO">
 <meta name="twitter:card" content="summary_large_image">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..700;1,9..144,400&family=Inter+Tight:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/style.css">
 <style>
   .metar-raw {
-    font-family: 'JetBrains Mono', monospace;
+    font-family: 'Schibsted Grotesk', sans-serif;
     font-size: 0.85rem;
     background: var(--bg-soft);
     padding: 0.6rem 0.8rem;
@@ -37,28 +34,21 @@
 </head>
 <body>
 <header>
-  <div class="logo"><a href="/">Heming Westad<span class="dot">.</span></a></div>
-  <nav>
+  <a class="site-name" href="/">Heming Westad</a>
+  <nav aria-label="Hovedmeny">
     <ul>
-      <li><a href="/">heim</a></li>
-      <li><a href="/tools.html" class="current">verktøy</a></li>
-      <li><a href="/projects.html">prosjekter</a></li>
-      <li><a href="/now.html">nå</a></li>
-      <li><a href="/about.html">om</a></li>
+      <li><a href="/tools.html" class="current">Verktøy</a></li>
+      <li><a href="/projects.html">Prosjekter</a></li>
+      <li><a href="/about.html">Om</a></li>
     </ul>
   </nav>
 </header>
 
 <main>
-  <div class="page-meta fade-up">
-    <span>Fly-verktøy</span>
-    <span>METAR · krysswind · DA · W&amp;B</span>
-    <span>Norske flyplasser</span>
-  </div>
 
-  <h1 class="fade-up">Fly-<em>verktøy</em>.</h1>
-  <p class="lede fade-up">
-    For lavkostnads-flygere og GA-piloter. Live METAR fra AVINOR, krysswind-/headwind-dekomponering, density altitude og en enkel vekt+balanse-kalkulator.
+  <h1>Flyverktøy</h1>
+  <p class="lede">
+    METAR for norske flyplasser, sidevind og motvind, density altitude og en enkel kalkulator for vekt og balanse.
   </p>
 
   <div class="tabs">
@@ -96,7 +86,7 @@
         </div>
         <div class="field" id="custom-icao-field" style="display:none;">
           <label>Egen ICAO-kode</label>
-          <input type="text" id="metar-custom" maxlength="4" style="text-transform:uppercase;" placeholder="ENGM">
+          <input type="text" id="metar-custom" maxlength="4" style="" placeholder="ENGM">
         </div>
         <div class="field" style="align-self: flex-end;">
           <button id="metar-fetch">Hent METAR</button>
@@ -109,7 +99,7 @@
 
   <!-- Vind &amp; bane -->
   <div class="tab-panel" data-panel="wind">
-    <p>Krysswind- og headwind-komponenter for valgt rullebane. Du kan også importere vind fra hentet METAR i forrige fane.</p>
+    <p>Sidevind og motvind for valgt rullebane. Du kan også importere vind fra hentet METAR i forrige fane.</p>
     <div class="panel">
       <div class="field-row">
         <div class="field">
@@ -133,8 +123,8 @@
 
     <div class="stat-grid">
       <div class="stat blue"><div class="stat-label">Motvind</div><div class="stat-value" id="hw">—</div></div>
-      <div class="stat accent"><div class="stat-label">Krysswind</div><div class="stat-value" id="xw">—</div></div>
-      <div class="stat"><div class="stat-label">Krysswind-vinkel</div><div class="stat-value" id="xw-ang">—</div></div>
+      <div class="stat accent"><div class="stat-label">Sidevind</div><div class="stat-value" id="xw">—</div></div>
+      <div class="stat"><div class="stat-label">Sidevindsvinkel</div><div class="stat-value" id="xw-ang">—</div></div>
       <div class="stat"><div class="stat-label">Maks med gust</div><div class="stat-value" id="xw-gust">—</div></div>
     </div>
 
@@ -248,11 +238,14 @@
 
 <footer>
   <div class="footer-content">
-    <div>© 2026 — Heming Westad</div>
-    <div>Trondheim · <a href="https://github.com/hemingwestad-glitch/Nettside-public">kildekode</a></div>
+    <div>© 2026 Heming Westad, Trondheim</div>
+    <div class="footer-links">
+      <a href="/tools.html">Alle verktøy</a>
+      <a href="mailto:heming@hemingwestad.no">E-post</a>
+      <a href="https://github.com/hemingwestad-glitch/Nettside-public">Kildekode</a>
+    </div>
   </div>
-
-  <div class="footer-disclaimer">Bygd sammen med Claude (Anthropic) som pair-programmer. Designvalg og fakta er mine.</div>
+  <div class="footer-disclaimer">Laget med hjelp fra Claude (Anthropic).</div>
 </footer>
 
 <script src="/common.js"></script>
@@ -364,10 +357,10 @@ function calcWind() {
   // Verdict
   const xwMax = Math.max(Math.abs(xw), Math.abs(wg * Math.sin(angle * Math.PI / 180) || 0));
   let v = '';
-  if (xwMax < 5) v = 'Lett krysswind. Greit for de fleste.';
-  else if (xwMax < 12) v = 'Moderat krysswind. Krever oppmerksomhet.';
-  else if (xwMax < 17) v = 'Sterk krysswind. Demoreglene fra POH gjelder.';
-  else v = 'Meget sterk krysswind. Vurder annen rullebane eller annet sted.';
+  if (xwMax < 5) v = 'Lett sidevind. Greit for de fleste.';
+  else if (xwMax < 12) v = 'Moderat sidevind. Krever oppmerksomhet.';
+  else if (xwMax < 17) v = 'Sterk sidevind. Demoreglene fra POH gjelder.';
+  else v = 'Meget sterk sidevind. Vurder annen rullebane eller annet sted.';
   if (hw < 0) v += ' MEDVIND langs banen — vurder å snu (' + (180 + rwy) % 360 + '°).';
   $('rwy-verdict').textContent = v;
   drawRunway(rwy, wd, ws, xw, hw);
@@ -378,13 +371,13 @@ function drawRunway(rwy, wd, ws, xw, hw) {
   let s = '';
   // Rullebane
   s += `<g transform="rotate(${rwy - 360} ${cx} ${cy})">`;
-  s += `<rect x="${cx-30}" y="${cy-90}" width="60" height="180" fill="#3d3833" rx="3"/>`;
-  s += `<line x1="${cx}" y1="${cy-90}" x2="${cx}" y2="${cy+90}" stroke="#f5f1ea" stroke-width="1" stroke-dasharray="8,8"/>`;
+  s += `<rect x="${cx-30}" y="${cy-90}" width="60" height="180" fill="#34393a" rx="3"/>`;
+  s += `<line x1="${cx}" y1="${cy-90}" x2="${cx}" y2="${cy+90}" stroke="#ffffff" stroke-width="1" stroke-dasharray="8,8"/>`;
   // Bane-nummer
   const num = Math.round(rwy/10).toString().padStart(2, '0');
   const numOpp = Math.round(((rwy + 180) % 360)/10).toString().padStart(2, '0');
-  s += `<text x="${cx}" y="${cy+80}" text-anchor="middle" fill="#f5f1ea" font-family="JetBrains Mono" font-size="16" font-weight="600">${num}</text>`;
-  s += `<g transform="rotate(180 ${cx} ${cy-80})"><text x="${cx}" y="${cy-80}" text-anchor="middle" fill="#f5f1ea" font-family="JetBrains Mono" font-size="16" font-weight="600">${numOpp}</text></g>`;
+  s += `<text x="${cx}" y="${cy+80}" text-anchor="middle" fill="#ffffff" font-family="Schibsted Grotesk" font-size="16" font-weight="600">${num}</text>`;
+  s += `<g transform="rotate(180 ${cx} ${cy-80})"><text x="${cx}" y="${cy-80}" text-anchor="middle" fill="#ffffff" font-family="Schibsted Grotesk" font-size="16" font-weight="600">${numOpp}</text></g>`;
   s += `</g>`;
   // Vind-pil (peker MED vinden, fra wd)
   const windArrowAngle = wd; // FROM-retning betyr pilen peker mot bane fra wd
@@ -394,14 +387,14 @@ function drawRunway(rwy, wd, ws, xw, hw) {
   s += `<line x1="${ax}" y1="${ay - 50}" x2="${ax}" y2="${ay + 20}" stroke="var(--accent)" stroke-width="3"/>`;
   s += `<polygon points="${ax-8},${ay-50} ${ax+8},${ay-50} ${ax},${ay-65}" fill="var(--accent)"/>`;
   s += `</g>`;
-  s += `<text x="${ax}" y="${ay + 40}" text-anchor="middle" fill="var(--accent)" font-family="JetBrains Mono" font-size="13">${ws} kt FRA ${wd}°</text>`;
+  s += `<text x="${ax}" y="${ay + 40}" text-anchor="middle" fill="var(--accent)" font-family="Schibsted Grotesk" font-size="13">${ws} kt FRA ${wd}°</text>`;
   // Kompass-ring
   s += `<circle cx="${cx}" cy="${cy}" r="105" fill="none" stroke="var(--rule)" stroke-width="0.5"/>`;
   for (const a of [0, 90, 180, 270]) {
     const labels = { 0: 'N', 90: 'E', 180: 'S', 270: 'W' };
     const tx = cx + 115 * Math.sin(a * Math.PI / 180);
     const ty = cy - 115 * Math.cos(a * Math.PI / 180) + 4;
-    s += `<text x="${tx}" y="${ty}" text-anchor="middle" fill="var(--ink-faint)" font-family="JetBrains Mono" font-size="11">${labels[a]}</text>`;
+    s += `<text x="${tx}" y="${ty}" text-anchor="middle" fill="var(--ink-faint)" font-family="Schibsted Grotesk" font-size="11">${labels[a]}</text>`;
   }
   $('rwy-svg').innerHTML = s;
 }
@@ -493,26 +486,26 @@ function drawWBChart(cg, total) {
   let s = '';
   // Grid
   for (let x = 32; x <= 50; x += 2) {
-    s += `<line x1="${xS(x)}" y1="${m.t}" x2="${xS(x)}" y2="${m.t + h}" stroke="#e6e0d2" stroke-width="0.5"/>`;
-    s += `<text x="${xS(x)}" y="${m.t + h + 14}" text-anchor="middle" fill="#9a9087" font-family="JetBrains Mono" font-size="10">${x}</text>`;
+    s += `<line x1="${xS(x)}" y1="${m.t}" x2="${xS(x)}" y2="${m.t + h}" stroke="#e3e7e3" stroke-width="0.5"/>`;
+    s += `<text x="${xS(x)}" y="${m.t + h + 14}" text-anchor="middle" fill="#6f7775" font-family="Schibsted Grotesk" font-size="10">${x}</text>`;
   }
   for (let y = 1400; y <= 2500; y += 200) {
-    s += `<line x1="${m.l}" y1="${yS(y)}" x2="${m.l + w}" y2="${yS(y)}" stroke="#e6e0d2" stroke-width="0.5"/>`;
-    s += `<text x="${m.l - 6}" y="${yS(y)+3}" text-anchor="end" fill="#9a9087" font-family="JetBrains Mono" font-size="10">${y}</text>`;
+    s += `<line x1="${m.l}" y1="${yS(y)}" x2="${m.l + w}" y2="${yS(y)}" stroke="#e3e7e3" stroke-width="0.5"/>`;
+    s += `<text x="${m.l - 6}" y="${yS(y)+3}" text-anchor="end" fill="#6f7775" font-family="Schibsted Grotesk" font-size="10">${y}</text>`;
   }
-  s += `<text x="${m.l + w/2}" y="${H - 4}" text-anchor="middle" fill="#6b645b" font-family="JetBrains Mono" font-size="11">CG (inches aft of datum)</text>`;
-  s += `<text x="14" y="${m.t + h/2}" fill="#6b645b" font-family="JetBrains Mono" font-size="11" transform="rotate(-90 14 ${m.t + h/2})">Weight (lbs)</text>`;
+  s += `<text x="${m.l + w/2}" y="${H - 4}" text-anchor="middle" fill="#596160" font-family="Schibsted Grotesk" font-size="11">CG (inches aft of datum)</text>`;
+  s += `<text x="14" y="${m.t + h/2}" fill="#596160" font-family="Schibsted Grotesk" font-size="11" transform="rotate(-90 14 ${m.t + h/2})">Weight (lbs)</text>`;
   // Envelope
   const pts = ENVELOPE.map(([x, y]) => `${xS(x)},${yS(y)}`).join(' ');
-  s += `<polygon points="${pts}" fill="rgba(90,107,62,0.12)" stroke="var(--green)" stroke-width="1.5"/>`;
+  s += `<polygon points="${pts}" fill="rgba(47, 125, 59,0.12)" stroke="var(--green)" stroke-width="1.5"/>`;
   // Current point
   if (cg >= xMin && cg <= xMax && total >= yMin && total <= yMax) {
     s += `<circle cx="${xS(cg)}" cy="${yS(total)}" r="6" fill="var(--accent)"/>`;
-    s += `<text x="${xS(cg) + 10}" y="${yS(total) - 8}" fill="var(--accent-deep)" font-family="JetBrains Mono" font-size="11">${cg.toFixed(1)}", ${total.toFixed(0)} lb</text>`;
+    s += `<text x="${xS(cg) + 10}" y="${yS(total) - 8}" fill="var(--accent-deep)" font-family="Schibsted Grotesk" font-size="11">${cg.toFixed(1)}", ${total.toFixed(0)} lb</text>`;
   }
   // MTOW-linje
   s += `<line x1="${m.l}" y1="${yS(MTOW)}" x2="${m.l + w}" y2="${yS(MTOW)}" stroke="var(--accent)" stroke-width="1" stroke-dasharray="4,3"/>`;
-  s += `<text x="${m.l + w - 5}" y="${yS(MTOW) - 3}" text-anchor="end" fill="var(--accent)" font-family="JetBrains Mono" font-size="10">MTOW ${MTOW} lb</text>`;
+  s += `<text x="${m.l + w - 5}" y="${yS(MTOW) - 3}" text-anchor="end" fill="var(--accent)" font-family="Schibsted Grotesk" font-size="10">MTOW ${MTOW} lb</text>`;
   $('wb-svg').innerHTML = s;
 }
 ['wb-empty','wb-empty-arm','wb-front','wb-rear','wb-baggage','wb-fuel'].forEach(id => $(id).addEventListener('input', calcWB));

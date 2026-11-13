@@ -3,7 +3,6 @@
   <url><loc>https://hemingwestad.no/</loc><priority>1.0</priority><changefreq>weekly</changefreq></url>
   <url><loc>https://hemingwestad.no/about.html</loc><priority>0.9</priority><changefreq>monthly</changefreq></url>
   <url><loc>https://hemingwestad.no/projects.html</loc><priority>0.8</priority><changefreq>monthly</changefreq></url>
-  <url><loc>https://hemingwestad.no/now.html</loc><priority>0.7</priority><changefreq>weekly</changefreq></url>
   <url><loc>https://hemingwestad.no/tools.html</loc><priority>0.9</priority><changefreq>monthly</changefreq></url>
   <url><loc>https://hemingwestad.no/tools/space.html</loc><priority>0.8</priority><changefreq>monthly</changefreq></url>
   <url><loc>https://hemingwestad.no/tools/wind.html</loc><priority>0.8</priority><changefreq>monthly</changefreq></url>

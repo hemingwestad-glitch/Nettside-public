@@ -1,21 +1,18 @@
 <!DOCTYPE html>
-<html lang="no" spellcheck="false">
+<html lang="nb">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Strømpriser NO3 — Heming Westad</title>
+<title>Strømpris | Heming Westad</title>
 <meta name="description" content="Live strømpriser for Midt-Norge (NO3). Døgnkurve, billigste timer, 7-dagers oversikt.">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..700;1,9..144,400&family=Inter+Tight:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <meta name="author" content="Heming Westad">
 <link rel="canonical" href="https://hemingwestad.no/tools/power.html">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <link rel="icon" href="/favicon.ico" sizes="any">
-<meta name="theme-color" content="#b8552e">
-<meta property="og:title" content="Strømpriser NO3 — Heming Westad">
+<meta name="theme-color" content="#ffffff">
+<meta property="og:title" content="Strømpris | Heming Westad">
 <meta property="og:description" content="Spotpris time for time. Døgnkurve, billigste timer.">
-<meta property="og:image" content="https://hemingwestad.no/og-image.png">
+<meta property="og:image" content="https://hemingwestad.no/og-image.jpg">
 <meta property="og:url" content="https://hemingwestad.no/tools/power.html">
 <meta property="og:type" content="website">
 <meta property="og:locale" content="nb_NO">
@@ -24,32 +21,24 @@
 </head>
 <body>
 <header>
-  <div class="logo"><a href="/">Heming Westad<span class="dot">.</span></a></div>
-  <nav>
+  <a class="site-name" href="/">Heming Westad</a>
+  <nav aria-label="Hovedmeny">
     <ul>
-      <li><a href="/">heim</a></li>
-      <li><a href="/tools.html" class="current">verktøy</a></li>
-      <li><a href="/projects.html">prosjekter</a></li>
-      <li><a href="/now.html">nå</a></li>
-      <li><a href="/about.html">om</a></li>
+      <li><a href="/tools.html" class="current">Verktøy</a></li>
+      <li><a href="/projects.html">Prosjekter</a></li>
+      <li><a href="/about.html">Om</a></li>
     </ul>
   </nav>
 </header>
 
 <main>
-  <div class="page-meta fade-up">
-    <span><span class="dot live"></span>Strømpriser</span>
-    <span>Område: NO3 (Midt-Norge)</span>
-    <span>Kilde: hvakosterstrommen.no</span>
-  </div>
 
-  <h1 class="fade-up">Strømpriser <em>NO3</em>.</h1>
-  <p class="lede fade-up">
-    Spotpris fra Nord Pool, time for time. Priser for i morgen blir tilgjengelig
-    rundt kl. 13. Tallene er i øre/kWh inkl. mva (25 %).
+  <h1>Strømpris i Midt-Norge</h1>
+  <p class="lede">
+    Spotpris fra Nord Pool for NO3, time for time, hentet fra hvakosterstrommen.no. Prisene for i morgen kommer rundt kl. 13. Tallene er i øre/kWh med mva (25 %).
   </p>
 
-  <div class="stat-grid fade-up" id="stats">
+  <div class="stat-grid" id="stats">
     <div class="stat"><div class="stat-label">Akkurat nå</div><div class="stat-value" id="now-price">—</div></div>
     <div class="stat"><div class="stat-label">Snitt i dag</div><div class="stat-value" id="avg-today">—</div></div>
     <div class="stat blue"><div class="stat-label">Billigste time</div><div class="stat-value" id="min-today">—</div></div>
@@ -92,11 +81,14 @@
 
 <footer>
   <div class="footer-content">
-    <div>© 2026 — Heming Westad</div>
-    <div>Trondheim · <a href="https://github.com/hemingwestad-glitch/Nettside-public">kildekode</a></div>
+    <div>© 2026 Heming Westad, Trondheim</div>
+    <div class="footer-links">
+      <a href="/tools.html">Alle verktøy</a>
+      <a href="mailto:heming@hemingwestad.no">E-post</a>
+      <a href="https://github.com/hemingwestad-glitch/Nettside-public">Kildekode</a>
+    </div>
   </div>
-
-  <div class="footer-disclaimer">Bygd sammen med Claude (Anthropic) som pair-programmer. Designvalg og fakta er mine.</div>
+  <div class="footer-disclaimer">Laget med hjelp fra Claude (Anthropic).</div>
 </footer>
 
 <script src="/common.js"></script>
@@ -147,7 +139,7 @@ function colorForPrice(p, scale) {
 
 function renderHourChart(svg, hours, currentHour = -1) {
   if (!hours || hours.length === 0) {
-    svg.innerHTML = '<text x="400" y="140" text-anchor="middle" fill="#9a9087" font-family="JetBrains Mono" font-size="14">Ingen data</text>';
+    svg.innerHTML = '<text x="400" y="140" text-anchor="middle" fill="#6f7775" font-family="Schibsted Grotesk" font-size="14">Ingen data</text>';
     return;
   }
 
@@ -170,14 +162,14 @@ function renderHourChart(svg, hours, currentHour = -1) {
   const step = max > 300 ? 100 : (max > 100 ? 50 : 25);
   for (let v = Math.ceil(min / step) * step; v <= max; v += step) {
     const y = yScale(v);
-    s += `<line x1="${m.l}" y1="${y}" x2="${W - m.r}" y2="${y}" stroke="#e6e0d2" stroke-width="1"/>`;
-    s += `<text x="${m.l - 6}" y="${y + 4}" text-anchor="end" fill="#9a9087" font-family="JetBrains Mono" font-size="10">${v}</text>`;
+    s += `<line x1="${m.l}" y1="${y}" x2="${W - m.r}" y2="${y}" stroke="#e3e7e3" stroke-width="1"/>`;
+    s += `<text x="${m.l - 6}" y="${y + 4}" text-anchor="end" fill="#6f7775" font-family="Schibsted Grotesk" font-size="10">${v}</text>`;
   }
 
   // Linje for 0
   if (min < 0 && max > 0) {
     const y0 = yScale(0);
-    s += `<line x1="${m.l}" y1="${y0}" x2="${W - m.r}" y2="${y0}" stroke="#9a9087" stroke-width="1" stroke-dasharray="3,3"/>`;
+    s += `<line x1="${m.l}" y1="${y0}" x2="${W - m.r}" y2="${y0}" stroke="#6f7775" stroke-width="1" stroke-dasharray="3,3"/>`;
   }
 
   const scale = {
@@ -202,7 +194,7 @@ function renderHourChart(svg, hours, currentHour = -1) {
 
     // Time-label hver 3. time
     if (i % 3 === 0) {
-      s += `<text x="${x + barW / 2}" y="${H - m.b + 14}" text-anchor="middle" fill="#6b645b" font-family="JetBrains Mono" font-size="10">${String(d.hour).padStart(2,'0')}</text>`;
+      s += `<text x="${x + barW / 2}" y="${H - m.b + 14}" text-anchor="middle" fill="#596160" font-family="Schibsted Grotesk" font-size="10">${String(d.hour).padStart(2,'0')}</text>`;
     }
   });
 
@@ -211,7 +203,7 @@ function renderHourChart(svg, hours, currentHour = -1) {
 
 function renderWeekChart(svg, days) {
   if (!days || days.length === 0) {
-    svg.innerHTML = '<text x="400" y="100" text-anchor="middle" fill="#9a9087" font-family="JetBrains Mono" font-size="14">Ingen data</text>';
+    svg.innerHTML = '<text x="400" y="100" text-anchor="middle" fill="#6f7775" font-family="Schibsted Grotesk" font-size="14">Ingen data</text>';
     return;
   }
 
@@ -231,8 +223,8 @@ function renderWeekChart(svg, days) {
   const step = max > 300 ? 100 : (max > 100 ? 50 : 25);
   for (let v = Math.ceil(min / step) * step; v <= max; v += step) {
     const y = yScale(v);
-    s += `<line x1="${m.l}" y1="${y}" x2="${W - m.r}" y2="${y}" stroke="#e6e0d2"/>`;
-    s += `<text x="${m.l - 6}" y="${y + 4}" text-anchor="end" fill="#9a9087" font-family="JetBrains Mono" font-size="10">${v}</text>`;
+    s += `<line x1="${m.l}" y1="${y}" x2="${W - m.r}" y2="${y}" stroke="#e3e7e3"/>`;
+    s += `<text x="${m.l - 6}" y="${y + 4}" text-anchor="end" fill="#6f7775" font-family="Schibsted Grotesk" font-size="10">${v}</text>`;
   }
 
   days.forEach((d, i) => {
@@ -243,8 +235,8 @@ function renderWeekChart(svg, days) {
 
     const date = d.date;
     const dayLabel = date.toLocaleDateString('nb-NO', { weekday: 'short', day: 'numeric', month: 'numeric' });
-    s += `<text x="${x + barW / 2 - 4}" y="${H - m.b + 14}" text-anchor="middle" fill="#6b645b" font-family="JetBrains Mono" font-size="10">${dayLabel}</text>`;
-    s += `<text x="${x + barW / 2 - 4}" y="${y - 4}" text-anchor="middle" fill="#3d3833" font-family="JetBrains Mono" font-size="10">${d.avg.toFixed(0)}</text>`;
+    s += `<text x="${x + barW / 2 - 4}" y="${H - m.b + 14}" text-anchor="middle" fill="#596160" font-family="Schibsted Grotesk" font-size="10">${dayLabel}</text>`;
+    s += `<text x="${x + barW / 2 - 4}" y="${y - 4}" text-anchor="middle" fill="#34393a" font-family="Schibsted Grotesk" font-size="10">${d.avg.toFixed(0)}</text>`;
   });
 
   svg.innerHTML = s;
@@ -280,7 +272,7 @@ async function init() {
 
   if (!todayData) {
     document.getElementById('chart-today').innerHTML =
-      '<text x="400" y="140" text-anchor="middle" fill="#9a9087" font-family="JetBrains Mono" font-size="14">Klarte ikke hente prisdata. Prøv igjen senere.</text>';
+      '<text x="400" y="140" text-anchor="middle" fill="#6f7775" font-family="Schibsted Grotesk" font-size="14">Klarte ikke hente prisdata. Prøv igjen senere.</text>';
     return;
   }
 

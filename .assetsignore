@@ -1,0 +1,13 @@
+# Filer som ligger i repoet, men ikke skal ut på nettsiden.
+# Samme format som .gitignore.
+.git
+.github
+.gitignore
+.editorconfig
+.assetsignore
+.wrangler
+node_modules
+README.md
+wrangler.jsonc
+test
+og-image.svg

@@ -1,21 +1,18 @@
 <!DOCTYPE html>
-<html lang="no" spellcheck="false">
+<html lang="nb">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title id="page-title">Fiskeforhold — Heming Westad</title>
+<title id="page-title">Fiskeforhold | Heming Westad</title>
 <meta name="description" content="Live vær, lufttrykktrend og fiskeindeks fra MET Norway. Skreddersydd for fjellørret.">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..700;1,9..144,400&family=Inter+Tight:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <meta name="author" content="Heming Westad">
 <link rel="canonical" href="https://hemingwestad.no/tools/fishing.html">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <link rel="icon" href="/favicon.ico" sizes="any">
-<meta name="theme-color" content="#b8552e">
-<meta property="og:title" content="Fiskeforhold — Heming Westad">
+<meta name="theme-color" content="#ffffff">
+<meta property="og:title" content="Fiskeforhold | Heming Westad">
 <meta property="og:description" content="Live MET-vær, lufttrykktrend, fiskeindeks 0-100.">
-<meta property="og:image" content="https://hemingwestad.no/og-image.png">
+<meta property="og:image" content="https://hemingwestad.no/og-image.jpg">
 <meta property="og:url" content="https://hemingwestad.no/tools/fishing.html">
 <meta property="og:type" content="website">
 <meta property="og:locale" content="nb_NO">
@@ -24,31 +21,23 @@
 </head>
 <body>
 <header>
-  <div class="logo"><a href="/">Heming Westad<span class="dot">.</span></a></div>
-  <nav>
+  <a class="site-name" href="/">Heming Westad</a>
+  <nav aria-label="Hovedmeny">
     <ul>
-      <li><a href="/">heim</a></li>
-      <li><a href="/tools.html" class="current">verktøy</a></li>
-      <li><a href="/projects.html">prosjekter</a></li>
-      <li><a href="/now.html">nå</a></li>
-      <li><a href="/about.html">om</a></li>
+      <li><a href="/tools.html" class="current">Verktøy</a></li>
+      <li><a href="/projects.html">Prosjekter</a></li>
+      <li><a href="/about.html">Om</a></li>
     </ul>
   </nav>
 </header>
 
 <main>
-  <div class="page-meta fade-up">
-    <span><span class="dot live"></span>Fiskeforhold</span>
-    <span id="loc-name">Trondheim</span>
-    <span>MET Norway</span>
-  </div>
 
-  <h1 class="fade-up">Fiske<em>forhold</em> <span id="loc-headline" style="color: var(--ink-dim); font-weight: 300; font-size: 0.7em;">for Trondheim</span>.</h1>
-  <p class="lede fade-up">
-    Live vær, lufttrykktrend og månefase for <span id="loc-lede">Trondheim</span>.
-    Indeks 0&ndash;100 basert på trykkendring, vind, nedbør og lysforhold.
-    Skreddersydd for fjellørret, men fungerer for de fleste arter.
+  <h1>Fiskeforhold <span class="muted" id="loc-headline">for Trondheim</span></h1>
+  <p class="lede">
+    Vær, lufttrykktrend og månefase for <span id="loc-lede">Trondheim</span>. Indeksen går fra 0 til 100 og bygger på trykkendring, vind, nedbør og lys. Laget for fjellørret, men fungerer for de fleste arter.
   </p>
+  <p class="page-status"><span id="loc-name">Trondheim</span></p>
 
   <div class="panel">
     <div class="panel-title">Lokasjon</div>
@@ -105,11 +94,14 @@
 
 <footer>
   <div class="footer-content">
-    <div>© 2026 — Heming Westad</div>
-    <div>Trondheim · <a href="https://github.com/hemingwestad-glitch/Nettside-public">kildekode</a></div>
+    <div>© 2026 Heming Westad, Trondheim</div>
+    <div class="footer-links">
+      <a href="/tools.html">Alle verktøy</a>
+      <a href="mailto:heming@hemingwestad.no">E-post</a>
+      <a href="https://github.com/hemingwestad-glitch/Nettside-public">Kildekode</a>
+    </div>
   </div>
-
-  <div class="footer-disclaimer">Bygd sammen med Claude (Anthropic) som pair-programmer. Designvalg og fakta er mine.</div>
+  <div class="footer-disclaimer">Laget med hjelp fra Claude (Anthropic).</div>
 </footer>
 
 <script src="/common.js"></script>
@@ -179,14 +171,14 @@ function renderChart(svg, points, label, color, unit = '') {
   for (let i = 0; i < 5; i++) {
     const v = min + (range * i / 4);
     const y = yS(v);
-    s += `<line x1="${m.l}" y1="${y}" x2="${W-m.r}" y2="${y}" stroke="#e6e0d2"/>`;
-    s += `<text x="${m.l-6}" y="${y+4}" text-anchor="end" fill="#9a9087" font-family="JetBrains Mono" font-size="10">${v.toFixed(1)}</text>`;
+    s += `<line x1="${m.l}" y1="${y}" x2="${W-m.r}" y2="${y}" stroke="#e3e7e3"/>`;
+    s += `<text x="${m.l-6}" y="${y+4}" text-anchor="end" fill="#6f7775" font-family="Schibsted Grotesk" font-size="10">${v.toFixed(1)}</text>`;
   }
   // tids-aksen
   for (let i = 0; i < points.length; i += 4) {
     const x = xS(i);
     const t = points[i].t;
-    s += `<text x="${x}" y="${H-m.b+14}" text-anchor="middle" fill="#6b645b" font-family="JetBrains Mono" font-size="10">${t.getHours().toString().padStart(2,'0')}</text>`;
+    s += `<text x="${x}" y="${H-m.b+14}" text-anchor="middle" fill="#596160" font-family="Schibsted Grotesk" font-size="10">${t.getHours().toString().padStart(2,'0')}</text>`;
   }
   // linje
   let path = '';
@@ -194,7 +186,7 @@ function renderChart(svg, points, label, color, unit = '') {
     path += (i === 0 ? 'M' : 'L') + xS(i).toFixed(1) + ',' + yS(p.v).toFixed(1) + ' ';
   });
   s += `<path d="${path}" fill="none" stroke="${color}" stroke-width="2"/>`;
-  s += `<text x="${m.l}" y="${m.t}" fill="${color}" font-family="JetBrains Mono" font-size="11">${label}${unit ? ' ('+unit+')' : ''}</text>`;
+  s += `<text x="${m.l}" y="${m.t}" fill="${color}" font-family="Schibsted Grotesk" font-size="11">${label}${unit ? ' ('+unit+')' : ''}</text>`;
   svg.innerHTML = s;
 }
 
@@ -214,7 +206,7 @@ function updateLocationName(name) {
   if (headline) headline.textContent = 'for ' + name;
   if (lede) lede.textContent = name;
   const title = document.getElementById('page-title');
-  if (title) title.textContent = `Fiskeforhold ${name} — Heming Westad`;
+  if (title) title.textContent = `Fiskeforhold ${name} | Heming Westad`;
 }
 
 document.getElementById('fetch').addEventListener('click', async () => {

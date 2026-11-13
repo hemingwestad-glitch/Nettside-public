@@ -1,21 +1,18 @@
 <!DOCTYPE html>
-<html lang="no" spellcheck="false">
+<html lang="nb">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="description" content="Brobyggerspill med ekte fagverksstatikk: stivhetsmatrise, Euler-knekking og kabler som bare tåler strekk — test brua med en softbody-bil i Verlet-fysikk.">
-<title>Brobygger — Heming Westad</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..700;1,9..144,400&family=Inter+Tight:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<meta name="description" content="Brobyggerspill med ekte fagverksstatikk: stivhetsmatrise, Euler-knekking og kabler som bare tåler strekk, test brua med en softbody-bil i Verlet-fysikk.">
+<title>Brobygger | Heming Westad</title>
 <meta name="author" content="Heming Westad">
 <link rel="canonical" href="https://hemingwestad.no/tools/bridge.html">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <link rel="icon" href="/favicon.ico" sizes="any">
-<meta name="theme-color" content="#b8552e">
-<meta property="og:title" content="Brobygger — Heming Westad">
-<meta property="og:description" content="Bygg fagverksbroer med ekte statikk — og test dem med en gelébil. Stivhetsmatrise, Euler-knekking, kabler og spektakulære kollapser.">
-<meta property="og:image" content="https://hemingwestad.no/og-image.png">
+<meta name="theme-color" content="#ffffff">
+<meta property="og:title" content="Brobygger | Heming Westad">
+<meta property="og:description" content="Bygg fagverksbroer med ekte statikk, og test dem med en gelébil. Stivhetsmatrise, Euler-knekking, kabler og spektakulære kollapser.">
+<meta property="og:image" content="https://hemingwestad.no/og-image.jpg">
 <meta property="og:url" content="https://hemingwestad.no/tools/bridge.html">
 <meta property="og:type" content="website">
 <meta property="og:locale" content="nb_NO">
@@ -28,13 +25,11 @@
 .bro-row .grp { display: flex; align-items: center; gap: 0.45rem; }
 .bro-row label { margin: 0; white-space: nowrap; }
 .grp-label {
-  font-family: var(--font-mono); font-size: 0.56rem; letter-spacing: 0.14em;
-  text-transform: uppercase; color: var(--ink-faint);
+  font-family: var(--font-mono); font-size: 0.56rem;color: var(--ink-faint);
 }
 button.mat-btn {
   display: inline-flex; align-items: center; gap: 0.34rem;
-  padding: 0.3rem 0.55rem; font-size: 0.62rem; letter-spacing: 0.05em;
-  background: var(--bg); color: var(--ink-soft);
+  padding: 0.3rem 0.55rem; font-size: 0.62rem;  background: var(--bg); color: var(--ink-soft);
   border: 1px solid var(--rule-soft); box-shadow: none;
 }
 button.mat-btn:hover { background: var(--bg-card); color: var(--ink); border-color: var(--ink); }
@@ -48,7 +43,7 @@ button.mini { padding: 0.42rem 0.7rem; font-size: 0.6rem; }
 }
 .stat-strip b { font-weight: 500; color: var(--ink); }
 .stat-strip .warn { color: var(--accent); }
-.stat-strip .ok { color: #5a6b3e; }
+.stat-strip .ok { color: #2f7d3b; }
 #browrap { margin: 0.9rem 0 0.5rem; position: relative; }
 canvas#bro {
   display: block; width: 100%; height: auto;
@@ -78,7 +73,7 @@ canvas#bro.testing { cursor: default; }
 }
 .legend .ramp {
   width: 6rem; height: 0.5rem; border: 1px solid var(--rule-soft);
-  background: linear-gradient(90deg, #8a8578, #c89832, #b8552e, #7c1f10);
+  background: linear-gradient(90deg, #8a8578, #c98a00, #e8590c, #7c1f10);
 }
 .fys-cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr)); gap: 1.2rem; }
 .fys-cols h3 { font-size: 0.9rem; margin: 0 0 0.4rem; }
@@ -88,31 +83,21 @@ canvas#bro.testing { cursor: default; }
 </head>
 <body>
 <header>
-  <div class="logo"><a href="/">Heming Westad<span class="dot">.</span></a></div>
-  <nav>
+  <a class="site-name" href="/">Heming Westad</a>
+  <nav aria-label="Hovedmeny">
     <ul>
-      <li><a href="/">heim</a></li>
-      <li><a href="/tools.html" class="current">verktøy</a></li>
-      <li><a href="/projects.html">prosjekter</a></li>
-      <li><a href="/now.html">nå</a></li>
-      <li><a href="/about.html">om</a></li>
+      <li><a href="/tools.html" class="current">Verktøy</a></li>
+      <li><a href="/projects.html">Prosjekter</a></li>
+      <li><a href="/about.html">Om</a></li>
     </ul>
   </nav>
 </header>
 
 <main>
-  <div class="page-meta fade-up">
-    <span>Brobygger</span>
-    <span>Fagverksstatikk</span>
-    <span>Verlet 240 Hz</span>
-  </div>
 
-  <h1 class="fade-up">Bygg broa — <em>så kjører vi</em>.</h1>
-  <p class="lede fade-up">
-    Fagverksbroer med ordentlig statikk: i byggefasen løses stivhetsmatrisen
-    <code>K·u&nbsp;=&nbsp;F</code> live for hver stav du legger, med Euler-knekking for
-    trykkstaver og kabler som bare tåler strekk. Trykk «Test brua» og en gelébil
-    med trykkluft-hjul ruller ut i full Verlet-dynamikk. Holder brua? Det finner du fort ut.
+  <h1>Brobygger</h1>
+  <p class="lede">
+    Bygg en fagverksbro. Mens du bygger regnes kreftene i hver stav ut med stivhetsmatrisen <code>K·u&nbsp;=&nbsp;F</code>, med Euler-knekking for trykkstaver og kabler som bare tåler strekk. Trykk «Test brua» og se om den holder når bilen kjører over.
   </p>
 
   <div class="panel">
@@ -214,11 +199,14 @@ canvas#bro.testing { cursor: default; }
 
 <footer>
   <div class="footer-content">
-    <div>© 2026 — Heming Westad</div>
-    <div>Trondheim · <a href="https://github.com/hemingwestad-glitch/Nettside-public">kildekode</a></div>
+    <div>© 2026 Heming Westad, Trondheim</div>
+    <div class="footer-links">
+      <a href="/tools.html">Alle verktøy</a>
+      <a href="mailto:heming@hemingwestad.no">E-post</a>
+      <a href="https://github.com/hemingwestad-glitch/Nettside-public">Kildekode</a>
+    </div>
   </div>
-
-  <div class="footer-disclaimer">Bygd sammen med Claude (Anthropic) som pair-programmer. Designvalg og fakta er mine.</div>
+  <div class="footer-disclaimer">Laget med hjelp fra Claude (Anthropic).</div>
 </footer>
 
 <script src="/common.js"></script>
@@ -333,12 +321,12 @@ const COL = {
   ink: (CSSV.getPropertyValue('--ink') || '#26221c').trim(),
   inkSoft: (CSSV.getPropertyValue('--ink-soft') || '#5c564b').trim(),
   inkFaint: (CSSV.getPropertyValue('--ink-faint') || '#8a8578').trim(),
-  accent: (CSSV.getPropertyValue('--accent') || '#b8552e').trim(),
+  accent: (CSSV.getPropertyValue('--accent') || '#e8590c').trim(),
   jord: '#4a4238',
   jordDyp: '#332d26',
-  gress: '#5a6b3e',
-  vann: 'rgba(74, 107, 122, 0.45)',
-  vannStrek: '#4a6b7a',
+  gress: '#2f7d3b',
+  vann: 'rgba(31, 74, 196, 0.45)',
+  vannStrek: '#1f4ac4',
 };
 
 /* ── Kamera og transformasjoner ────────────────────────────────────────── */
@@ -932,7 +920,7 @@ function applyCarForces(car, thr) {
 function hex2rgb(h) {
   return [parseInt(h.slice(1, 3), 16), parseInt(h.slice(3, 5), 16), parseInt(h.slice(5, 7), 16)];
 }
-const RAMP = ['#8a8578', '#c89832', '#b8552e', '#7c1f10'].map(hex2rgb);
+const RAMP = ['#8a8578', '#c98a00', '#e8590c', '#7c1f10'].map(hex2rgb);
 function rampColor(u) {
   const t = Math.max(0, Math.min(1, u));
   const seg = t < 0.5 ? 0 : t < 0.85 ? 1 : 2;
@@ -1093,7 +1081,7 @@ function drawDeflection() {
     return { x: n.x + statics.u[b] * k, y: n.y + statics.u[b + 1] * k };
   });
   ctx.setLineDash([3, 4]);
-  ctx.strokeStyle = 'rgba(184, 85, 46, 0.55)';
+  ctx.strokeStyle = 'rgba(232, 89, 12, 0.55)';
   ctx.lineWidth = 1.2;
   design.members.forEach(m => {
     ctx.beginPath();
@@ -1137,7 +1125,7 @@ function drawDragPreview() {
   ctx.stroke();
   ctx.setLineDash([]);
   ctx.fillStyle = COL.ink;
-  ctx.font = `${Math.round(11 * (window.devicePixelRatio || 1))}px 'JetBrains Mono', monospace`;
+  ctx.font = `${Math.round(11 * (window.devicePixelRatio || 1))}px 'Schibsted Grotesk', sans-serif`;
   ctx.fillText(`${L.toFixed(1).replace('.', ',')} m${ok ? '' : ' ✕'}`,
     W2Sx((from.x + end.x) / 2) + 8, W2Sy((from.y + end.y) / 2) - 8);
 }
@@ -1179,7 +1167,7 @@ function drawCar(car) {
 
 function drawDebris() {
   for (const d of sim.debris) {
-    ctx.strokeStyle = `rgba(184, 85, 46, ${d.life.toFixed(2)})`;
+    ctx.strokeStyle = `rgba(232, 89, 12, ${d.life.toFixed(2)})`;
     ctx.lineWidth = 2;
     const r = (d.r0 + (1 - d.life) * 2.2) * cam.scale;
     ctx.beginPath();

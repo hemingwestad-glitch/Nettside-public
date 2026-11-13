@@ -1,62 +1,52 @@
 <!DOCTYPE html>
-<html lang="no" spellcheck="false">
+<html lang="nb">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Nordlys-varsel — Heming Westad</title>
+<title>Nordlysvarsel | Heming Westad</title>
 <meta name="description" content="Live Kp-index, solvinddata og skydekke. Sannsynlighet for nordlys i kveld over valgt lokasjon.">
 <meta name="author" content="Heming Westad">
 <link rel="canonical" href="https://hemingwestad.no/tools/aurora.html">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <link rel="icon" href="/favicon.ico" sizes="any">
-<meta name="theme-color" content="#b8552e">
-<meta property="og:title" content="Nordlys-varsel — Heming Westad">
+<meta name="theme-color" content="#ffffff">
+<meta property="og:title" content="Nordlysvarsel | Heming Westad">
 <meta property="og:description" content="Kp-index, solvind, skydekke. Vil du se nordlys i kveld?">
-<meta property="og:image" content="https://hemingwestad.no/og-image.png">
+<meta property="og:image" content="https://hemingwestad.no/og-image.jpg">
 <meta property="og:url" content="https://hemingwestad.no/tools/aurora.html">
 <meta property="og:type" content="website">
 <meta property="og:locale" content="nb_NO">
 <meta name="twitter:card" content="summary_large_image">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..700;1,9..144,400&family=Inter+Tight:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/style.css">
 <style>
   .kp-bar { display: flex; gap: 1px; margin: 0.5rem 0; }
-  .kp-bar .kp-cell { flex: 1; height: 28px; display: flex; align-items: center; justify-content: center; font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; color: #fff; }
+  .kp-bar .kp-cell { flex: 1; height: 28px; display: flex; align-items: center; justify-content: center; font-family: 'Schibsted Grotesk', sans-serif; font-size: 0.75rem; color: #fff; }
   .verdict-box { padding: 1rem 1.2rem; border-radius: 4px; margin: 1rem 0; border-left: 4px solid var(--rule); }
-  .verdict-box.good { background: rgba(90, 107, 62, 0.1); border-left-color: var(--green); }
-  .verdict-box.ok   { background: rgba(200, 152, 50, 0.1); border-left-color: var(--warn); }
-  .verdict-box.bad  { background: rgba(184, 85, 46, 0.08); border-left-color: var(--accent); }
+  .verdict-box.good { background: rgba(47, 125, 59, 0.1); border-left-color: var(--green); }
+  .verdict-box.ok   { background: rgba(201, 138, 0, 0.1); border-left-color: var(--warn); }
+  .verdict-box.bad  { background: rgba(232, 89, 12, 0.08); border-left-color: var(--accent); }
   .verdict-box .v-headline { font-family: var(--font-display); font-size: 1.4rem; margin-bottom: 0.3rem; }
 </style>
 </head>
 <body>
 <header>
-  <div class="logo"><a href="/">Heming Westad<span class="dot">.</span></a></div>
-  <nav>
+  <a class="site-name" href="/">Heming Westad</a>
+  <nav aria-label="Hovedmeny">
     <ul>
-      <li><a href="/">heim</a></li>
-      <li><a href="/tools.html" class="current">verktøy</a></li>
-      <li><a href="/projects.html">prosjekter</a></li>
-      <li><a href="/now.html">nå</a></li>
-      <li><a href="/about.html">om</a></li>
+      <li><a href="/tools.html" class="current">Verktøy</a></li>
+      <li><a href="/projects.html">Prosjekter</a></li>
+      <li><a href="/about.html">Om</a></li>
     </ul>
   </nav>
 </header>
 
 <main>
-  <div class="page-meta fade-up">
-    <span><span class="dot live"></span>Nordlys-varsel</span>
-    <span>NOAA SWPC · MET Norway</span>
-    <span id="aurora-loc">Trondheim</span>
-  </div>
 
-  <h1 class="fade-up">Nordlys <em>i kveld?</em></h1>
-  <p class="lede fade-up">
-    Live Kp-index, solvinddata og lokalt skydekke. Vurderer sannsynligheten for synlig nordlys
-    fra valgt lokasjon i de neste 24 timene.
+  <h1>Nordlysvarsel</h1>
+  <p class="lede">
+    Kp-indeks, solvind og skydekke for stedet du velger. Viser hvor sannsynlig det er å se nordlys de neste 24 timene.
   </p>
+  <p class="page-status"><span id="aurora-loc">Trondheim</span></p>
 
   <div class="panel">
     <div class="panel-title">Lokasjon</div>
@@ -141,11 +131,14 @@
 
 <footer>
   <div class="footer-content">
-    <div>© 2026 — Heming Westad</div>
-    <div>Trondheim · <a href="https://github.com/hemingwestad-glitch/Nettside-public">kildekode</a></div>
+    <div>© 2026 Heming Westad, Trondheim</div>
+    <div class="footer-links">
+      <a href="/tools.html">Alle verktøy</a>
+      <a href="mailto:heming@hemingwestad.no">E-post</a>
+      <a href="https://github.com/hemingwestad-glitch/Nettside-public">Kildekode</a>
+    </div>
   </div>
-
-  <div class="footer-disclaimer">Bygd sammen med Claude (Anthropic) som pair-programmer. Designvalg og fakta er mine.</div>
+  <div class="footer-disclaimer">Laget med hjelp fra Claude (Anthropic).</div>
 </footer>
 
 <script src="/common.js"></script>
@@ -175,10 +168,10 @@ async function refresh() {
 }
 
 function kpColor(kp) {
-  if (kp < 3) return '#5a6b3e';
-  if (kp < 5) return '#c89832';
-  if (kp < 7) return '#b8552e';
-  return '#8c3e1f';
+  if (kp < 3) return '#2f7d3b';
+  if (kp < 5) return '#c98a00';
+  if (kp < 7) return '#e8590c';
+  return '#b84309';
 }
 
 async function fetchKp() {
@@ -267,14 +260,14 @@ function drawCloudChart(ts) {
   // Y-grid
   for (let pct = 0; pct <= 100; pct += 25) {
     const y = m.t + h - (pct / 100) * h;
-    s += `<line x1="${m.l}" y1="${y}" x2="${W - m.r}" y2="${y}" stroke="#e6e0d2"/>`;
-    s += `<text x="${m.l - 6}" y="${y + 4}" text-anchor="end" fill="#9a9087" font-family="JetBrains Mono" font-size="10">${pct}%</text>`;
+    s += `<line x1="${m.l}" y1="${y}" x2="${W - m.r}" y2="${y}" stroke="#e3e7e3"/>`;
+    s += `<text x="${m.l - 6}" y="${y + 4}" text-anchor="end" fill="#6f7775" font-family="Schibsted Grotesk" font-size="10">${pct}%</text>`;
   }
   // Tidsmerker
   ts.forEach((t, i) => {
     if (i % 2 === 0) {
       const x = m.l + (i / (ts.length - 1)) * w;
-      s += `<text x="${x}" y="${H - 8}" text-anchor="middle" fill="#6b645b" font-family="JetBrains Mono" font-size="10">${new Date(t.time).getHours().toString().padStart(2,'0')}</text>`;
+      s += `<text x="${x}" y="${H - 8}" text-anchor="middle" fill="#596160" font-family="Schibsted Grotesk" font-size="10">${new Date(t.time).getHours().toString().padStart(2,'0')}</text>`;
     }
   });
   // Skydekke-bar
@@ -282,7 +275,7 @@ function drawCloudChart(ts) {
     const c = t.data.instant.details.cloud_area_fraction || 0;
     const x = m.l + (i / (ts.length - 1)) * w;
     const y = m.t + h - (c / 100) * h;
-    s += `<rect x="${x - 12}" y="${y}" width="24" height="${m.t + h - y}" fill="${c > 75 ? '#9a9087' : c > 25 ? '#d6cfc1' : '#5a6b3e'}" opacity="0.55"/>`;
+    s += `<rect x="${x - 12}" y="${y}" width="24" height="${m.t + h - y}" fill="${c > 75 ? '#6f7775' : c > 25 ? '#c9cec9' : '#2f7d3b'}" opacity="0.55"/>`;
   });
   $('cloud-chart').innerHTML = s;
 }

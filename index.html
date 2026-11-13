@@ -1,43 +1,43 @@
 <!DOCTYPE html>
-<html lang="no" spellcheck="false">
+<html lang="nb">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Heming Westad</title>
-<meta name="description" content="Personlig nettside og verktøyhub. Flyingeniørstudent ved NTNU, jakt og fiske, romfart og radio.">
+<meta name="description" content="Heming Westad, flyingeniørstudent ved NTNU. Verktøy for satellitter, ballistikk, tidevann, strømpris og fiske.">
 <meta name="author" content="Heming Westad">
 <link rel="canonical" href="https://hemingwestad.no/">
-<link rel="icon" href="favicon.svg" type="image/svg+xml">
-<link rel="icon" href="favicon.ico" sizes="any">
-<meta name="theme-color" content="#b8552e">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="/favicon.ico" sizes="any">
+<meta name="theme-color" content="#ffffff">
 <meta property="og:title" content="Heming Westad">
-<meta property="og:description" content="Verktøy som virker. Romfart, ballistikk, tidevann, strømpris, radio.">
-<meta property="og:image" content="https://hemingwestad.no/og-image.png">
+<meta property="og:description" content="Verktøy for satellitter, ballistikk, tidevann, strømpris og fiske.">
+<meta property="og:image" content="https://hemingwestad.no/og-image.jpg">
 <meta property="og:url" content="https://hemingwestad.no/">
 <meta property="og:type" content="website">
 <meta property="og:locale" content="nb_NO">
 <meta name="twitter:card" content="summary_large_image">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..700;1,9..144,400&family=Inter+Tight:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css">
+<link rel="preload" href="/fonts/schibsted-grotesk-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="/style.css">
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
   "@type": "Person",
   "name": "Heming Westad",
   "url": "https://hemingwestad.no/",
-  "image": "https://hemingwestad.no/og-image.png",
-  "jobTitle": "Flyingeniørstudent, programdirektør Orbit NTNU",
-  "alumniOf": {
-    "@type": "CollegeOrUniversity",
-    "name": "Norges teknisk-naturvitenskapelige universitet (NTNU)"
-  },
-  "affiliation": {
-    "@type": "Organization",
-    "name": "Orbit NTNU",
-    "url": "https://www.orbitntnu.com"
-  },
+  "image": "https://hemingwestad.no/og-image.jpg",
+  "jobTitle": "Flyingeniørstudent, programdirektør i Orbit NTNU",
+  "affiliation": [
+    {
+      "@type": "CollegeOrUniversity",
+      "name": "Norges teknisk-naturvitenskapelige universitet (NTNU)"
+    },
+    {
+      "@type": "Organization",
+      "name": "Orbit NTNU",
+      "url": "https://www.orbitntnu.com"
+    }
+  ],
   "knowsAbout": ["Romfart", "Satellitter", "Ballistikk", "Radio", "Flyteknikk"],
   "sameAs": [
     "https://github.com/hemingwestad-glitch"
@@ -60,345 +60,413 @@
 </head>
 <body>
 <header>
-  <div class="logo"><a href="./">Heming Westad<span class="dot">.</span></a></div>
-  <nav>
+  <a class="site-name" href="/">Heming Westad</a>
+  <nav aria-label="Hovedmeny">
     <ul>
-      <li><a href="./" class="current">heim</a></li>
-      <li><a href="tools.html">verktøy</a></li>
-      <li><a href="projects.html">prosjekter</a></li>
-      <li><a href="now.html">nå</a></li>
-      <li><a href="about.html">om</a></li>
+      <li><a href="/tools.html">Verktøy</a></li>
+      <li><a href="/projects.html">Prosjekter</a></li>
+      <li><a href="/about.html">Om</a></li>
     </ul>
   </nav>
 </header>
 
 <main>
-  <div class="page-meta fade-up">
-    <span><span style="color:var(--ink-faint)">POS</span>&nbsp;63.43° N · 10.40° E</span>
-    <span><span style="color:var(--ink-faint)">LOC</span>&nbsp;Trondheim</span>
-    <span><span style="color:var(--ink-faint)">UPD</span>&nbsp;<span data-today></span></span>
-  </div>
+  <figure class="hero-image">
+    <img src="/bilder/meteor/forside.webp"
+         width="1600" height="578"
+         alt="Satellittbilde med en stor skyvirvel over Nordsjøen. Skandinavia og De britiske øyer er synlige.">
+    <figcaption>
+      Lavtrykk over Nordsjøen. Bildet har jeg tatt ned selv fra en Meteor-værsatellitt,
+      med en RTL-SDR og en dipolantenne i Trondheim.
+      <a href="/tools/meteor-guide.html">Slik gjør jeg det</a>.
+    </figcaption>
+  </figure>
 
-  <div class="hero">
-    <svg class="hero-art" viewBox="0 0 420 300" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-      <!-- høydekoter -->
-      <g stroke="#1a1814" stroke-opacity="0.15">
-        <ellipse cx="300" cy="180" rx="95" ry="58" transform="rotate(-14 300 180)"/>
-        <ellipse cx="298" cy="178" rx="72" ry="42" transform="rotate(-14 298 178)"/>
-        <ellipse cx="296" cy="176" rx="50" ry="28" transform="rotate(-14 296 176)"/>
-        <ellipse cx="294" cy="174" rx="30" ry="16" transform="rotate(-14 294 174)"/>
-        <ellipse cx="292" cy="172" rx="13" ry="7" transform="rotate(-14 292 172)"/>
-      </g>
-      <text x="287" y="160" font-family="'JetBrains Mono',monospace" font-size="8" fill="#1a1814" fill-opacity="0.45">612</text>
-      <!-- graticule -->
-      <g stroke="#1a1814" stroke-opacity="0.09">
-        <path d="M0 60h420M0 150h420M0 240h420M70 0v300M210 0v300M350 0v300"/>
-      </g>
-      <g stroke="#1a1814" stroke-opacity="0.35">
-        <path d="M70 55v10M65 60h10M210 145v10M205 150h10M350 235v10M345 240h10"/>
-      </g>
-      <!-- ground track -->
-      <path d="M-10 210C70 130 150 96 220 102s130 52 210 22" stroke="#b8552e" stroke-width="1.5" stroke-dasharray="6 5"/>
-      <circle cx="220" cy="102" r="3.5" fill="#b8552e"/>
-      <circle cx="220" cy="102" r="8" stroke="#b8552e" stroke-opacity="0.4"/>
-      <text x="233" y="98" font-family="'JetBrains Mono',monospace" font-size="9" fill="#1a1814" fill-opacity="0.6" letter-spacing="1">METEOR M2-4</text>
-      <text x="233" y="110" font-family="'JetBrains Mono',monospace" font-size="8" fill="#1a1814" fill-opacity="0.4" letter-spacing="1">137.90 MHz · LRPT</text>
-      <!-- nordpil -->
-      <g stroke="#1a1814" stroke-opacity="0.5">
-        <path d="M395 32v24"/>
-        <path d="M395 30l-5 9h10z" fill="#1a1814" fill-opacity="0.5"/>
-      </g>
-      <text x="391" y="72" font-family="'JetBrains Mono',monospace" font-size="9" fill="#1a1814" fill-opacity="0.55">N</text>
-    </svg>
+  <h1>Heming Westad</h1>
 
-    <h1 class="fade-up">Hei, jeg heter<br><em>Heming</em>.</h1>
-
-    <p class="lede fade-up">
-      Flyingeniørstudent ved NTNU og programdirektør i Orbit NTNU. Når jeg ikke
-      holder på med skole eller småsatellitter, er jeg på elgjakt eller fisker
-      fjellørret.
-    </p>
-  </div>
-
-  <p class="fade-up">
-    Denne siden er først og fremst en samling med <strong>verktøy jeg bruker selv</strong>
-    &mdash; ballistikk og jakttider, satellittsporing, radio-utregning, tidevann
-    i Trondheim havn, strømpriser. Alt kjører lokalt i nettleseren. Bruk det
-    gjerne hvis du har lyst.
+  <p class="lede">
+    Jeg studerer flyingeniør ved NTNU og er programdirektør i Orbit NTNU.
+    Når jeg ikke holder på med skole eller småsatellitter, er jeg på elgjakt
+    eller fisker fjellørret.
   </p>
 
-  <p class="fade-up">
-    Jeg bygger ting fordi jeg liker det. Mest med Python og litt elektronikk,
-    men det meste her på siden er rein HTML/CSS/JS for at det skal gå kjapt å åpne
-    fra fjellhytta på dårlig dekning. Hvis noe er feil, eller du vil snakke om
-    satellitter, ballistikk eller hvorfor M2-komponenten dominerer i Trondheimsfjorden
-    &mdash; <a href="mailto:heming@hemingwestad.no">si fra</a>.
+  <p>
+    Her ligger verktøy jeg har laget til eget bruk: ballistikk og jakttider,
+    satellittsporing, tidevann og strømpris. Sidene er vanlig HTML, CSS og JS,
+    så de åpner fort også fra fjellhytta på dårlig dekning. Bruk dem gjerne.
+    Finner du en feil, <a href="mailto:heming@hemingwestad.no">send meg en e-post</a>.
   </p>
 
-  <h2 class="section-header">Live fra Trondheim <span class="count">over hodet vårt</span></h2>
+  <h2>Over Trondheim nå</h2>
 
-  <div class="live-ticker fade-up" id="home-ticker">
-    <div class="ticker-card live">
-      <div class="ticker-label"><span class="dot live"></span>ISS · neste pass</div>
-      <div class="ticker-value" id="ticker-iss-time">venter…</div>
-      <div class="ticker-meta" id="ticker-iss-meta">henter TLE fra CelesTrak</div>
+  <div class="sky">
+    <div>
+      <svg class="skyplot" id="skyplot" viewBox="0 0 320 320" role="img" aria-labelledby="skyplot-title">
+        <title id="skyplot-title">Himmelkart over Trondheim med neste pass for ISS og Meteor-satellittene</title>
+        <circle class="horizon" cx="160" cy="160" r="135"/>
+        <circle class="ring" cx="160" cy="160" r="90"/>
+        <circle class="ring" cx="160" cy="160" r="45"/>
+        <path class="axis" d="M160 25v270M25 160h270"/>
+        <text x="160" y="16" text-anchor="middle">N</text>
+        <text x="307" y="164" text-anchor="middle">Ø</text>
+        <text x="160" y="313" text-anchor="middle">S</text>
+        <text x="13" y="164" text-anchor="middle">V</text>
+        <text x="164" y="112">30°</text>
+        <text x="164" y="67">60°</text>
+        <g id="sky-passes"></g>
+        <g id="sky-now"></g>
+      </svg>
+      <p class="sky-caption" id="sky-caption">
+        Kartet viser himmelen sett fra Trondheim, med horisonten ytterst og rett opp i midten.
+      </p>
     </div>
-    <div class="ticker-card live">
-      <div class="ticker-label"><span class="dot live"></span>METEOR M2-4 · neste pass ≥60°</div>
-      <div class="ticker-value" id="ticker-meteor-time">venter…</div>
-      <div class="ticker-meta" id="ticker-meteor-meta">SDR-mottak verdt det</div>
-    </div>
-    <div class="ticker-card">
-      <div class="ticker-label">Strømpris akkurat nå · NO3</div>
-      <div class="ticker-value" id="ticker-power-now">—</div>
-      <div class="ticker-meta" id="ticker-power-meta">snitt i dag —</div>
-    </div>
-    <div class="ticker-card">
-      <div class="ticker-label">Tidevann Trondheim havn</div>
-      <div class="ticker-value" id="ticker-tide-now">—</div>
-      <div class="ticker-meta" id="ticker-tide-meta">neste vending —</div>
-    </div>
+
+    <dl class="readout" id="readout">
+      <dt><span class="swatch" style="background:#17191a"></span>ISS</dt>
+      <dd><span class="big" id="pass-iss">Henter banedata</span><span class="sub" id="pass-iss-sub">Neste pass over 10°</span></dd>
+
+      <dt><span class="swatch" style="background:#e8590c"></span>Meteor M2-3</dt>
+      <dd><span class="big" id="pass-m23">Henter banedata</span><span class="sub" id="pass-m23-sub">Neste pass over 60°</span></dd>
+
+      <dt><span class="swatch" style="background:#1f4ac4"></span>Meteor M2-4</dt>
+      <dd><span class="big" id="pass-m24">Henter banedata</span><span class="sub" id="pass-m24-sub">Neste pass over 60°</span></dd>
+
+      <dt>Strøm</dt>
+      <dd><span class="big" id="power-now">Henter pris</span><span class="sub" id="power-sub">Spotpris i NO3 med mva</span></dd>
+
+      <dt>Sjøen</dt>
+      <dd><span class="big" id="tide-now">Henter vannstand</span><span class="sub" id="tide-sub">Trondheim havn</span></dd>
+    </dl>
   </div>
+  <noscript><p class="muted">Himmelkartet og tallene trenger JavaScript.</p></noscript>
 
-  <h2 class="section-header">Utvalgte verktøy <span class="count">6 av 19</span></h2>
+  <h2>Verktøy</h2>
 
-  <div class="tool-grid">
-    <a href="tools/space.html" class="tool">
-      <div class="tool-header">
-        <span class="tool-icon"></span>
-        <span class="tool-tag">Romfart · 3D · Live</span>
-      </div>
-      <h3>Satellitt-arbeidsbord</h3>
-      <p>Live 3D-tracker med banekurver, TLE-leser, link budget, antenner, Doppler og pass-prediksjoner. Med radio-frekvenser per satellitt.</p>
-      <div class="tool-action"><span>Åpne</span><span>→</span></div>
-    </a>
+  <ul class="tool-list">
+    <li>
+      <a href="/tools/space.html">Satellitter</a>
+      <p>Følg satellitter live, finn neste pass og regn Doppler og link budget.</p>
+    </li>
+    <li>
+      <a href="/tools/wind.html">Ballistikk</a>
+      <p>Kulebane med vind, lufttetthet og helning. Norske jaktladninger ligger inne.</p>
+    </li>
+    <li>
+      <a href="/tools/tides.html">Tidevann</a>
+      <p>Vannstand og neste flo og fjære i norske havner.</p>
+    </li>
+    <li>
+      <a href="/tools/fishing.html">Fiskeforhold</a>
+      <p>Vær, lufttrykk og månefase samlet i én indeks. Laget for fjellørret.</p>
+    </li>
+    <li>
+      <a href="/tools/aviation.html">Fly</a>
+      <p>METAR for norske flyplasser, sidevind, density altitude og vekt og balanse.</p>
+    </li>
+    <li>
+      <a href="/tools/discgolf.html">Frisbeegolf</a>
+      <p>Se hvordan en disk flyr med ulike kast, vinkler og vind.</p>
+    </li>
+  </ul>
 
-    <a href="tools/aviation.html" class="tool">
-      <div class="tool-header">
-        <span class="tool-icon"></span>
-        <span class="tool-tag">GA · METAR · W&amp;B</span>
-      </div>
-      <h3>Fly-verktøy</h3>
-      <p>METAR for norske flyplasser, krysswind/headwind, density altitude og vekt &amp; balanse for småfly.</p>
-      <div class="tool-action"><span>Åpne</span><span>→</span></div>
-    </a>
+  <p style="margin-top: 1.25rem;"><a href="/tools.html">Se alle verktøyene</a></p>
 
-    <a href="tools/wind.html" class="tool">
-      <div class="tool-header">
-        <span class="tool-icon"></span>
-        <span class="tool-tag">Skyting · RK4 · G1/G7</span>
-      </div>
-      <h3>Ballistikk</h3>
-      <p>RK4 med G1/G7 drag-modell. Vind, lufttetthet, helning, Coriolis. Norske jaktladninger og avlivningskrav.</p>
-      <div class="tool-action"><span>Åpne</span><span>→</span></div>
-    </a>
-
-    <a href="tools/tides.html" class="tool">
-      <div class="tool-header">
-        <span class="tool-icon"></span>
-        <span class="tool-tag">Hav · M2 · Kartverket</span>
-      </div>
-      <h3>Tidevann i Trondheim</h3>
-      <p>Live tidevannsdata fra Kartverket og Fourier-sandkasse for de harmoniske komponentene. Se månens M2 og solens S2 i opphav.</p>
-      <div class="tool-action"><span>Åpne</span><span>→</span></div>
-    </a>
-
-    <a href="tools/fishing.html" class="tool">
-      <div class="tool-header">
-        <span class="tool-icon"></span>
-        <span class="tool-tag">Fiske · MET · Måne</span>
-      </div>
-      <h3>Fiskeforhold</h3>
-      <p>Vær fra MET Norway, månefase, lufttrykktrend. Skreddersydd for fjellørret, men funker for de fleste arter.</p>
-      <div class="tool-action"><span>Åpne</span><span>→</span></div>
-    </a>
-
-    <a href="tools/discgolf.html" class="tool">
-      <div class="tool-header">
-        <span class="tool-icon"></span>
-        <span class="tool-tag">Frisbeegolf · Ny</span>
-      </div>
-      <h3>Frisbeegolf-simulator</h3>
-      <p>Se kastebanen ovenfra og fra siden. Flight-tall, plast, slitasje, armfart, vind og hyzer-vinkel. Sammenlign discer.</p>
-      <div class="tool-action"><span>Åpne</span><span>→</span></div>
-    </a>
-  </div>
-
-  <p style="margin: 1.5rem 0 2rem; text-align: center;">
-    <a href="tools.html" class="btn" style="font-size: 0.9rem; padding: 0.75rem 1.5rem;">Se alle 19 verktøy →</a>
-  </p>
-
-  <p class="muted small" style="margin-top: 1.25rem; text-align: center;">
-    <a href="projects.html">Pågående prosjekter</a> &middot;
-    <a href="now.html">Hva som skjer nå</a>
-  </p>
-
-  <h2 class="section-header">Andre steder <span class="count">kontakt</span></h2>
+  <h2>Kontakt</h2>
 
   <div class="uses-table">
     <div class="row">
-      <div class="label">github</div>
-      <div class="value"><a href="https://github.com/hemingwestad-glitch" target="_blank" rel="noopener">hemingwestad-glitch</a></div>
-    </div>
-    <div class="row">
-      <div class="label">e-post</div>
+      <div class="label">E-post</div>
       <div class="value"><a href="mailto:heming@hemingwestad.no">heming@hemingwestad.no</a></div>
     </div>
     <div class="row">
-      <div class="label">orbit ntnu</div>
-      <div class="value"><a href="https://www.orbitntnu.com" target="_blank" rel="noopener">orbitntnu.com</a></div>
+      <div class="label">GitHub</div>
+      <div class="value"><a href="https://github.com/hemingwestad-glitch" rel="noopener">hemingwestad-glitch</a></div>
+    </div>
+    <div class="row">
+      <div class="label">Orbit NTNU</div>
+      <div class="value"><a href="https://www.orbitntnu.com" rel="noopener">orbitntnu.com</a></div>
     </div>
   </div>
 </main>
 
 <footer>
   <div class="footer-content">
-    <div>© 2026 — Heming Westad</div>
-    <div>Trondheim · <a href="https://github.com/hemingwestad-glitch/Nettside-public">kildekode</a></div>
+    <div>© 2026 Heming Westad, Trondheim</div>
+    <div class="footer-links">
+      <a href="mailto:heming@hemingwestad.no">E-post</a>
+      <a href="https://github.com/hemingwestad-glitch/Nettside-public">Kildekode</a>
+    </div>
   </div>
-
-  <div class="footer-disclaimer">Bygd sammen med Claude (Anthropic) som pair-programmer. Designvalg og fakta er mine.</div>
+  <div class="footer-disclaimer">Laget med hjelp fra Claude (Anthropic).</div>
 </footer>
 
-<script src="common.js"></script>
+<script src="/common.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/satellite.js@5.0.0/dist/satellite.min.js"></script>
 <script>
-/* ─── Live ticker på forsiden ────────────────────────────────────────────── */
+/* Forsiden: himmelkart, neste pass, strømpris og vannstand.
+   Vil du ha med en satellitt til, legg til en linje i SATS (NORAD-nummer fra CelesTrak)
+   og en tilsvarende rad i <dl id="readout"> over. */
 (function () {
-  const STATION = { lat: 63.4305, lon: 10.3951, alt: 0.0513 };
+  'use strict';
 
-  function nextPass(satrec, minElevDeg, hoursAhead) {
-    if (!satrec || typeof satellite === 'undefined') return null;
-    const obs = {
-      latitude: STATION.lat * Math.PI / 180,
-      longitude: STATION.lon * Math.PI / 180,
-      height: STATION.alt
-    };
-    const start = new Date();
-    const end = new Date(start.getTime() + hoursAhead * 3600 * 1000);
-    const stepSec = 30;
-    let inPass = false, peakEl = -90, aos = null;
-    for (let t = start.getTime(); t < end.getTime(); t += stepSec * 1000) {
-      const d = new Date(t);
-      const pv = satellite.propagate(satrec, d);
-      if (!pv.position) continue;
-      const gmst = satellite.gstime(d);
-      const ecf = satellite.eciToEcf(pv.position, gmst);
-      const la = satellite.ecfToLookAngles(obs, ecf);
-      const elDeg = la.elevation * 180 / Math.PI;
-      if (!inPass && elDeg > 0) { inPass = true; aos = d; peakEl = elDeg; }
-      else if (inPass) {
-        if (elDeg > peakEl) peakEl = elDeg;
-        if (elDeg < 0) {
-          if (peakEl >= minElevDeg) return { aos, peakEl };
-          inPass = false; peakEl = -90;
+  const STATION = { lat: 63.4305, lon: 10.3951, altKm: 0.0513 };
+  const SATS = [
+    { id: 25544, key: 'iss', name: 'ISS',         color: '#17191a', minEl: 10, hours: 24 },
+    { id: 57166, key: 'm23', name: 'Meteor M2-3', color: '#e8590c', minEl: 60, hours: 96 },
+    { id: 59051, key: 'm24', name: 'Meteor M2-4', color: '#1f4ac4', minEl: 60, hours: 96 }
+  ];
+  const TLE_MAX_AGE_H = 6;       // CelesTrak ber om at man ikke henter oftere enn nødvendig
+  const TLE_STALE_OK_H = 7 * 24; // brukes hvis nettet er nede
+
+  const $ = id => document.getElementById(id);
+  const DEG = 180 / Math.PI;
+  const nb = (n, dec) => n.toFixed(dec).replace('.', ',');
+  const klokke = d => d.toLocaleTimeString('nb-NO', { hour: '2-digit', minute: '2-digit' });
+
+  /* ---------- Banedata ---------- */
+  function readCache(id) {
+    try {
+      const c = JSON.parse(localStorage.getItem('hw-tle-' + id));
+      if (c && c.l1 && c.l2 && c.t) return c;
+    } catch (e) { /* ingen lagring tilgjengelig */ }
+    return null;
+  }
+  function writeCache(id, l1, l2) {
+    try { localStorage.setItem('hw-tle-' + id, JSON.stringify({ t: Date.now(), l1, l2 })); }
+    catch (e) { /* greit, vi henter på nytt neste gang */ }
+  }
+  async function getSatrec(id) {
+    const cached = readCache(id);
+    const ageH = cached ? (Date.now() - cached.t) / 3600000 : Infinity;
+    if (cached && ageH < TLE_MAX_AGE_H) return satellite.twoline2satrec(cached.l1, cached.l2);
+    try {
+      const r = await fetch('https://celestrak.org/NORAD/elements/gp.php?CATNR=' + id + '&FORMAT=tle');
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      const lines = (await r.text()).trim().split(/\r?\n/);
+      if (lines.length < 3) throw new Error('uventet svar');
+      writeCache(id, lines[1], lines[2]);
+      return satellite.twoline2satrec(lines[1], lines[2]);
+    } catch (e) {
+      if (cached && ageH < TLE_STALE_OK_H) return satellite.twoline2satrec(cached.l1, cached.l2);
+      return null;
+    }
+  }
+
+  /* ---------- Geometri ---------- */
+  const observer = {
+    latitude: STATION.lat / DEG,
+    longitude: STATION.lon / DEG,
+    height: STATION.altKm
+  };
+  function look(satrec, date) {
+    const pv = satellite.propagate(satrec, date);
+    if (!pv.position) return null;
+    const ecf = satellite.eciToEcf(pv.position, satellite.gstime(date));
+    const la = satellite.ecfToLookAngles(observer, ecf);
+    return { az: la.azimuth * DEG, el: la.elevation * DEG };
+  }
+
+  /* Første pass som når minst minEl. Returnerer start, slutt, topp og sporet over himmelen. */
+  function nextPass(satrec, minEl, hours) {
+    const t0 = Date.now(), t1 = t0 + hours * 3600000, step = 30000;
+    let start = null, peak = -90;
+    for (let t = t0; t < t1; t += step) {
+      const p = look(satrec, new Date(t));
+      if (!p) continue;
+      if (start === null && p.el > 0) { start = t; peak = p.el; }
+      else if (start !== null) {
+        if (p.el > peak) peak = p.el;
+        if (p.el <= 0) {
+          if (peak >= minEl) return trace(satrec, start - step, t);
+          start = null; peak = -90;
         }
       }
     }
     return null;
   }
-
-  function fmtAhead(date) {
-    if (!date) return '—';
-    const mins = Math.round((date - new Date()) / 60000);
-    if (mins < 0) return 'akkurat nå';
-    if (mins < 60) return `om ${mins} min`;
-    const hrs = Math.floor(mins / 60);
-    const m = mins % 60;
-    if (hrs < 24) return `om ${hrs}t ${m}m`;
-    return date.toLocaleString('nb-NO', { weekday: 'short', hour: '2-digit', minute: '2-digit' });
+  function trace(satrec, from, to) {
+    const pts = [];
+    let top = { el: -90 };
+    for (let t = from; t <= to; t += 10000) {
+      const p = look(satrec, new Date(t));
+      if (!p || p.el < 0) continue;
+      const pt = { t, az: p.az, el: p.el };
+      pts.push(pt);
+      if (pt.el > top.el) top = pt;
+    }
+    if (!pts.length) return null;
+    return { aos: new Date(pts[0].t), los: new Date(pts[pts.length - 1].t), top, pts };
   }
 
-  async function fetchTLE(catnr) {
-    try {
-      const r = await fetch(`https://celestrak.org/NORAD/elements/gp.php?CATNR=${catnr}&FORMAT=tle`);
-      if (!r.ok) return null;
-      const txt = await r.text();
-      const lines = txt.trim().split(/\r?\n/);
-      if (lines.length < 3) return null;
-      return satellite.twoline2satrec(lines[1], lines[2]);
-    } catch (e) { return null; }
+  /* ---------- Tekst ---------- */
+  function omHvorLenge(date) {
+    const mins = Math.round((date - Date.now()) / 60000);
+    if (mins <= 0) return 'Passerer nå';
+    if (mins < 60) return 'om ' + mins + ' min';
+    if (mins < 24 * 60) return 'om ' + Math.floor(mins / 60) + ' t ' + (mins % 60) + ' min';
+    const dag = date.toLocaleDateString('nb-NO', { weekday: 'long' });
+    return dag + ' kl. ' + klokke(date);
+  }
+  const RETNING = ['nord', 'nordøst', 'øst', 'sørøst', 'sør', 'sørvest', 'vest', 'nordvest'];
+  const himmelretning = az => RETNING[Math.round(((az % 360) + 360) % 360 / 45) % 8];
+
+  /* ---------- Tegning ---------- */
+  const CX = 160, CY = 160, R = 135;
+  function xy(az, el) {
+    const r = R * (90 - Math.max(0, el)) / 90;
+    return [CX + r * Math.sin(az / DEG), CY - r * Math.cos(az / DEG)];
+  }
+  const f1 = n => n.toFixed(1);
+
+  function drawPasses(state) {
+    let s = '';
+    for (const sat of state) {
+      if (!sat.pass) continue;
+      const d = sat.pass.pts.map((p, i) => {
+        const [x, y] = xy(p.az, p.el);
+        return (i ? 'L' : 'M') + f1(x) + ' ' + f1(y);
+      }).join('');
+      const first = sat.pass.pts[0];
+      const [sx, sy] = xy(first.az, first.el);
+      // Navnet står like innenfor horisonten der satellitten kommer opp
+      const [lx, ly] = xy(first.az, 14);
+      const anchor = lx > CX + 20 ? 'end' : lx < CX - 20 ? 'start' : 'middle';
+      s += '<path class="pass" d="' + d + '" stroke="' + sat.color + '"/>' +
+           '<circle cx="' + f1(sx) + '" cy="' + f1(sy) + '" r="3.5" fill="' + sat.color + '"/>' +
+           '<text class="pass-label" x="' + f1(lx) + '" y="' + f1(ly + 4) + '" text-anchor="' + anchor + '">' + sat.name + '</text>';
+    }
+    $('sky-passes').innerHTML = s;
   }
 
-  async function updateISS() {
-    const t = document.getElementById('ticker-iss-time');
-    const m = document.getElementById('ticker-iss-meta');
-    const sr = await fetchTLE('25544');
-    if (!sr) { t.textContent = 'TLE ikke tilgjengelig'; m.textContent = 'prøv igjen senere'; return; }
-    const p = nextPass(sr, 10, 24);
-    if (!p) { t.textContent = 'Ingen pass neste 24t'; m.textContent = 'over 10° elev'; return; }
-    t.textContent = fmtAhead(p.aos);
-    m.textContent = `${p.aos.toLocaleString('nb-NO',{hour:'2-digit',minute:'2-digit'})} · peak ${p.peakEl.toFixed(0)}°`;
+  function drawNow(state) {
+    let s = '';
+    const oppe = [];
+    for (const sat of state) {
+      if (!sat.satrec) continue;
+      const p = look(sat.satrec, new Date());
+      if (!p || p.el <= 0) continue;
+      oppe.push(sat.name + ' (' + Math.round(p.el) + '° i ' + himmelretning(p.az) + ')');
+      const [x, y] = xy(p.az, p.el);
+      s += '<circle class="now-ring" cx="' + f1(x) + '" cy="' + f1(y) + '" r="10" stroke="' + sat.color + '"/>' +
+           '<circle cx="' + f1(x) + '" cy="' + f1(y) + '" r="5" fill="' + sat.color + '" stroke="#fff" stroke-width="1.5"/>';
+    }
+    $('sky-now').innerHTML = s;
+    $('sky-caption').textContent = oppe.length
+      ? 'Over horisonten akkurat nå: ' + oppe.join(', ') + '.'
+      : 'Ingen av dem er over horisonten akkurat nå. Linjene viser neste pass, og prikken er der satellitten kommer opp.';
   }
 
-  async function updateMeteor() {
-    const t = document.getElementById('ticker-meteor-time');
-    const m = document.getElementById('ticker-meteor-meta');
-    const sr = await fetchTLE('59051');
-    if (!sr) { t.textContent = 'TLE ikke tilgjengelig'; m.textContent = '—'; return; }
-    const p = nextPass(sr, 60, 96);
-    if (!p) { t.textContent = 'Ingen ≥60° i 4 dager'; m.textContent = 'se meteor-guide'; return; }
-    t.textContent = fmtAhead(p.aos);
-    m.textContent = `${p.aos.toLocaleString('nb-NO',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})} · peak ${p.peakEl.toFixed(0)}°`;
-  }
-
-  async function updatePower() {
-    try {
-      const d = new Date();
-      const y = d.getFullYear(), mm = String(d.getMonth()+1).padStart(2,'0'), dd = String(d.getDate()).padStart(2,'0');
-      const r = await fetch(`https://www.hvakosterstrommen.no/api/v1/prices/${y}/${mm}-${dd}_NO3.json`);
-      if (!r.ok) return;
-      const data = await r.json();
-      const h = d.getHours();
-      const now = data.find(p => new Date(p.time_start).getHours() === h);
-      const avg = data.reduce((s,p) => s + p.NOK_per_kWh, 0) / data.length;
-      if (now) {
-        document.getElementById('ticker-power-now').textContent =
-          (now.NOK_per_kWh * 100 * 1.25).toFixed(1).replace('.', ',') + ' øre';
-        document.getElementById('ticker-power-meta').textContent =
-          `snitt i dag ${(avg * 100 * 1.25).toFixed(1).replace('.', ',')} øre`;
+  function writePasses(state) {
+    for (const sat of state) {
+      const big = $('pass-' + sat.key), sub = $('pass-' + sat.key + '-sub');
+      if (!sat.satrec) {
+        big.textContent = 'Fikk ikke banedata';
+        sub.textContent = 'CelesTrak svarte ikke. Prøv igjen senere.';
+      } else if (!sat.pass) {
+        big.textContent = 'Ingen pass over ' + sat.minEl + '°';
+        sub.textContent = sat.hours <= 24 ? 'De neste 24 timene' : 'De neste ' + (sat.hours / 24) + ' døgnene';
+      } else {
+        const p = sat.pass;
+        big.textContent = omHvorLenge(p.aos).replace(/^./, c => c.toUpperCase());
+        sub.textContent = 'Kl. ' + klokke(p.aos) + ' til ' + klokke(p.los) + ', høyest ' +
+          Math.round(p.top.el) + '° i ' + himmelretning(p.top.az);
       }
-    } catch (e) {}
+    }
   }
 
-  async function updateTide() {
+  const state = SATS.map(s => Object.assign({ satrec: null, pass: null }, s));
+  let loaded = false;
+
+  async function refreshPasses() {
+    if (typeof satellite === 'undefined') {
+      for (const sat of state) {
+        $('pass-' + sat.key).textContent = 'Fikk ikke lastet';
+        $('pass-' + sat.key + '-sub').textContent = 'Biblioteket for baneberegning kom ikke fram.';
+      }
+      return;
+    }
+    await Promise.all(state.map(async sat => {
+      sat.satrec = await getSatrec(sat.id);
+      sat.pass = sat.satrec ? nextPass(sat.satrec, sat.minEl, sat.hours) : null;
+    }));
+    loaded = true;
+    writePasses(state);
+    drawPasses(state);
+    drawNow(state);
+  }
+
+  /* ---------- Strøm ---------- */
+  async function refreshPower() {
+    const d = new Date();
+    const dato = d.getFullYear() + '/' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+    try {
+      const r = await fetch('https://www.hvakosterstrommen.no/api/v1/prices/' + dato + '_NO3.json');
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      const data = await r.json();
+      const now = data.find(p => new Date(p.time_start) <= d && d < new Date(p.time_end));
+      if (!now) throw new Error('fant ikke timen');
+      const snitt = data.reduce((s, p) => s + p.NOK_per_kWh, 0) / data.length;
+      $('power-now').textContent = nb(now.NOK_per_kWh * 125, 1) + ' øre/kWh';
+      $('power-sub').textContent = 'Snitt i dag ' + nb(snitt * 125, 1) + ' øre. Spotpris i NO3 med mva.';
+    } catch (e) {
+      $('power-now').textContent = 'Fikk ikke pris';
+      $('power-sub').textContent = 'hvakosterstrommen.no svarte ikke.';
+    }
+  }
+
+  /* ---------- Vannstand ---------- */
+  function parseTide(text) {
+    const rows = [];
+    for (const line of text.split('\n')) {
+      const m = line.trim().match(/^(\d{4})\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(-?\d+\.\d+)\s+(-?\d+\.\d+)\s+(-?\d+\.\d+)/);
+      if (m) rows.push({ t: Date.UTC(+m[1], +m[2] - 1, +m[3], +m[4], +m[5]), tide: +m[7], total: +m[8] });
+    }
+    return rows;
+  }
+  /* Dataene kommer hvert 10. minutt avrundet til cm, så toppene er flate.
+     Vi leter derfor etter platåer og bruker midten av dem. */
+  function nextTurn(rows, after) {
+    let i = 1;
+    while (i < rows.length - 1) {
+      let j = i;
+      while (j < rows.length - 1 && rows[j + 1].tide === rows[i].tide) j++;
+      if (j < rows.length - 1) {
+        const before = rows[i - 1].tide, here = rows[i].tide, next = rows[j + 1].tide;
+        const mid = rows[Math.floor((i + j) / 2)];
+        if (mid.t > after) {
+          if (here > before && here > next) return { type: 'Flo', row: mid };
+          if (here < before && here < next) return { type: 'Fjære', row: mid };
+        }
+      }
+      i = j + 1;
+    }
+    return null;
+  }
+  async function refreshTide() {
     try {
       const r = await fetch('https://api.met.no/weatherapi/tidalwater/1.1/?harbor=trondheim');
-      if (!r.ok) return;
-      const txt = await r.text();
-      const data = [];
-      for (const line of txt.split('\n')) {
-        const m = line.trim().match(/^(\d{4})\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(-?\d+\.\d+)\s+(-?\d+\.\d+)\s+(-?\d+\.\d+)/);
-        if (m) {
-          const [_, y, mo, d, h, mi, surge, tide, total] = m;
-          data.push({ t: new Date(Date.UTC(+y, +mo - 1, +d, +h, +mi)), tide: +tide, total: +total });
-        }
-      }
-      if (!data.length) return;
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      const rows = parseTide(await r.text());
+      if (!rows.length) throw new Error('ingen rader');
       const now = Date.now();
-      const c = data.reduce((a, b) => Math.abs(a.t - now) < Math.abs(b.t - now) ? a : b);
-      document.getElementById('ticker-tide-now').textContent =
-        `${c.total >= 0 ? '+' : ''}${c.total.toFixed(2)} m`;
-      let nt = null;
-      for (let i = 1; i < data.length - 1; i++) {
-        if (data[i].t.getTime() < now) continue;
-        const a = data[i-1].tide, b = data[i].tide, cN = data[i+1].tide;
-        if ((b > a && b > cN) || (b < a && b < cN)) {
-          nt = { t: data[i].t, type: b > a ? 'flo' : 'fjære', level: data[i].total };
-          break;
-        }
-      }
-      if (nt) {
-        document.getElementById('ticker-tide-meta').textContent =
-          `neste ${nt.type} ${nt.t.toLocaleString('nb-NO',{hour:'2-digit',minute:'2-digit'})} (${nt.level >= 0 ? '+' : ''}${nt.level.toFixed(2)} m)`;
-      }
-    } catch (e) {}
+      const near = rows.reduce((a, b) => Math.abs(a.t - now) < Math.abs(b.t - now) ? a : b);
+      $('tide-now').textContent = nb(near.total, 2) + ' m';
+      const turn = nextTurn(rows, now);
+      $('tide-sub').textContent = turn
+        ? turn.type + ' kl. ' + klokke(new Date(turn.row.t)) + ' (' + nb(turn.row.total, 2) + ' m). Trondheim havn, over middelvann.'
+        : 'Trondheim havn, over middelvann.';
+    } catch (e) {
+      $('tide-now').textContent = 'Fikk ikke vannstand';
+      $('tide-sub').textContent = 'MET svarte ikke.';
+    }
   }
 
-  function refresh() { updateISS(); updateMeteor(); updatePower(); updateTide(); }
-  if (typeof satellite !== 'undefined') refresh();
-  else setTimeout(refresh, 600);
-  setInterval(refresh, 5 * 60 * 1000);
+  refreshPasses();
+  refreshPower();
+  refreshTide();
+  setInterval(() => { if (loaded) drawNow(state); }, 5000);
+  setInterval(() => { if (loaded) writePasses(state); }, 30000);
+  setInterval(() => { refreshPasses(); refreshPower(); refreshTide(); }, 10 * 60 * 1000);
 })();
 </script>
 </body>

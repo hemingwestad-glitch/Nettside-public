@@ -1,100 +1,107 @@
 <!DOCTYPE html>
-<html lang="no" spellcheck="false">
+<html lang="nb">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="description" content="Pågående og avsluttede prosjekter — bakkestasjon, orbital propagator, ballistikk.">
-<title>Prosjekter — Heming Westad</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..700;1,9..144,400&family=Inter+Tight:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<title>Prosjekter | Heming Westad</title>
+<meta name="description" content="Det Heming Westad jobber med: Orbit NTNU, banepropagator, bakkestasjon hjemme og denne nettsiden.">
 <meta name="author" content="Heming Westad">
 <link rel="canonical" href="https://hemingwestad.no/projects.html">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <link rel="icon" href="/favicon.ico" sizes="any">
-<meta name="theme-color" content="#b8552e">
-<meta property="og:title" content="Prosjekter — Heming Westad">
-<meta property="og:description" content="Pågående og avsluttede prosjekter. Bakkestasjon, orbital propagator, ballistikk.">
-<meta property="og:image" content="https://hemingwestad.no/og-image.png">
+<meta name="theme-color" content="#ffffff">
+<meta property="og:title" content="Prosjekter | Heming Westad">
+<meta property="og:description" content="Det Heming Westad jobber med: Orbit NTNU, banepropagator, bakkestasjon hjemme og denne nettsiden.">
+<meta property="og:image" content="https://hemingwestad.no/og-image.jpg">
 <meta property="og:url" content="https://hemingwestad.no/projects.html">
 <meta property="og:type" content="website">
 <meta property="og:locale" content="nb_NO">
 <meta name="twitter:card" content="summary_large_image">
+<link rel="preload" href="/fonts/schibsted-grotesk-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="/style.css">
 </head>
 <body>
 <header>
-  <div class="logo"><a href="/">Heming Westad<span class="dot">.</span></a></div>
-  <nav>
+  <a class="site-name" href="/">Heming Westad</a>
+  <nav aria-label="Hovedmeny">
     <ul>
-      <li><a href="/">heim</a></li>
-      <li><a href="/tools.html">verktøy</a></li>
-      <li><a href="/projects.html" class="current">prosjekter</a></li>
-      <li><a href="/now.html">nå</a></li>
-      <li><a href="/about.html">om</a></li>
+      <li><a href="/tools.html">Verktøy</a></li>
+      <li><a href="/projects.html" class="current" aria-current="page">Prosjekter</a></li>
+      <li><a href="/about.html">Om</a></li>
     </ul>
   </nav>
 </header>
 
 <main>
-  <div class="page-meta fade-up">
-    <span>Prosjekter</span>
-    <span>Pågående og avsluttet</span>
-  </div>
-
-  <h1 class="fade-up">Det jeg <em>jobber med</em>.</h1>
-  <p class="lede fade-up">
-    Mest småprosjekter mellom skole og verv. Skrives ned her så jeg husker hva
-    jeg har gjort.
+  <h1>Prosjekter</h1>
+  <p class="lede">
+    Mest småprosjekter mellom skole og verv. Jeg skriver dem ned her så jeg
+    husker hva jeg har gjort.
   </p>
 
-  <h2 class="section-header">Pågående</h2>
+  <h2>Værbilder fra Meteor</h2>
+  <p>
+    Jeg tar ned værbilder direkte fra de russiske Meteor-satellittene med en
+    RTL-SDR, en dipolantenne og SatDump. Noen passeringer gir fine bilder,
+    andre gir mest striper.
+    <a href="/tools/meteor-guide.html">Guiden viser hele oppsettet og hva som går galt</a>.
+  </p>
+  <div class="photo-row">
+    <img src="/bilder/meteor/msu_mr_rgb_AVHRR_3a21_False_Color_corrected1.webp" width="1600" height="782" loading="lazy"
+         alt="Satellittbilde med en skyvirvel over Nordsjøen og Skandinavia til venstre.">
+    <img src="/bilder/meteor/msu_mr_rgb_AVHRR_221_False_Color_corrected.webp" width="1600" height="882" loading="lazy"
+         alt="Satellittbilde av Skandinavia med svarte bånd der signalet falt ut.">
+  </div>
+  <p class="caption">To av mine egne mottak. Det første er det beste så langt, det andre har bånd der mottakeren mistet signalet.</p>
 
+  <h2>Pågår</h2>
   <div class="uses-table">
     <div class="row">
       <div class="label">Orbit NTNU</div>
       <div class="value">
-        Programdirektør. Jobber med langtidsplan for studentsatellitt-foreningen
-        og overgang mellom prosjektgenerasjoner.
+        Jeg er programdirektør og jobber med langtidsplanen for foreningen og
+        med overgangen mellom prosjektgenerasjoner.
       </div>
     </div>
     <div class="row">
-      <div class="label">Orbital propagator</div>
+      <div class="label">Banepropagator</div>
       <div class="value">
-        Python-verktøy med SGP4, numerisk integrasjon (RK4 / DOP853), J2-J6
-        perturbasjoner, atmosfærisk drag, sol- og månegravitasjon, SRP og
-        pass-prediksjoner. Web-versjonen ligger som <a href="/tools/space.html">satellitt-arbeidsbordet</a>.
+        Python-verktøy med SGP4, numerisk integrasjon (RK4 og DOP853), J2 til J6,
+        atmosfærisk drag, gravitasjon fra sol og måne, strålingstrykk og
+        passberegning. Nettversjonen er <a href="/tools/space.html">satellittverktøyet</a>.
       </div>
     </div>
     <div class="row">
-      <div class="label">Hemingwestad.no</div>
+      <div class="label">Bakkestasjon hjemme</div>
       <div class="value">
-        Denne nettsiden. Statisk HTML, ingen build, kjører på Cloudflare
-        Workers. Oppdatert i bursts når jeg får nye idéer.
+        Mottak på VHF og UHF hjemme. Værbildene fra Meteor er på plass.
+        Neste mål er APRS-pakker.
       </div>
     </div>
     <div class="row">
-      <div class="label">Bakkestasjon</div>
+      <div class="label">Denne nettsiden</div>
       <div class="value">
-        UHF / VHF mottak hjemme. Sammen med antenne-design og link budget på
-        nettsiden. Mål: Motta bilder fra METEOR M2-4 og APRS-pakker.
+        Statisk HTML uten byggesteg, på Cloudflare Workers. Oppdateres i rykk
+        og napp når jeg får nye ideer.
       </div>
     </div>
   </div>
 
-  <h2 class="section-header">Avsluttet</h2>
+  <h2>Ferdig</h2>
   <div class="uses-table">
     <div class="row">
-      <div class="label">Ballistikk-tool</div>
+      <div class="label">Ballistikk</div>
       <div class="value">
-        Python-skript med G1/G7-modell og atmosfæriske korreksjoner. Portet til
-        nettleseren som <a href="/tools/wind.html">vindavdrift</a>.
+        Python-skript med G1- og G7-modell og korreksjon for atmosfære. Ligger nå
+        i nettleseren som <a href="/tools/wind.html">ballistikkverktøyet</a>.
       </div>
     </div>
     <div class="row">
-      <div class="label">Diverse småting</div>
+      <div class="label">Tidevann</div>
       <div class="value">
-        Mikrokontroller-prosjekter, KiCad-design, AutoCAD og SolidWorks. Ligger på GitHub.
+        Jeg ble nysgjerrig på tidevann etter en tur ut i Trondheimsfjorden og
+        bygde <a href="/tools/tides.html">tidevannsverktøyet</a> for å forstå
+        hvorfor M2-komponenten dominerer her.
       </div>
     </div>
   </div>
@@ -102,11 +109,13 @@
 
 <footer>
   <div class="footer-content">
-    <div>© 2026 — Heming Westad</div>
-    <div>Trondheim · <a href="https://github.com/hemingwestad-glitch/Nettside-public">kildekode</a></div>
+    <div>© 2026 Heming Westad, Trondheim</div>
+    <div class="footer-links">
+      <a href="mailto:heming@hemingwestad.no">E-post</a>
+      <a href="https://github.com/hemingwestad-glitch/Nettside-public">Kildekode</a>
+    </div>
   </div>
-
-  <div class="footer-disclaimer">Bygd sammen med Claude (Anthropic) som pair-programmer. Designvalg og fakta er mine.</div>
+  <div class="footer-disclaimer">Laget med hjelp fra Claude (Anthropic).</div>
 </footer>
 <script src="/common.js"></script>
 </body>

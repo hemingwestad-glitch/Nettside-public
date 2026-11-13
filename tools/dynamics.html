@@ -1,21 +1,18 @@
 <!DOCTYPE html>
-<html lang="no" spellcheck="false">
+<html lang="nb">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Dynamikk-sandkasse — Heming Westad</title>
+<title>Dynamikk i 3D | Heming Westad</title>
 <meta name="description" content="3D numerisk integrasjon. Tre-legeme, dobbel pendel, Lorenz-attraktor, kjedet pendel. RK4-integrasjon i nettleseren.">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..700;1,9..144,400&family=Inter+Tight:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <meta name="author" content="Heming Westad">
 <link rel="canonical" href="https://hemingwestad.no/tools/dynamics.html">
 <link rel="icon" href="../favicon.svg" type="image/svg+xml">
 <link rel="icon" href="../favicon.ico" sizes="any">
-<meta name="theme-color" content="#0a0d14">
-<meta property="og:title" content="Dynamikk-sandkasse — Heming Westad">
+<meta name="theme-color" content="#ffffff">
+<meta property="og:title" content="Dynamikk i 3D | Heming Westad">
 <meta property="og:description" content="3D RK4 av Lorenz, dobbel pendel, tre-legeme og mer.">
-<meta property="og:image" content="https://hemingwestad.no/og-image.png">
+<meta property="og:image" content="https://hemingwestad.no/og-image.jpg">
 <meta property="og:url" content="https://hemingwestad.no/tools/dynamics.html">
 <meta property="og:type" content="website">
 <meta property="og:locale" content="nb_NO">
@@ -47,7 +44,7 @@
   .sim-canvas {
     aspect-ratio: 16/10;
     background: radial-gradient(circle at 20% 20%, rgba(124, 193, 183, 0.12), transparent 18%),
-                radial-gradient(circle at 80% 15%, rgba(74, 107, 122, 0.10), transparent 20%),
+                radial-gradient(circle at 80% 15%, rgba(31, 74, 196, 0.10), transparent 20%),
                 linear-gradient(180deg, #090c11 0%, #0c1016 40%, #0f1319 100%);
     position: relative;
     border-radius: 1rem;
@@ -62,9 +59,9 @@
     padding: 0.9rem 1rem;
     border-radius: 999px;
     background: rgba(12, 15, 23, 0.86);
-    font-family: 'JetBrains Mono', monospace;
+    font-family: 'Schibsted Grotesk', sans-serif;
     font-size: 0.72rem;
-    color: rgba(245, 241, 234, 0.95);
+    color: rgba(255, 255, 255, 0.95);
     pointer-events: none;
     line-height: 1.4;
     text-shadow: 0 1px 3px rgba(0,0,0,0.45);
@@ -79,8 +76,8 @@
     padding: 0.75rem 1rem;
     border-radius: 0.85rem;
     background: rgba(12, 15, 23, 0.72);
-    color: rgba(245, 241, 234, 0.92);
-    font-family: 'JetBrains Mono', monospace;
+    color: rgba(255, 255, 255, 0.92);
+    font-family: 'Schibsted Grotesk', sans-serif;
     font-size: 0.78rem;
     line-height: 1.4;
     letter-spacing: 0.02em;
@@ -101,7 +98,7 @@
     gap: 0.25rem;
   }
   .control-group .val {
-    font-family: 'JetBrains Mono', monospace;
+    font-family: 'Schibsted Grotesk', sans-serif;
     font-size: 0.75rem;
     color: var(--ink-soft);
   }
@@ -116,7 +113,6 @@
     padding: 0.75rem 1rem;
     font-family: var(--font-mono);
     font-size: 0.88rem;
-    letter-spacing: 0.04em;
     background: rgba(124, 193, 183, 0.12);
     color: #e9f3f5;
     border: 1px solid rgba(124, 193, 183, 0.22);
@@ -143,39 +139,28 @@
     background: rgba(124, 193, 183, 0.08);
     color: var(--accent-soft);
     font-size: 0.72rem;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
   }
 </style>
 </head>
 <body>
 <header>
-  <div class="logo"><a href="/">Heming Westad<span class="dot">.</span></a></div>
-  <nav>
+  <a class="site-name" href="/">Heming Westad</a>
+  <nav aria-label="Hovedmeny">
     <ul>
-      <li><a href="/">heim</a></li>
-      <li><a href="/tools.html" class="current">verktøy</a></li>
-      <li><a href="/projects.html">prosjekter</a></li>
-      <li><a href="/now.html">nå</a></li>
-      <li><a href="/about.html">om</a></li>
+      <li><a href="/tools.html" class="current">Verktøy</a></li>
+      <li><a href="/projects.html">Prosjekter</a></li>
+      <li><a href="/about.html">Om</a></li>
     </ul>
   </nav>
 </header>
 
 <main>
-  <div class="page-meta fade-up">
-    <span>Dynamikk</span>
-    <span>Numerisk integrasjon — RK4</span>
-    <span>Three.js</span>
-    <span class="meta-pill" id="system-tag"></span>
-  </div>
 
-  <h1 class="fade-up">Dynamikk-<em>sandkasse</em>.</h1>
-  <p class="lede fade-up">
-    Klassiske dynamiske systemer integrert i sanntid med fjerde ordens
-    Runge-Kutta. Velg system, dra rundt med musa, juster parametre. Alt
-    kjører lokalt i nettleseren.
+  <h1>Dynamikk i 3D</h1>
+  <p class="lede">
+    Klassiske dynamiske systemer integrert i sanntid med fjerde ordens Runge-Kutta. Velg system, dra rundt med musa og juster parametrene.
   </p>
+  <p class="page-status"><span class="meta-pill" id="system-tag"></span></p>
 
   <div class="sys-buttons" id="system-buttons"></div>
 
@@ -226,11 +211,14 @@
 
 <footer>
   <div class="footer-content">
-    <div>© 2026 — Heming Westad</div>
-    <div>Trondheim · <a href="https://github.com/hemingwestad-glitch/Nettside-public">kildekode</a></div>
+    <div>© 2026 Heming Westad, Trondheim</div>
+    <div class="footer-links">
+      <a href="/tools.html">Alle verktøy</a>
+      <a href="mailto:heming@hemingwestad.no">E-post</a>
+      <a href="https://github.com/hemingwestad-glitch/Nettside-public">Kildekode</a>
+    </div>
   </div>
-
-  <div class="footer-disclaimer">Bygd sammen med Claude (Anthropic) som pair-programmer. Designvalg og fakta er mine.</div>
+  <div class="footer-disclaimer">Laget med hjelp fra Claude (Anthropic).</div>
 </footer>
 
 <script src="../common.js"></script>
@@ -311,7 +299,7 @@ const SYSTEMS = {
       ]);
     },
     bodies(state) {
-      return [{ pos: [state[0], state[2] - 25, state[1]], color: 0xb8552e, size: 0.6 }];
+      return [{ pos: [state[0], state[2] - 25, state[1]], color: 0xe8590c, size: 0.6 }];
     }
   },
 
@@ -369,7 +357,7 @@ const SYSTEMS = {
       return [
         { pos: [0, 0, 0], color: 0x6b645b, size: 0.1 },
         { pos: [x1, y1, 0], color: 0x4a6b7a, size: 0.2 + 0.05 * Math.sqrt(p.m1) },
-        { pos: [x2, y2, 0], color: 0xb8552e, size: 0.2 + 0.05 * Math.sqrt(p.m2) },
+        { pos: [x2, y2, 0], color: 0xe8590c, size: 0.2 + 0.05 * Math.sqrt(p.m2) },
       ];
     },
     rods(state, p) {
@@ -455,7 +443,7 @@ const SYSTEMS = {
     },
     bodies(state) {
       return [
-        { pos: [state[0], state[1], state[2]], color: 0xb8552e, size: 0.08, trailIdx: 0 },
+        { pos: [state[0], state[1], state[2]], color: 0xe8590c, size: 0.08, trailIdx: 0 },
         { pos: [state[3], state[4], state[5]], color: 0x4a6b7a, size: 0.08, trailIdx: 1 },
         { pos: [state[6], state[7], state[8]], color: 0x5a6b3e, size: 0.08, trailIdx: 2 },
       ];
@@ -515,7 +503,7 @@ const SYSTEMS = {
     derivs: SYSTEMS_derivs_threebody, // referer fram - vi setter etter
     bodies(state) {
       return [
-        { pos: [state[0], state[1], state[2]], color: 0xb8552e, size: 0.1, trailIdx: 0 },
+        { pos: [state[0], state[1], state[2]], color: 0xe8590c, size: 0.1, trailIdx: 0 },
         { pos: [state[3], state[4], state[5]], color: 0x4a6b7a, size: 0.1, trailIdx: 1 },
         { pos: [state[6], state[7], state[8]], color: 0x5a6b3e, size: 0.1, trailIdx: 2 },
       ];
@@ -585,7 +573,7 @@ const SYSTEMS = {
         const isLast = i === n - 1;
         bodies.push({
           pos: [x, y, 0],
-          color: isLast ? 0xb8552e : 0x4a6b7a,
+          color: isLast ? 0xe8590c : 0x4a6b7a,
           size: 0.12,
           trailIdx: isLast ? bodies.length : null
         });
@@ -639,7 +627,7 @@ const SYSTEMS = {
       ]);
     },
     bodies(state) {
-      return [{ pos: [state[0], state[2] - 5, state[1]], color: 0xb8552e, size: 0.3 }];
+      return [{ pos: [state[0], state[2] - 5, state[1]], color: 0xe8590c, size: 0.3 }];
     }
   }
 };

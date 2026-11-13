@@ -1,21 +1,18 @@
 <!DOCTYPE html>
-<html lang="no" spellcheck="false">
+<html lang="nb">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Tidevann i Trondheim — Heming Westad</title>
+<title>Tidevann | Heming Westad</title>
 <meta name="description" content="Live tidevannsdata for Trondheim havn fra MET Norway. Fourier-sandkasse med harmoniske komponenter (M2, S2, K1, O1).">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..700;1,9..144,400&family=Inter+Tight:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <meta name="author" content="Heming Westad">
 <link rel="canonical" href="https://hemingwestad.no/tools/tides.html">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <link rel="icon" href="/favicon.ico" sizes="any">
-<meta name="theme-color" content="#b8552e">
-<meta property="og:title" content="Tidevann i Trondheim — Heming Westad">
+<meta name="theme-color" content="#ffffff">
+<meta property="og:title" content="Tidevann | Heming Westad">
 <meta property="og:description" content="Live tidevannsdata fra MET og Fourier-sandkasse.">
-<meta property="og:image" content="https://hemingwestad.no/og-image.png">
+<meta property="og:image" content="https://hemingwestad.no/og-image.jpg">
 <meta property="og:url" content="https://hemingwestad.no/tools/tides.html">
 <meta property="og:type" content="website">
 <meta property="og:locale" content="nb_NO">
@@ -24,31 +21,21 @@
 </head>
 <body>
 <header>
-  <div class="logo"><a href="/">Heming Westad<span class="dot">.</span></a></div>
-  <nav>
+  <a class="site-name" href="/">Heming Westad</a>
+  <nav aria-label="Hovedmeny">
     <ul>
-      <li><a href="/">heim</a></li>
-      <li><a href="/tools.html" class="current">verktøy</a></li>
-      <li><a href="/projects.html">prosjekter</a></li>
-      <li><a href="/now.html">nå</a></li>
-      <li><a href="/about.html">om</a></li>
+      <li><a href="/tools.html" class="current">Verktøy</a></li>
+      <li><a href="/projects.html">Prosjekter</a></li>
+      <li><a href="/about.html">Om</a></li>
     </ul>
   </nav>
 </header>
 
 <main>
-  <div class="page-meta fade-up">
-    <span><span class="dot live"></span>Tidevann</span>
-    <span>Trondheim havn</span>
-    <span>Kilde: MET Norway</span>
-  </div>
 
-  <h1 class="fade-up">Tidevann i <em id="harbor-name">Trondheim</em>.</h1>
-  <p class="lede fade-up">
-    Trondheimsfjorden har en av de mest markante tidevannsforskjellene på
-    norskekysten — opp mot 3 meter mellom flo og fjære. Variasjonen er
-    nesten utelukkende drevet av månens M2-komponent (12,42 timers periode),
-    med små bidrag fra solen og månens elliptiske bane.
+  <h1>Tidevann i <span id="harbor-name">Trondheim</span></h1>
+  <p class="lede">
+    Trondheimsfjorden har en av de største tidevannsforskjellene på norskekysten, opp mot 3 meter mellom flo og fjære. Nesten alt skyldes månens M2-komponent (periode 12,42 timer), med små bidrag fra sola og fra månens elliptiske bane. Dataene kommer fra MET.
   </p>
 
   <div class="panel" style="margin-bottom: 1rem;">
@@ -210,11 +197,14 @@
 
 <footer>
   <div class="footer-content">
-    <div>© 2026 — Heming Westad</div>
-    <div>Trondheim · <a href="https://github.com/hemingwestad-glitch/Nettside-public">kildekode</a></div>
+    <div>© 2026 Heming Westad, Trondheim</div>
+    <div class="footer-links">
+      <a href="/tools.html">Alle verktøy</a>
+      <a href="mailto:heming@hemingwestad.no">E-post</a>
+      <a href="https://github.com/hemingwestad-glitch/Nettside-public">Kildekode</a>
+    </div>
   </div>
-
-  <div class="footer-disclaimer">Bygd sammen med Claude (Anthropic) som pair-programmer. Designvalg og fakta er mine.</div>
+  <div class="footer-disclaimer">Laget med hjelp fra Claude (Anthropic).</div>
 </footer>
 
 <script src="/common.js"></script>
@@ -263,19 +253,28 @@ function parseTidalWater(text) {
 }
 
 function findExtremes(data) {
-  // Finn lokale maks og min på TIDE-komponenten
+  // Finn lokale maks og min på TIDE-komponenten.
+  // MET gir verdier hvert 10. minutt avrundet til cm, så toppene er flate.
+  // Derfor leter vi etter platåer og bruker midten av hvert platå.
   const ext = [];
-  for (let i = 1; i < data.length - 1; i++) {
-    const a = data[i - 1].tide, b = data[i].tide, c = data[i + 1].tide;
-    if (b > a && b > c) ext.push({ time: data[i].time, level: data[i].total, type: 'high' });
-    if (b < a && b < c) ext.push({ time: data[i].time, level: data[i].total, type: 'low' });
+  let i = 1;
+  while (i < data.length - 1) {
+    let j = i;
+    while (j < data.length - 1 && data[j + 1].tide === data[i].tide) j++;
+    if (j < data.length - 1) {
+      const before = data[i - 1].tide, here = data[i].tide, after = data[j + 1].tide;
+      const mid = data[Math.floor((i + j) / 2)];
+      if (here > before && here > after) ext.push({ time: mid.time, level: mid.total, type: 'high' });
+      if (here < before && here < after) ext.push({ time: mid.time, level: mid.total, type: 'low' });
+    }
+    i = j + 1;
   }
   return ext;
 }
 
 function renderLiveChart(svg, data) {
   if (!data || data.length === 0) {
-    svg.innerHTML = '<text x="400" y="160" text-anchor="middle" fill="#9a9087" font-family="JetBrains Mono" font-size="14">Klarte ikke hente tidevannsdata.</text>';
+    svg.innerHTML = '<text x="400" y="160" text-anchor="middle" fill="#6f7775" font-family="Schibsted Grotesk" font-size="14">Klarte ikke hente tidevannsdata.</text>';
     return;
   }
 
@@ -301,14 +300,14 @@ function renderLiveChart(svg, data) {
   // Y-rutenett (0.5m intervaller)
   for (let v = Math.ceil(min * 2) / 2; v <= max; v += 0.5) {
     const y = yScale(v);
-    s += `<line x1="${m.l}" y1="${y}" x2="${W - m.r}" y2="${y}" stroke="#e6e0d2"/>`;
-    s += `<text x="${m.l - 6}" y="${y + 4}" text-anchor="end" fill="#9a9087" font-family="JetBrains Mono" font-size="10">${v.toFixed(1)}</text>`;
+    s += `<line x1="${m.l}" y1="${y}" x2="${W - m.r}" y2="${y}" stroke="#e3e7e3"/>`;
+    s += `<text x="${m.l - 6}" y="${y + 4}" text-anchor="end" fill="#6f7775" font-family="Schibsted Grotesk" font-size="10">${v.toFixed(1)}</text>`;
   }
 
   // Null-linje
   if (min < 0 && max > 0) {
     const y0 = yScale(0);
-    s += `<line x1="${m.l}" y1="${y0}" x2="${W - m.r}" y2="${y0}" stroke="#6b645b" stroke-dasharray="3,3"/>`;
+    s += `<line x1="${m.l}" y1="${y0}" x2="${W - m.r}" y2="${y0}" stroke="#596160" stroke-dasharray="3,3"/>`;
   }
 
   // Dato-tikker (hver 12. time)
@@ -317,12 +316,12 @@ function renderLiveChart(svg, data) {
   while (dt.getTime() < t1) {
     if (dt.getUTCHours() % 12 === 0) {
       const x = xScale(dt.getTime());
-      s += `<line x1="${x}" y1="${m.t}" x2="${x}" y2="${m.t + h}" stroke="#e6e0d2"/>`;
+      s += `<line x1="${x}" y1="${m.t}" x2="${x}" y2="${m.t + h}" stroke="#e3e7e3"/>`;
       const local = new Date(dt);
       const lab = dt.getUTCHours() === 0
         ? local.toLocaleDateString('nb-NO', { day: '2-digit', month: '2-digit' })
         : '12';
-      s += `<text x="${x}" y="${H - m.b + 14}" text-anchor="middle" fill="#6b645b" font-family="JetBrains Mono" font-size="10">${lab}</text>`;
+      s += `<text x="${x}" y="${H - m.b + 14}" text-anchor="middle" fill="#596160" font-family="Schibsted Grotesk" font-size="10">${lab}</text>`;
     }
     dt = new Date(dt.getTime() + 60 * 60 * 1000);
   }
@@ -349,15 +348,15 @@ function renderLiveChart(svg, data) {
   if (tNow >= t0 && tNow <= t1) {
     const x = xScale(tNow);
     s += `<line x1="${x}" y1="${m.t}" x2="${x}" y2="${m.t + h}" stroke="var(--ink)" stroke-width="1.5"/>`;
-    s += `<text x="${x + 4}" y="${m.t + 12}" fill="var(--ink)" font-family="JetBrains Mono" font-size="10">NÅ</text>`;
+    s += `<text x="${x + 4}" y="${m.t + 12}" fill="var(--ink)" font-family="Schibsted Grotesk" font-size="10">NÅ</text>`;
   }
 
   // Forklaring
   s += `<g transform="translate(${m.l + 8}, ${m.t + 8})">
     <line x1="0" y1="6" x2="20" y2="6" stroke="var(--accent)" stroke-width="2"/>
-    <text x="24" y="9" fill="#3d3833" font-family="JetBrains Mono" font-size="10">total</text>
+    <text x="24" y="9" fill="#34393a" font-family="Schibsted Grotesk" font-size="10">total</text>
     <line x1="64" y1="6" x2="84" y2="6" stroke="var(--blue)" stroke-width="1" stroke-dasharray="2,2" opacity="0.7"/>
-    <text x="88" y="9" fill="#3d3833" font-family="JetBrains Mono" font-size="10">kun astronomisk</text>
+    <text x="88" y="9" fill="#34393a" font-family="Schibsted Grotesk" font-size="10">kun astronomisk</text>
   </g>`;
 
   svg.innerHTML = s;
@@ -445,20 +444,20 @@ function renderHarmonic() {
   // Rutenett (0.5m)
   for (let v = Math.ceil(min * 2) / 2; v <= max; v += 0.5) {
     const y = yScale(v);
-    s += `<line x1="${m.l}" y1="${y}" x2="${W - m.r}" y2="${y}" stroke="#e6e0d2"/>`;
-    s += `<text x="${m.l - 6}" y="${y + 4}" text-anchor="end" fill="#9a9087" font-family="JetBrains Mono" font-size="10">${v.toFixed(1)}</text>`;
+    s += `<line x1="${m.l}" y1="${y}" x2="${W - m.r}" y2="${y}" stroke="#e3e7e3"/>`;
+    s += `<text x="${m.l - 6}" y="${y + 4}" text-anchor="end" fill="#6f7775" font-family="Schibsted Grotesk" font-size="10">${v.toFixed(1)}</text>`;
   }
 
   // Døgnlinjer
   for (let d = 0; d <= days; d++) {
     const x = xScale(d * 24);
-    s += `<line x1="${x}" y1="${m.t}" x2="${x}" y2="${m.t + h}" stroke="#e6e0d2"/>`;
-    s += `<text x="${x}" y="${H - m.b + 14}" text-anchor="middle" fill="#6b645b" font-family="JetBrains Mono" font-size="10">d${d}</text>`;
+    s += `<line x1="${x}" y1="${m.t}" x2="${x}" y2="${m.t + h}" stroke="#e3e7e3"/>`;
+    s += `<text x="${x}" y="${H - m.b + 14}" text-anchor="middle" fill="#596160" font-family="Schibsted Grotesk" font-size="10">d${d}</text>`;
   }
 
   // 0-linje
   if (min < 0 && max > 0) {
-    s += `<line x1="${m.l}" y1="${yScale(0)}" x2="${W - m.r}" y2="${yScale(0)}" stroke="#6b645b" stroke-dasharray="3,3"/>`;
+    s += `<line x1="${m.l}" y1="${yScale(0)}" x2="${W - m.r}" y2="${yScale(0)}" stroke="#596160" stroke-dasharray="3,3"/>`;
   }
 
   // Sammensatt kurve
@@ -471,7 +470,7 @@ function renderHarmonic() {
   // Topp-info
   const ampPp = max - min;
   s += `<g transform="translate(${W - m.r - 6}, ${m.t + 4})">
-    <text x="0" y="10" text-anchor="end" fill="#3d3833" font-family="JetBrains Mono" font-size="10">peak-to-peak: ${ampPp.toFixed(2)} m</text>
+    <text x="0" y="10" text-anchor="end" fill="#34393a" font-family="Schibsted Grotesk" font-size="10">peak-to-peak: ${ampPp.toFixed(2)} m</text>
   </g>`;
 
   svg.innerHTML = s;
@@ -488,7 +487,7 @@ function renderComponents() {
   const samples = 600;
   const enabled = COMPONENTS.filter(c => c.enabled);
   if (enabled.length === 0) {
-    svg.innerHTML = '<text x="400" y="180" text-anchor="middle" fill="#9a9087" font-family="JetBrains Mono" font-size="14">Ingen komponenter aktive</text>';
+    svg.innerHTML = '<text x="400" y="180" text-anchor="middle" fill="#6f7775" font-family="Schibsted Grotesk" font-size="14">Ingen komponenter aktive</text>';
     return;
   }
 
@@ -513,7 +512,7 @@ function renderComponents() {
     const xScale = t => 50 + (t / (days * 24)) * (W - 70);
     const yScale = v => yMid - (v / ampMax) * ((yMin - yMax) / 2);
 
-    s += `<line x1="50" y1="${yMid}" x2="${W-20}" y2="${yMid}" stroke="#e6e0d2"/>`;
+    s += `<line x1="50" y1="${yMid}" x2="${W-20}" y2="${yMid}" stroke="#e3e7e3"/>`;
 
     let path = '';
     points.forEach((p, i) => {
@@ -521,8 +520,8 @@ function renderComponents() {
     });
     s += `<path d="${path}" fill="none" stroke="${c.color}" stroke-width="1.5"/>`;
 
-    s += `<text x="50" y="${yTop + 12}" fill="${c.color}" font-family="JetBrains Mono" font-size="11" font-weight="600">${c.id}</text>`;
-    s += `<text x="${50 + 30}" y="${yTop + 12}" fill="#6b645b" font-family="JetBrains Mono" font-size="10">${c.amp.toFixed(2)} m × cos(2π·t/${c.period.toFixed(2)})</text>`;
+    s += `<text x="50" y="${yTop + 12}" fill="${c.color}" font-family="Schibsted Grotesk" font-size="11" font-weight="600">${c.id}</text>`;
+    s += `<text x="${50 + 30}" y="${yTop + 12}" fill="#596160" font-family="Schibsted Grotesk" font-size="10">${c.amp.toFixed(2)} m × cos(2π·t/${c.period.toFixed(2)})</text>`;
   });
 
   svg.innerHTML = s;
@@ -540,7 +539,7 @@ async function init() {
 
   if (!data) {
     document.getElementById('chart-live').innerHTML =
-      '<text x="400" y="160" text-anchor="middle" fill="#9a9087" font-family="JetBrains Mono" font-size="14">Klarte ikke hente data fra MET. Prøv igjen senere.</text>';
+      '<text x="400" y="160" text-anchor="middle" fill="#6f7775" font-family="Schibsted Grotesk" font-size="14">Klarte ikke hente data fra MET. Prøv igjen senere.</text>';
     return;
   }
 
@@ -606,7 +605,7 @@ document.getElementById('harbor-select').addEventListener('change', e => {
   // Oppdater page-meta også
   const metaCells = document.querySelectorAll('.page-meta span');
   if (metaCells.length >= 2) metaCells[1].textContent = niceName + ' havn';
-  document.title = `Tidevann i ${niceName} — Heming Westad`;
+  document.title = `Tidevann i ${niceName} | Heming Westad`;
   init();
 });
 
